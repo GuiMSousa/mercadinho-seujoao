@@ -1,0 +1,20 @@
+# Keep the build context small and free of secrets.
+.git
+.github
+node_modules
+.next
+out
+build
+coverage
+graphify-out
+.agents
+.claude
+.codex
+.vercel
+.env*
+*.pem
+*.log
+*.tsbuildinfo
+Dockerfile
+.dockerignore
+compose.yaml

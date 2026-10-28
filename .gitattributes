@@ -1,0 +1,2 @@
+# LF everywhere (Prettier checks LF); Git detects binaries automatically.
+* text=auto eol=lf
