@@ -34,6 +34,13 @@ it("blocks a CASHIER on ADMIN-only API routes and pages with 403", async () => {
   expect((await request("/admin", "CASHIER")).status).toBe(403);
 });
 
+it("reads the session cookie on page navigation after login", async () => {
+  for (const pathname of ["/", "/vendas"]) {
+    const response = await request(pathname, "CASHIER");
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  }
+});
+
 it("lets an ADMIN through to ADMIN-only routes", async () => {
   const response = await request("/api/admin/users", "ADMIN");
   expect(response.headers.get("x-middleware-next")).toBe("1");

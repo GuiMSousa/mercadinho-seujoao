@@ -22,10 +22,12 @@ function login(
   ip: string,
   body: unknown = { username: "Maria", password: "senha" },
   origin?: string,
+  extraHeaders: Record<string, string> = {},
 ) {
   const headers = new Headers({
     "content-type": "application/json",
     "x-forwarded-for": ip,
+    ...extraHeaders,
   });
   if (origin) headers.set("origin", origin);
   return POST(
@@ -65,6 +67,28 @@ it("opens a session with an HTTP-only JWT cookie and a contract-valid body", asy
   expect(session?.sameSite).toBe("lax");
   expect(session?.value.split(".")).toHaveLength(3);
   expect(response.cookies.get(CSRF_COOKIE)?.value).toBe(body.csrfToken);
+});
+
+it("sets site-wide Lax cookies that are Secure only over HTTPS", async () => {
+  vi.mocked(authenticate).mockResolvedValue({
+    id: "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3b",
+    username: "maria",
+    role: "CASHIER",
+  });
+  // Plain HTTP (dev, LAN): a Secure cookie would be dropped and the next request would look anonymous.
+  const http = await login("198.51.100.4");
+  for (const name of [SESSION_COOKIE, CSRF_COOKIE]) {
+    expect(http.cookies.get(name)).toMatchObject({
+      path: "/",
+      sameSite: "lax",
+      secure: false,
+    });
+  }
+  // Behind Cloudflare Tunnel the original scheme arrives in x-forwarded-proto.
+  const tunnel = await login("198.51.100.5", undefined, undefined, {
+    "x-forwarded-proto": "https",
+  });
+  expect(tunnel.cookies.get(SESSION_COOKIE)?.secure).toBe(true);
 });
 
 it("rejects malformed bodies and cross-origin logins without checking credentials", async () => {
