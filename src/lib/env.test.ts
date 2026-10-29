@@ -54,6 +54,8 @@ describe("server environment", () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("RESEND_API_KEY", "");
     expect(getResendApiKey()).toBeUndefined();
+    vi.stubEnv("RESEND_API_KEY", "   ");
+    expect(getResendApiKey()).toBeUndefined();
     vi.stubEnv("RESEND_API_KEY", "re_test_key");
     expect(getResendApiKey()).toBe("re_test_key");
     vi.stubEnv("NODE_ENV", "production");
@@ -64,6 +66,8 @@ describe("server environment", () => {
   it("defaults the sender outside production and requires it in production", () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("MAIL_FROM", undefined);
+    expect(getMailFrom()).toBe("Mkt Control <no-reply@localhost>");
+    vi.stubEnv("MAIL_FROM", "   ");
     expect(getMailFrom()).toBe("Mkt Control <no-reply@localhost>");
     vi.stubEnv("MAIL_FROM", "Loja <oi@example.com>");
     expect(getMailFrom()).toBe("Loja <oi@example.com>");

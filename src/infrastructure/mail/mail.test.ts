@@ -78,10 +78,12 @@ describe("mail templates", () => {
       subject: "Seu código do Mkt Control",
     });
     expect(signupCodeMail("123456").text).toContain("123456");
+    expect(signupCodeMail("123456").text).toContain("10 minutos");
     expect(resetCodeMail("654321")).toMatchObject({
       subject: "Redefinição de senha do Mkt Control",
     });
     expect(resetCodeMail("654321").text).toContain("654321");
+    expect(resetCodeMail("654321").text).toContain("10 minutos");
   });
 
   it("explains the invite flow with the recovery page, e-mail and code", () => {
@@ -95,5 +97,6 @@ describe("mail templates", () => {
     expect(mail.text).toContain("Loja Centro");
     expect(mail.text).toContain("111222");
     expect(mail.text).toContain("/recuperar");
+    expect(mail.text).toContain("48 horas");
   });
 });
