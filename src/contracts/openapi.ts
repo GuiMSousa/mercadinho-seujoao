@@ -1,4 +1,8 @@
-import { z } from "zod";
+import {
+  accountResponseSchema,
+  changePasswordSchema,
+  revokedSessionsSchema,
+} from "./account";
 import { activityPageSchema } from "./activity";
 import {
   CSRF_HEADER,
@@ -14,39 +18,23 @@ import {
   signupRequestSchema,
   signupResendSchema,
   signupVerifySchema,
-  usersListResponseSchema,
 } from "./auth";
-
-// OpenAPI 3.1 schemas are JSON Schema 2020-12, which is what Zod emits; only $schema is dropped.
-function jsonSchema(schema: z.ZodType, io: "input" | "output" = "output") {
-  const json = z.toJSONSchema(schema, { io });
-  delete json.$schema;
-  return json;
-}
-
-const json = (name: string) => ({
-  "application/json": { schema: { $ref: `#/components/schemas/${name}` } },
-});
-const error = (description: string) => ({
-  description,
-  content: json("Error"),
-});
-const formError = (description: string) => ({
-  description,
-  content: json("FormError"),
-});
-const retryAfter = {
-  "Retry-After": {
-    description: "Segundos até a próxima tentativa.",
-    schema: { type: "integer" },
-  },
-};
-const tooMany = (description: string) => ({
-  description,
-  headers: retryAfter,
-  content: json("Error"),
-});
-const body = (name: string) => ({ required: true, content: json(name) });
+import { adminPaths } from "./openapi-admin";
+import {
+  body,
+  error,
+  formError,
+  json,
+  jsonSchema,
+  tooMany,
+} from "./openapi-helpers";
+import { storeResponseSchema, updateStoreSchema } from "./store";
+import {
+  inviteUserSchema,
+  updateUserSchema,
+  userRowSchema,
+  usersListResponseSchema,
+} from "./users";
 
 /** The API contract. `npm run spec:generate` writes it to openapi.json; `npm run spec:check` verifies both. */
 export function buildOpenApiDocument() {
@@ -75,7 +63,15 @@ export function buildOpenApiDocument() {
           passwordResetConfirmSchema,
           "input",
         ),
+        AccountResponse: jsonSchema(accountResponseSchema),
+        ChangePasswordRequest: jsonSchema(changePasswordSchema, "input"),
+        RevokedSessions: jsonSchema(revokedSessionsSchema),
+        StoreResponse: jsonSchema(storeResponseSchema),
+        UpdateStoreRequest: jsonSchema(updateStoreSchema, "input"),
+        UserRow: jsonSchema(userRowSchema),
         UsersList: jsonSchema(usersListResponseSchema),
+        InviteUserRequest: jsonSchema(inviteUserSchema, "input"),
+        UpdateUserRequest: jsonSchema(updateUserSchema, "input"),
         ActivityPage: jsonSchema(activityPageSchema),
         Error: jsonSchema(errorResponseSchema),
         FormError: jsonSchema(formErrorSchema),
@@ -219,17 +215,7 @@ export function buildOpenApiDocument() {
           },
         },
       },
-      "/api/admin/users": {
-        get: {
-          summary: "Lista os usuários (somente ADMIN)",
-          security: [{ session: [] }],
-          responses: {
-            "200": { description: "Usuários.", content: json("UsersList") },
-            "401": error("Sem sessão."),
-            "403": error("Perfil sem permissão (CASHIER)."),
-          },
-        },
-      },
+      ...adminPaths,
       "/api/admin/activity": {
         get: {
           summary:

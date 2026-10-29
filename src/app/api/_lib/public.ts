@@ -15,7 +15,7 @@ import { errorResponse, guard, setSessionCookies } from "./guard";
 
 type Limiter = ReturnType<typeof createRateLimiter>;
 
-function validationResponse(error: z.ZodError) {
+export function validationResponse(error: z.ZodError) {
   const fields: Record<string, string> = {};
   for (const issue of error.issues)
     fields[String(issue.path[0] ?? "form")] ??= issue.message;
@@ -25,7 +25,7 @@ function validationResponse(error: z.ZodError) {
   );
 }
 
-function serviceErrorResponse(error: ServiceError) {
+export function serviceErrorResponse(error: ServiceError) {
   const { fields, retryAfterSeconds } = error.options;
   return NextResponse.json(
     { error: error.message, ...(fields && { fields }) },

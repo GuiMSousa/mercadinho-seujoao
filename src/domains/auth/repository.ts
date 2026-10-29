@@ -1,12 +1,7 @@
 import "server-only";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
-import {
-  sessions,
-  users,
-  verificationCodes,
-  type Role,
-} from "@/infrastructure/db/schema";
+import { sessions, users, verificationCodes } from "@/infrastructure/db/schema";
 
 const summary = {
   id: users.id,
@@ -25,24 +20,6 @@ export async function findUserByEmail(email: string) {
     .from(users)
     .where(eq(users.email, email))
     .limit(1);
-  return user;
-}
-
-export function listUsers() {
-  return getDb()
-    .select(summary)
-    .from(users)
-    .orderBy(asc(users.name))
-    .limit(500);
-}
-
-export async function insertUser(values: {
-  name: string;
-  email: string;
-  passwordHash: string;
-  role: Role;
-}) {
-  const [user] = await getDb().insert(users).values(values).returning(summary);
   return user;
 }
 

@@ -28,7 +28,12 @@ it("documents exactly the operations exported by the route handlers", async () =
   const implemented: string[] = [];
   for (const file of await readdir(apiDir, { recursive: true })) {
     if (path.basename(file) !== "route.ts") continue;
-    const route = `/api/${path.dirname(file).split(path.sep).join("/")}`;
+    // Next's [id] segment is OpenAPI's {id}.
+    const route =
+      `/api/${path.dirname(file).split(path.sep).join("/")}`.replace(
+        /\[(\w+)\]/g,
+        "{$1}",
+      );
     const source = await readFile(path.join(apiDir, file), "utf8");
     for (const method of METHODS) {
       if (new RegExp(`export (async )?function ${method}\\b`).test(source)) {

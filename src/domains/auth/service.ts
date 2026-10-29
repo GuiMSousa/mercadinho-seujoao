@@ -4,7 +4,6 @@ import type { AuthUser } from "@/contracts/auth";
 import { hashPassword, verifyPassword } from "./password";
 import { findUserByEmail, touchLastLogin } from "./repository";
 
-export { listUsers } from "./repository";
 export { touchLastLogin as recordLogin };
 
 export type AuthResult =

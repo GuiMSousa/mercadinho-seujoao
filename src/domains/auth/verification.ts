@@ -1,7 +1,11 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import type { VerificationPurpose } from "@/infrastructure/db/schema";
-import { resetCodeMail, signupCodeMail } from "@/infrastructure/mail/templates";
+import {
+  resetCodeMail,
+  signupCodeMail,
+  type MailContent,
+} from "@/infrastructure/mail/templates";
 import { getMailer } from "@/infrastructure/mail";
 import {
   CODE_TTL_MS,
@@ -48,15 +52,23 @@ export async function issueCode(
   return { id, code };
 }
 
-/** Issues a code and mails it, then invalidates the previous ones; a failed delivery drops the new code and keeps the old. */
+/**
+ * Issues a code and mails it, then invalidates the previous ones; a failed delivery drops the new code
+ * and keeps the old. `options` overrides the lifetime and the mail (the invite uses both).
+ */
 export async function deliverCode(
   purpose: VerificationPurpose,
   email: string,
   payload?: unknown,
+  options: { ttlMs?: number; mail?: (code: string) => MailContent } = {},
 ) {
-  const { id, code } = await issueCode(purpose, email, { payload });
+  const { id, code } = await issueCode(purpose, email, {
+    payload,
+    ttlMs: options.ttlMs,
+  });
   const mail =
-    purpose === "signup" ? signupCodeMail(code) : resetCodeMail(code);
+    options.mail?.(code) ??
+    (purpose === "signup" ? signupCodeMail(code) : resetCodeMail(code));
   try {
     await getMailer().send({ to: email, ...mail });
   } catch (error) {

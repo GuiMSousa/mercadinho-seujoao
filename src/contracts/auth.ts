@@ -48,6 +48,23 @@ export const STORE_KINDS = [
   "Outro",
 ] as const;
 
+/** Store field rules, shared by the signup form and the store settings. */
+export const storeNameSchema = z
+  .string("Informe o nome da loja.")
+  .trim()
+  .min(1, "Informe o nome da loja.")
+  .max(80, "Informe o nome da loja.");
+
+export const documentSchema = z
+  .string("CNPJ ou CPF incompleto.")
+  .refine(
+    (v) => [11, 14].includes(onlyDigits(v).length),
+    "CNPJ ou CPF incompleto.",
+  )
+  .transform(onlyDigits);
+
+export const phoneSchema = z.string().trim().max(20);
+
 export const signupRequestSchema = z.object({
   name: z
     .string("Informe nome e sobrenome.")
@@ -56,19 +73,9 @@ export const signupRequestSchema = z.object({
     .refine((v) => v.split(/\s+/).length >= 2, "Informe nome e sobrenome."),
   email: emailSchema,
   password: passwordRuleSchema,
-  storeName: z
-    .string("Informe o nome da loja.")
-    .trim()
-    .min(1, "Informe o nome da loja.")
-    .max(80, "Informe o nome da loja."),
-  document: z
-    .string("CNPJ ou CPF incompleto.")
-    .refine(
-      (v) => [11, 14].includes(onlyDigits(v).length),
-      "CNPJ ou CPF incompleto.",
-    )
-    .transform(onlyDigits),
-  phone: z.string().trim().max(20).optional(),
+  storeName: storeNameSchema,
+  document: documentSchema,
+  phone: phoneSchema.optional(),
   kind: z.enum(STORE_KINDS, "Escolha o tipo da loja."),
   terms: z.literal(true, "Aceite os termos para continuar."),
 });
@@ -103,10 +110,6 @@ export const loginResponseSchema = z.object({
 });
 
 export const setupResponseSchema = z.object({ hasStore: z.boolean() });
-
-export const usersListResponseSchema = z.object({
-  users: z.array(authUserSchema),
-});
 
 export const errorResponseSchema = z.object({ error: z.string() });
 

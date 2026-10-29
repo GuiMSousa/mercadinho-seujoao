@@ -7,7 +7,7 @@ nextEnv.loadEnvConfig(process.cwd());
 // Imported after the env is loaded: the logger and the pool read it on import/first use.
 const { emailSchema } = await import("../src/contracts/auth");
 const { hashPassword } = await import("../src/domains/auth/password");
-const { insertUser } = await import("../src/domains/auth/repository");
+const { insertUser } = await import("../src/domains/users/repository");
 const { closeDatabase } = await import("../src/infrastructure/db");
 
 const [rawEmail, rawName, role] = process.argv.slice(2);

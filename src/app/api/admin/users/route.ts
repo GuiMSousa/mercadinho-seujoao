@@ -1,13 +1,26 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { usersListResponseSchema } from "@/contracts/auth";
-import { listUsers } from "@/domains/auth/service";
-import { errorResponse, guard } from "../../_lib/guard";
+import {
+  inviteUserSchema,
+  userRowSchema,
+  usersListResponseSchema,
+} from "@/contracts/users";
+import { inviteUser, listUsers } from "@/domains/users/service";
+import { adminBodyRoute, adminRoute } from "../../_lib/admin";
 
 // ADMIN only: the shared access rule refuses CASHIER here as well as in the proxy.
-export async function GET(request: NextRequest) {
-  const { denial } = await guard(request);
-  if (denial) return errorResponse(denial);
-  return NextResponse.json(
-    usersListResponseSchema.parse({ users: await listUsers() }),
+export function GET(request: NextRequest) {
+  return adminRoute(request, async () =>
+    NextResponse.json(
+      usersListResponseSchema.parse({ users: await listUsers() }),
+    ),
+  );
+}
+
+export function POST(request: NextRequest) {
+  return adminBodyRoute(request, inviteUserSchema, async (input, session) =>
+    NextResponse.json(
+      userRowSchema.parse(await inviteUser(session.user, input)),
+      { status: 201 },
+    ),
   );
 }

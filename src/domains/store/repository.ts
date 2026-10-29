@@ -1,7 +1,40 @@
 import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
-import { stores, users, verificationCodes } from "@/infrastructure/db/schema";
+import {
+  stores,
+  users,
+  verificationCodes,
+  type SessionIdle,
+} from "@/infrastructure/db/schema";
+
+const settings = {
+  name: stores.name,
+  document: stores.document,
+  phone: stores.phone,
+  address: stores.address,
+  sessionIdle: stores.sessionIdle,
+};
+
+export async function findStore() {
+  const [row] = await getDb().select(settings).from(stores).limit(1);
+  return row as typeof row | undefined;
+}
+
+export async function updateStoreRow(values: {
+  name: string;
+  document: string;
+  phone: string;
+  address: string;
+  sessionIdle: SessionIdle;
+}) {
+  // One row per installation (stores.singleton), so no WHERE is needed.
+  const [row] = await getDb()
+    .update(stores)
+    .set({ ...values, updatedAt: new Date() })
+    .returning(settings);
+  return row;
+}
 
 export async function storeExists() {
   const [row] = await getDb().select({ id: stores.id }).from(stores).limit(1);
