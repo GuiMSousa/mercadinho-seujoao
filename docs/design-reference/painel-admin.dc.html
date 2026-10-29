@@ -1,0 +1,1560 @@
+<x-dc>
+<helmet>
+  <style>/* Hanken Grotesk — self-hosted substitute for Neue Montreal (see readme). Variable 400–700. */
+@font-face{font-family:"Hanken Grotesk";font-style:normal;font-weight:400 700;font-display:swap;src:url("fb1d0a26-8bd5-48ed-b3e3-b2ef13bc7165") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Hanken Grotesk";font-style:normal;font-weight:400 700;font-display:swap;src:url("45aabec3-f1f6-41dc-b3fc-f40ac869af72") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+</style>
+  <style>:root{
+/* Brand — from the reference style guide */
+--blue-50:#EBF1FF;--blue-100:#D5E2FF;--blue-200:#C0D5FF;--blue-400:#6895FF;--blue-500:#335BFF;--blue-600:#2547D0;--blue-700:#1F3BAD;--blue-950:#122368;
+--red-50:#FFEBEC;--red-100:#FFD5D8;--red-500:#FB3748;--red-600:#E93544;--red-700:#C0293B;
+--orange-50:#FFF1EB;--orange-100:#FFE3D5;--orange-500:#FA7319;--orange-600:#E16614;--orange-700:#B64F0A;
+--green-50:#E0FAEC;--green-100:#D0FBE9;--green-500:#1FC16B;--green-600:#1DAF61;--green-700:#178C4E;
+--yellow-50:#FFF8E5;--yellow-500:#F6B51E;--yellow-700:#A87A00;
+/* Neutrals */
+--neutral-0:#FFFFFF;--neutral-50:#F5F7FA;--neutral-100:#F2F5F8;--neutral-200:#E1E4EA;--neutral-300:#CACFD8;--neutral-400:#99A0AE;--neutral-500:#717784;--neutral-600:#525866;--neutral-700:#2B303B;--neutral-800:#222530;--neutral-900:#181B25;--neutral-950:#0E121B;
+
+/* Semantic — surfaces */
+--bg-app:var(--neutral-50);
+--surface-card:var(--neutral-0);
+--surface-sunken:var(--neutral-100);
+--surface-hover:var(--neutral-50);
+--surface-inverse:var(--neutral-950);
+--surface-overlay:rgba(14,18,27,.48);
+/* Semantic — text */
+--text-strong:var(--neutral-950);
+--text-body:var(--neutral-700);
+--text-sub:var(--neutral-500);
+--text-soft:var(--neutral-400);
+--text-disabled:var(--neutral-300);
+--text-inverse:var(--neutral-0);
+--text-link:var(--blue-500);
+/* Semantic — borders */
+--border-soft:var(--neutral-100);
+--border-default:var(--neutral-200);
+--border-strong:var(--neutral-300);
+--border-focus:var(--blue-500);
+/* Semantic — actions */
+--action-primary:var(--neutral-950);--action-primary-hover:var(--neutral-800);
+--action-brand:var(--blue-500);--action-brand-hover:var(--blue-600);
+--action-danger:var(--red-500);--action-danger-hover:var(--red-600);
+/* Semantic — status (fg / bg) */
+--success-fg:var(--green-700);--success-bg:var(--green-50);--success-solid:var(--green-500);
+--danger-fg:var(--red-700);--danger-bg:var(--red-50);--danger-solid:var(--red-500);
+--warning-fg:var(--orange-700);--warning-bg:var(--orange-50);--warning-solid:var(--orange-500);
+--info-fg:var(--blue-700);--info-bg:var(--blue-50);--info-solid:var(--blue-500);
+--neutral-fg:var(--neutral-600);--neutral-bg:var(--neutral-100);
+/* Semantic — controls & selection */
+--text-on-color:#FFFFFF;
+--control-soft:var(--neutral-200);--control-soft-hover:var(--neutral-300);
+--control-pressed:var(--neutral-100);
+--switch-off:var(--neutral-300);
+--selected-bg:var(--blue-50);--selected-fg:var(--blue-700);--selected-border:var(--blue-200);
+--focus-halo:var(--blue-100);--focus-halo-danger:var(--red-100);
+--danger-soft-hover:var(--red-100);
+--count-bg:var(--neutral-200);
+/* Semantic — inverse surfaces (toast, tooltip, bottom nav) */
+--inverse-text-sub:var(--neutral-400);
+--bottom-nav-bg:var(--neutral-900);--bottom-nav-fg:var(--neutral-400);
+/* Charts */
+--chart-primary:var(--blue-500);--chart-primary-muted:var(--blue-200);--chart-secondary:var(--neutral-200);--chart-secondary-legend:var(--neutral-300);
+/* Domain — money in / out, expiry */
+--money-in:var(--blue-500);--money-out:var(--red-500);--money-margin:var(--green-500);
+--expiry-ok:var(--green-500);--expiry-soon:var(--orange-500);--expiry-expired:var(--red-500);
+}
+</style>
+  <style>/* Dark theme — apply with <html data-theme="dark">. Only semantic aliases change; base ramps stay fixed. */
+[data-theme="dark"]{
+color-scheme:dark;
+--bg-app:#0A0D14;
+--surface-card:var(--neutral-900);
+--surface-sunken:#1F232D;
+--surface-hover:var(--neutral-800);
+--surface-inverse:var(--neutral-0);
+--surface-overlay:rgba(0,0,0,.64);
+--text-strong:#F5F7FA;
+--text-body:var(--neutral-300);
+--text-sub:var(--neutral-400);
+--text-soft:var(--neutral-500);
+--text-disabled:var(--neutral-600);
+--text-inverse:var(--neutral-950);
+--text-link:var(--blue-400);
+--border-soft:#22262F;
+--border-default:var(--neutral-700);
+--border-strong:var(--neutral-600);
+--border-focus:var(--blue-400);
+--action-primary:var(--neutral-0);--action-primary-hover:var(--neutral-200);
+--action-brand:var(--blue-500);--action-brand-hover:var(--blue-400);
+--action-danger:var(--red-500);--action-danger-hover:var(--red-600);
+--success-fg:#5EE09A;--success-bg:rgba(31,193,107,.16);--success-solid:var(--green-500);
+--danger-fg:#FF8A94;--danger-bg:rgba(251,55,72,.16);--danger-solid:var(--red-500);
+--warning-fg:#FFB27A;--warning-bg:rgba(250,115,25,.16);--warning-solid:var(--orange-500);
+--info-fg:#9DB8FF;--info-bg:rgba(51,91,255,.20);--info-solid:var(--blue-500);
+--neutral-fg:var(--neutral-300);--neutral-bg:var(--neutral-700);
+--control-soft:var(--neutral-700);--control-soft-hover:var(--neutral-600);
+--control-pressed:var(--neutral-700);
+--switch-off:var(--neutral-600);
+--selected-bg:rgba(51,91,255,.18);--selected-fg:#9DB8FF;--selected-border:rgba(104,149,255,.45);
+--focus-halo:rgba(51,91,255,.35);--focus-halo-danger:rgba(251,55,72,.35);
+--danger-soft-hover:rgba(251,55,72,.26);
+--count-bg:var(--neutral-700);
+--inverse-text-sub:var(--neutral-500);
+--bottom-nav-bg:var(--neutral-800);--bottom-nav-fg:var(--neutral-400);
+--chart-primary:var(--blue-500);--chart-primary-muted:rgba(104,149,255,.40);--chart-secondary:var(--neutral-700);--chart-secondary-legend:var(--neutral-600);
+--money-in:var(--blue-400);--money-out:#FF6B78;--money-margin:var(--green-500);
+--shadow-xs:0 1px 2px rgba(0,0,0,.3);
+--shadow-sm:0 1px 2px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.25);
+--shadow-md:0 4px 12px -2px rgba(0,0,0,.45);
+--shadow-lg:0 16px 32px -12px rgba(0,0,0,.6);
+--shadow-xl:0 24px 48px -16px rgba(0,0,0,.7);
+--shadow-btn-dark:inset 0 -1px 0 rgba(14,18,27,.12),0 1px 2px rgba(0,0,0,.4);
+--focus-ring:0 0 0 2px var(--neutral-950),0 0 0 4px var(--blue-400);
+}
+</style>
+  <style>:root{
+--font-sans:"Hanken Grotesk","Neue Montreal",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+--font-num:var(--font-sans); /* always with font-variant-numeric:tabular-nums */
+--weight-regular:400;--weight-medium:500;--weight-semibold:600;--weight-bold:700;
+/* Scale (px) */
+--text-display:40px;--lh-display:48px;
+--text-h1:32px;--lh-h1:40px;
+--text-h2:24px;--lh-h2:32px;
+--text-h3:18px;--lh-h3:24px;
+--text-body-lg:16px;--lh-body-lg:24px;
+--text-body-md:14px;--lh-body-md:20px;
+--text-body-sm:13px;--lh-body-sm:18px;
+--text-caption:12px;--lh-caption:16px;
+/* Counter (Vendas, Caixa, Entrada): >=16pt */
+--text-counter:22px;--lh-counter:28px;
+--text-counter-total:56px;--lh-counter-total:60px;
+--tracking-tight:-0.02em;--tracking-display:-0.03em;--tracking-normal:0;
+}
+</style>
+  <style>:root{
+--space-0:0;--space-1:2px;--space-2:4px;--space-3:6px;--space-4:8px;--space-5:10px;--space-6:12px;--space-7:16px;--space-8:20px;--space-9:24px;--space-10:32px;--space-11:40px;--space-12:48px;--space-13:64px;
+/* Control heights */
+--control-sm:32px;--control-md:40px;--control-lg:48px;
+--control-counter:60px; /* minimum for main buttons on Vendas, Caixa, Entrada */
+--control-counter-lg:72px;
+/* Layout */
+--sidebar-w:248px;--topbar-h:64px;--page-pad:24px;--card-pad:20px;--gutter:16px;
+}
+</style>
+  <style>:root{
+--radius-xs:6px;--radius-sm:8px;--radius-md:10px;--radius-lg:12px;--radius-xl:16px;--radius-2xl:20px;--radius-3xl:24px;--radius-full:999px;
+--radius-control:var(--radius-md);--radius-card:var(--radius-xl);--radius-dialog:var(--radius-2xl);
+}
+</style>
+  <style>:root{
+--shadow-xs:0 1px 2px rgba(10,13,20,.03);
+--shadow-sm:0 1px 2px rgba(10,13,20,.04),0 1px 3px rgba(10,13,20,.04);
+--shadow-md:0 4px 12px -2px rgba(14,18,27,.06),0 2px 4px rgba(14,18,27,.03);
+--shadow-lg:0 16px 32px -12px rgba(14,18,27,.14);
+--shadow-xl:0 24px 48px -16px rgba(14,18,27,.22);
+--shadow-btn-dark:inset 0 1px 0 rgba(255,255,255,.12),0 1px 2px rgba(14,18,27,.24);
+--shadow-btn-brand:inset 0 1px 0 rgba(255,255,255,.16),0 1px 2px rgba(37,71,208,.32);
+--focus-ring:0 0 0 2px var(--neutral-0),0 0 0 4px var(--blue-500);
+}
+</style>
+  <style>:root{
+--ease-out:cubic-bezier(.2,.8,.2,1); /* @kind other */
+--ease-in-out:cubic-bezier(.4,0,.2,1); /* @kind other */
+
+--dur-fast:120ms; /* @kind other */
+--dur-base:180ms; /* @kind other */
+--dur-slow:280ms; /* @kind other */
+}
+@media (prefers-reduced-motion:reduce){:root{
+--dur-fast:0ms; /* @kind other */
+--dur-base:0ms; /* @kind other */
+--dur-slow:0ms; /* @kind other */
+}}
+</style>
+  <style>*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font-sans);font-size:var(--text-body-md);line-height:var(--lh-body-md);color:var(--text-body);background:var(--bg-app);-webkit-font-smoothing:antialiased}
+a{color:var(--text-link);text-decoration:none}a:hover{color:var(--blue-700);text-decoration:underline}
+:focus-visible{outline:2px solid var(--border-focus);outline-offset:2px}
+.num,.tabular{font-variant-numeric:tabular-nums}
+</style>
+  <style>/* Hanken Grotesk — self-hosted substitute for Neue Montreal (see readme). Variable 400–700. */
+@font-face{font-family:"Hanken Grotesk";font-style:normal;font-weight:400 700;font-display:swap;src:url("fb1d0a26-8bd5-48ed-b3e3-b2ef13bc7165") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Hanken Grotesk";font-style:normal;font-weight:400 700;font-display:swap;src:url("45aabec3-f1f6-41dc-b3fc-f40ac869af72") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+:root{
+/* Brand — from the reference style guide */
+--blue-50:#EBF1FF;--blue-100:#D5E2FF;--blue-200:#C0D5FF;--blue-400:#6895FF;--blue-500:#335BFF;--blue-600:#2547D0;--blue-700:#1F3BAD;--blue-950:#122368;
+--red-50:#FFEBEC;--red-100:#FFD5D8;--red-500:#FB3748;--red-600:#E93544;--red-700:#C0293B;
+--orange-50:#FFF1EB;--orange-100:#FFE3D5;--orange-500:#FA7319;--orange-600:#E16614;--orange-700:#B64F0A;
+--green-50:#E0FAEC;--green-100:#D0FBE9;--green-500:#1FC16B;--green-600:#1DAF61;--green-700:#178C4E;
+--yellow-50:#FFF8E5;--yellow-500:#F6B51E;--yellow-700:#A87A00;
+/* Neutrals */
+--neutral-0:#FFFFFF;--neutral-50:#F5F7FA;--neutral-100:#F2F5F8;--neutral-200:#E1E4EA;--neutral-300:#CACFD8;--neutral-400:#99A0AE;--neutral-500:#717784;--neutral-600:#525866;--neutral-700:#2B303B;--neutral-800:#222530;--neutral-900:#181B25;--neutral-950:#0E121B;
+
+/* Semantic — surfaces */
+--bg-app:var(--neutral-50);
+--surface-card:var(--neutral-0);
+--surface-sunken:var(--neutral-100);
+--surface-hover:var(--neutral-50);
+--surface-inverse:var(--neutral-950);
+--surface-overlay:rgba(14,18,27,.48);
+/* Semantic — text */
+--text-strong:var(--neutral-950);
+--text-body:var(--neutral-700);
+--text-sub:var(--neutral-500);
+--text-soft:var(--neutral-400);
+--text-disabled:var(--neutral-300);
+--text-inverse:var(--neutral-0);
+--text-link:var(--blue-500);
+/* Semantic — borders */
+--border-soft:var(--neutral-100);
+--border-default:var(--neutral-200);
+--border-strong:var(--neutral-300);
+--border-focus:var(--blue-500);
+/* Semantic — actions */
+--action-primary:var(--neutral-950);--action-primary-hover:var(--neutral-800);
+--action-brand:var(--blue-500);--action-brand-hover:var(--blue-600);
+--action-danger:var(--red-500);--action-danger-hover:var(--red-600);
+/* Semantic — status (fg / bg) */
+--success-fg:var(--green-700);--success-bg:var(--green-50);--success-solid:var(--green-500);
+--danger-fg:var(--red-700);--danger-bg:var(--red-50);--danger-solid:var(--red-500);
+--warning-fg:var(--orange-700);--warning-bg:var(--orange-50);--warning-solid:var(--orange-500);
+--info-fg:var(--blue-700);--info-bg:var(--blue-50);--info-solid:var(--blue-500);
+--neutral-fg:var(--neutral-600);--neutral-bg:var(--neutral-100);
+/* Semantic — controls & selection */
+--text-on-color:#FFFFFF;
+--control-soft:var(--neutral-200);--control-soft-hover:var(--neutral-300);
+--control-pressed:var(--neutral-100);
+--switch-off:var(--neutral-300);
+--selected-bg:var(--blue-50);--selected-fg:var(--blue-700);--selected-border:var(--blue-200);
+--focus-halo:var(--blue-100);--focus-halo-danger:var(--red-100);
+--danger-soft-hover:var(--red-100);
+--count-bg:var(--neutral-200);
+/* Semantic — inverse surfaces (toast, tooltip, bottom nav) */
+--inverse-text-sub:var(--neutral-400);
+--bottom-nav-bg:var(--neutral-900);--bottom-nav-fg:var(--neutral-400);
+/* Charts */
+--chart-primary:var(--blue-500);--chart-primary-muted:var(--blue-200);--chart-secondary:var(--neutral-200);--chart-secondary-legend:var(--neutral-300);
+/* Domain — money in / out, expiry */
+--money-in:var(--blue-500);--money-out:var(--red-500);--money-margin:var(--green-500);
+--expiry-ok:var(--green-500);--expiry-soon:var(--orange-500);--expiry-expired:var(--red-500);
+}
+
+/* Dark theme — apply with <html data-theme="dark">. Only semantic aliases change; base ramps stay fixed. */
+[data-theme="dark"]{
+color-scheme:dark;
+--bg-app:#0A0D14;
+--surface-card:var(--neutral-900);
+--surface-sunken:#1F232D;
+--surface-hover:var(--neutral-800);
+--surface-inverse:var(--neutral-0);
+--surface-overlay:rgba(0,0,0,.64);
+--text-strong:#F5F7FA;
+--text-body:var(--neutral-300);
+--text-sub:var(--neutral-400);
+--text-soft:var(--neutral-500);
+--text-disabled:var(--neutral-600);
+--text-inverse:var(--neutral-950);
+--text-link:var(--blue-400);
+--border-soft:#22262F;
+--border-default:var(--neutral-700);
+--border-strong:var(--neutral-600);
+--border-focus:var(--blue-400);
+--action-primary:var(--neutral-0);--action-primary-hover:var(--neutral-200);
+--action-brand:var(--blue-500);--action-brand-hover:var(--blue-400);
+--action-danger:var(--red-500);--action-danger-hover:var(--red-600);
+--success-fg:#5EE09A;--success-bg:rgba(31,193,107,.16);--success-solid:var(--green-500);
+--danger-fg:#FF8A94;--danger-bg:rgba(251,55,72,.16);--danger-solid:var(--red-500);
+--warning-fg:#FFB27A;--warning-bg:rgba(250,115,25,.16);--warning-solid:var(--orange-500);
+--info-fg:#9DB8FF;--info-bg:rgba(51,91,255,.20);--info-solid:var(--blue-500);
+--neutral-fg:var(--neutral-300);--neutral-bg:var(--neutral-700);
+--control-soft:var(--neutral-700);--control-soft-hover:var(--neutral-600);
+--control-pressed:var(--neutral-700);
+--switch-off:var(--neutral-600);
+--selected-bg:rgba(51,91,255,.18);--selected-fg:#9DB8FF;--selected-border:rgba(104,149,255,.45);
+--focus-halo:rgba(51,91,255,.35);--focus-halo-danger:rgba(251,55,72,.35);
+--danger-soft-hover:rgba(251,55,72,.26);
+--count-bg:var(--neutral-700);
+--inverse-text-sub:var(--neutral-500);
+--bottom-nav-bg:var(--neutral-800);--bottom-nav-fg:var(--neutral-400);
+--chart-primary:var(--blue-500);--chart-primary-muted:rgba(104,149,255,.40);--chart-secondary:var(--neutral-700);--chart-secondary-legend:var(--neutral-600);
+--money-in:var(--blue-400);--money-out:#FF6B78;--money-margin:var(--green-500);
+--shadow-xs:0 1px 2px rgba(0,0,0,.3);
+--shadow-sm:0 1px 2px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.25);
+--shadow-md:0 4px 12px -2px rgba(0,0,0,.45);
+--shadow-lg:0 16px 32px -12px rgba(0,0,0,.6);
+--shadow-xl:0 24px 48px -16px rgba(0,0,0,.7);
+--shadow-btn-dark:inset 0 -1px 0 rgba(14,18,27,.12),0 1px 2px rgba(0,0,0,.4);
+--focus-ring:0 0 0 2px var(--neutral-950),0 0 0 4px var(--blue-400);
+}
+
+:root{
+--font-sans:"Hanken Grotesk","Neue Montreal",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+--font-num:var(--font-sans); /* always with font-variant-numeric:tabular-nums */
+--weight-regular:400;--weight-medium:500;--weight-semibold:600;--weight-bold:700;
+/* Scale (px) */
+--text-display:40px;--lh-display:48px;
+--text-h1:32px;--lh-h1:40px;
+--text-h2:24px;--lh-h2:32px;
+--text-h3:18px;--lh-h3:24px;
+--text-body-lg:16px;--lh-body-lg:24px;
+--text-body-md:14px;--lh-body-md:20px;
+--text-body-sm:13px;--lh-body-sm:18px;
+--text-caption:12px;--lh-caption:16px;
+/* Counter (Vendas, Caixa, Entrada): >=16pt */
+--text-counter:22px;--lh-counter:28px;
+--text-counter-total:56px;--lh-counter-total:60px;
+--tracking-tight:-0.02em;--tracking-display:-0.03em;--tracking-normal:0;
+}
+
+:root{
+--space-0:0;--space-1:2px;--space-2:4px;--space-3:6px;--space-4:8px;--space-5:10px;--space-6:12px;--space-7:16px;--space-8:20px;--space-9:24px;--space-10:32px;--space-11:40px;--space-12:48px;--space-13:64px;
+/* Control heights */
+--control-sm:32px;--control-md:40px;--control-lg:48px;
+--control-counter:60px; /* minimum for main buttons on Vendas, Caixa, Entrada */
+--control-counter-lg:72px;
+/* Layout */
+--sidebar-w:248px;--topbar-h:64px;--page-pad:24px;--card-pad:20px;--gutter:16px;
+}
+
+:root{
+--radius-xs:6px;--radius-sm:8px;--radius-md:10px;--radius-lg:12px;--radius-xl:16px;--radius-2xl:20px;--radius-3xl:24px;--radius-full:999px;
+--radius-control:var(--radius-md);--radius-card:var(--radius-xl);--radius-dialog:var(--radius-2xl);
+}
+
+:root{
+--shadow-xs:0 1px 2px rgba(10,13,20,.03);
+--shadow-sm:0 1px 2px rgba(10,13,20,.04),0 1px 3px rgba(10,13,20,.04);
+--shadow-md:0 4px 12px -2px rgba(14,18,27,.06),0 2px 4px rgba(14,18,27,.03);
+--shadow-lg:0 16px 32px -12px rgba(14,18,27,.14);
+--shadow-xl:0 24px 48px -16px rgba(14,18,27,.22);
+--shadow-btn-dark:inset 0 1px 0 rgba(255,255,255,.12),0 1px 2px rgba(14,18,27,.24);
+--shadow-btn-brand:inset 0 1px 0 rgba(255,255,255,.16),0 1px 2px rgba(37,71,208,.32);
+--focus-ring:0 0 0 2px var(--neutral-0),0 0 0 4px var(--blue-500);
+}
+
+:root{
+--ease-out:cubic-bezier(.2,.8,.2,1); /* @kind other */
+--ease-in-out:cubic-bezier(.4,0,.2,1); /* @kind other */
+
+--dur-fast:120ms; /* @kind other */
+--dur-base:180ms; /* @kind other */
+--dur-slow:280ms; /* @kind other */
+}
+@media (prefers-reduced-motion:reduce){:root{
+--dur-fast:0ms; /* @kind other */
+--dur-base:0ms; /* @kind other */
+--dur-slow:0ms; /* @kind other */
+}}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font-sans);font-size:var(--text-body-md);line-height:var(--lh-body-md);color:var(--text-body);background:var(--bg-app);-webkit-font-smoothing:antialiased}
+a{color:var(--text-link);text-decoration:none}a:hover{color:var(--blue-700);text-decoration:underline}
+:focus-visible{outline:2px solid var(--border-focus);outline-offset:2px}
+.num,.tabular{font-variant-numeric:tabular-nums}
+
+</style>
+  <script src="91076cc5-97ce-4984-a103-a75843397c11"></script>
+  <style>
+    html,body{margin:0;background:var(--bg-app);color:var(--text-body);font-family:var(--font-sans)}
+    a{color:var(--text-link);text-decoration:none}
+    a:hover{color:var(--action-brand-hover);text-decoration:underline}
+    @media print{nav,header{display:none!important}}
+  </style>
+</helmet>
+
+<sc-if value="{{ isAuth }}" hint-placeholder-val="{{ true }}">
+  <main style="min-height:100vh;display:grid;grid-template-columns:{{ authCols }};background:var(--bg-app)">
+    <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+      <aside style="display:flex;flex-direction:column;justify-content:space-between;gap:32px;padding:40px;background:var(--surface-card);border-right:1px solid var(--border-default)">
+        <div style="font-size:24px;font-weight:600;letter-spacing:-0.03em;color:var(--text-strong)">Mkt Control</div>
+        <div style="display:flex;flex-direction:column;gap:28px;max-width:420px">
+          <h2 style="margin:0;font-size:var(--text-h1);line-height:var(--lh-h1);font-weight:500;letter-spacing:var(--tracking-tight);color:var(--text-strong);text-wrap:pretty">Controle de vendas e estoque para o seu comércio.</h2>
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:18px">
+            <li style="display:flex;gap:12px;align-items:flex-start">
+              <span style="width:32px;height:32px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--surface-sunken);color:var(--text-strong);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="MktControlDesignSystem_295891.Icon" name="calendar-03" size="18" hint-size="18px,18px"></x-import></span>
+              <span style="display:flex;flex-direction:column;gap:2px"><strong style="font-weight:500;color:var(--text-strong)">Validade sob controle</strong><span style="font-size:var(--text-body-sm);color:var(--text-sub)">Estoque por lote e baixa PVPS automática.</span></span>
+            </li>
+            <li style="display:flex;gap:12px;align-items:flex-start">
+              <span style="width:32px;height:32px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--surface-sunken);color:var(--text-strong);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="MktControlDesignSystem_295891.Icon" name="package-out-of-stock" size="18" hint-size="18px,18px"></x-import></span>
+              <span style="display:flex;flex-direction:column;gap:2px"><strong style="font-weight:500;color:var(--text-strong)">Sem ruptura</strong><span style="font-size:var(--text-body-sm);color:var(--text-sub)">Estoque mínimo e lista de reposição gerada sozinha.</span></span>
+            </li>
+            <li style="display:flex;gap:12px;align-items:flex-start">
+              <span style="width:32px;height:32px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--surface-sunken);color:var(--text-strong);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="MktControlDesignSystem_295891.Icon" name="cash-01" size="18" hint-size="18px,18px"></x-import></span>
+              <span style="display:flex;flex-direction:column;gap:2px"><strong style="font-weight:500;color:var(--text-strong)">Caixa sem furos</strong><span style="font-size:var(--text-body-sm);color:var(--text-sub)">Troco, sangrias e suprimentos com motivo e fechamento cego.</span></span>
+            </li>
+            <li style="display:flex;gap:12px;align-items:flex-start">
+              <span style="width:32px;height:32px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--surface-sunken);color:var(--text-strong);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="MktControlDesignSystem_295891.Icon" name="percent" size="18" hint-size="18px,18px"></x-import></span>
+              <span style="display:flex;flex-direction:column;gap:2px"><strong style="font-weight:500;color:var(--text-strong)">Margem real</strong><span style="font-size:var(--text-body-sm);color:var(--text-sub)">Faturamento menos CMV registrado no momento da venda.</span></span>
+            </li>
+          </ul>
+        </div>
+        <div style="font-size:var(--text-caption);color:var(--text-soft)">© 2026 Mkt Control</div>
+      </aside>
+    </sc-if>
+
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;position:relative">
+      <div style="position:absolute;top:16px;right:16px">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.IconButton" icon="{{ themeIcon }}" label="{{ themeLabel }}" variant="ghost" sc-camel-on-click="{{ toggleTheme }}" hint-size="40px,40px"></x-import>
+      </div>
+      <div style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:24px">
+        <sc-if value="{{ notWide }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;font-size:28px;font-weight:600;letter-spacing:-0.03em;color:var(--text-strong)">Mkt Control</div>
+        </sc-if>
+
+        <sc-if value="{{ auth.login }}" hint-placeholder-val="{{ true }}">
+          <form sc-camel-on-submit="{{ submitLogin }}" sc-camel-no-validate="{{ true }}" style="display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <h1 style="margin:0;font-size:var(--text-h2);line-height:var(--lh-h2);font-weight:500;letter-spacing:var(--tracking-tight);color:var(--text-strong)">Entrar no painel</h1>
+              <p style="margin:0;color:var(--text-sub)">Acesso do administrador da loja.</p>
+            </div>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="E-mail" type="email" size="lg" value="{{ form.email }}" sc-camel-on-change="{{ set.email }}" error="{{ err.email }}" sc-camel-auto-complete="username" placeholder="voce@sualoja.com.br" hint-size="100%,74px"></x-import>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Senha" type="{{ passType }}" size="lg" value="{{ form.senha }}" sc-camel-on-change="{{ set.senha }}" error="{{ err.senha }}" suffix="{{ passToggle }}" sc-camel-auto-complete="current-password" hint-size="100%,74px"></x-import>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Checkbox" label="Manter conectado" checked="{{ form.lembrar }}" sc-camel-on-change="{{ toggleLembrar }}" hint-size="160px,20px"></x-import>
+              <a href="#" sc-camel-on-click="{{ goRecuperar }}" style="font-size:var(--text-body-sm);font-weight:500">Esqueci minha senha</a>
+            </div>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" type="submit" size="lg" sc-camel-full-width="{{ true }}" disabled="{{ loading }}" hint-size="100%,48px">{{ loginLabel }}</x-import>
+            <div style="display:flex;align-items:center;gap:12px;color:var(--text-soft);font-size:var(--text-caption)"><span style="flex:1;height:1px;background:var(--border-default)"></span>ou<span style="flex:1;height:1px;background:var(--border-default)"></span></div>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" size="lg" sc-camel-full-width="{{ true }}" sc-camel-on-click="{{ goCadastro }}" hint-size="100%,48px">Criar conta da loja</x-import>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-size:var(--text-caption);color:var(--text-sub)">
+              <span>Demonstração:</span>
+              <a href="#" sc-camel-on-click="{{ demoAdmin }}">Administrador</a>
+              <a href="#" sc-camel-on-click="{{ demoCashier }}">Operador de caixa</a>
+            </div>
+          </form>
+        </sc-if>
+
+        <sc-if value="{{ auth.cadastro }}" hint-placeholder-val="{{ false }}">
+          <form sc-camel-on-submit="{{ submitCadastro }}" sc-camel-no-validate="{{ true }}" style="display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+                <span style="height:4px;border-radius:2px;background:{{ steps.s1 }}"></span>
+                <span style="height:4px;border-radius:2px;background:{{ steps.s2 }}"></span>
+                <span style="height:4px;border-radius:2px;background:{{ steps.s3 }}"></span>
+              </div>
+              <span style="font-size:var(--text-caption);color:var(--text-sub)">{{ cadStepLabel }}</span>
+              <h1 style="margin:0;font-size:var(--text-h2);line-height:var(--lh-h2);font-weight:500;letter-spacing:var(--tracking-tight);color:var(--text-strong)">{{ cadTitle }}</h1>
+              <p style="margin:0;color:var(--text-sub);text-wrap:pretty">{{ cadSub }}</p>
+            </div>
+            <sc-if value="{{ cad.s1 }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Nome completo" size="lg" value="{{ form.nome }}" sc-camel-on-change="{{ set.nome }}" error="{{ err.nome }}" sc-camel-auto-complete="name" hint-size="100%,74px"></x-import>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="E-mail" type="email" size="lg" value="{{ form.cadEmail }}" sc-camel-on-change="{{ set.cadEmail }}" error="{{ err.cadEmail }}" sc-camel-auto-complete="email" hint-size="100%,74px"></x-import>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Senha" type="{{ passType }}" size="lg" value="{{ form.cadSenha }}" sc-camel-on-change="{{ set.cadSenha }}" error="{{ err.cadSenha }}" suffix="{{ passToggle }}" sc-camel-auto-complete="new-password" hint="Mínimo de 8 caracteres, com letras e números." hint-size="100%,94px"></x-import>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="flex:1;height:4px;border-radius:2px;background:{{ pw.c1 }}"></span>
+                    <span style="flex:1;height:4px;border-radius:2px;background:{{ pw.c2 }}"></span>
+                    <span style="flex:1;height:4px;border-radius:2px;background:{{ pw.c3 }}"></span>
+                    <span style="width:56px;text-align:right;font-size:var(--text-caption);color:var(--text-sub)">{{ pw.label }}</span>
+                  </div>
+                </div>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Confirmar senha" type="{{ passType }}" size="lg" value="{{ form.cadConf }}" sc-camel-on-change="{{ set.cadConf }}" error="{{ err.cadConf }}" sc-camel-auto-complete="new-password" hint-size="100%,74px"></x-import>
+              </div>
+            </sc-if>
+            <sc-if value="{{ cad.s2 }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Nome da loja" size="lg" value="{{ form.loja }}" sc-camel-on-change="{{ set.loja }}" error="{{ err.loja }}" placeholder="Mercadinho Bom Preço" hint-size="100%,74px"></x-import>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px">
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="CNPJ ou CPF" size="lg" sc-camel-input-mode="numeric" value="{{ form.cnpj }}" sc-camel-on-change="{{ set.cnpj }}" error="{{ err.cnpj }}" placeholder="00.000.000/0000-00" hint-size="100%,74px"></x-import>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Telefone" size="lg" sc-camel-input-mode="tel" value="{{ form.tel }}" sc-camel-on-change="{{ set.tel }}" placeholder="(11) 90000-0000" hint-size="100%,74px"></x-import>
+                </div>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Select" label="Tipo de comércio" size="lg" value="{{ form.tipo }}" sc-camel-on-change="{{ set.tipo }}" options="{{ tipoOptions }}" hint-size="100%,74px"></x-import>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Checkbox" label="Li e aceito os termos de uso e a política de privacidade" checked="{{ form.termos }}" sc-camel-on-change="{{ toggleTermos }}" hint-size="100%,20px"></x-import>
+                <sc-if value="{{ err.termos }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--text-caption);color:var(--danger-fg)">{{ err.termos }}</span></sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ cad.s3 }}" hint-placeholder-val="{{ false }}">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Código de verificação" size="lg" sc-camel-input-mode="numeric" sc-camel-max-length="6" value="{{ form.codigo }}" sc-camel-on-change="{{ set.codigo }}" error="{{ err.codigo }}" placeholder="000000" sc-camel-input-style="{{ codeStyle }}" hint-size="100%,74px"></x-import>
+              <div style="font-size:var(--text-body-sm);color:var(--text-sub)">Não recebeu? <a href="#" sc-camel-on-click="{{ resend }}">Reenviar código</a></div>
+            </sc-if>
+            <div style="display:flex;gap:12px">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" size="lg" sc-camel-on-click="{{ cadBack }}" sc-camel-leading-icon="arrow-left-01" hint-size="120px,48px">Voltar</x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" type="submit" size="lg" sc-camel-full-width="{{ true }}" disabled="{{ loading }}" style="flex:1" hint-size="100%,48px">{{ cadCta }}</x-import>
+            </div>
+            <div style="text-align:center;font-size:var(--text-body-sm);color:var(--text-sub)">Já tem conta? <a href="#" sc-camel-on-click="{{ goLogin }}">Entrar</a></div>
+          </form>
+        </sc-if>
+
+        <sc-if value="{{ auth.recuperar }}" hint-placeholder-val="{{ false }}">
+          <form sc-camel-on-submit="{{ submitRecuperar }}" sc-camel-no-validate="{{ true }}" style="display:flex;flex-direction:column;gap:20px">
+            <sc-if value="{{ rec.done }}" hint-placeholder-val="{{ false }}">
+              <span style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--success-bg);color:var(--success-fg);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="MktControlDesignSystem_295891.Icon" name="checkmark-circle-02" size="24" hint-size="24px,24px"></x-import></span>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <h1 style="margin:0;font-size:var(--text-h2);line-height:var(--lh-h2);font-weight:500;letter-spacing:var(--tracking-tight);color:var(--text-strong)">{{ recTitle }}</h1>
+              <p style="margin:0;color:var(--text-sub);text-wrap:pretty">{{ recSub }}</p>
+            </div>
+            <sc-if value="{{ rec.s1 }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="E-mail" type="email" size="lg" value="{{ form.email }}" sc-camel-on-change="{{ set.email }}" error="{{ err.email }}" hint-size="100%,74px"></x-import>
+            </sc-if>
+            <sc-if value="{{ rec.s2 }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Código de verificação" size="lg" sc-camel-input-mode="numeric" sc-camel-max-length="6" value="{{ form.codigo }}" sc-camel-on-change="{{ set.codigo }}" error="{{ err.codigo }}" placeholder="000000" sc-camel-input-style="{{ codeStyle }}" hint-size="100%,74px"></x-import>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Nova senha" type="{{ passType }}" size="lg" value="{{ form.novaSenha }}" sc-camel-on-change="{{ set.novaSenha }}" error="{{ err.novaSenha }}" suffix="{{ passToggle }}" hint="Mínimo de 8 caracteres, com letras e números." hint-size="100%,94px"></x-import>
+              </div>
+            </sc-if>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" type="submit" size="lg" sc-camel-full-width="{{ true }}" disabled="{{ loading }}" hint-size="100%,48px">{{ recCta }}</x-import>
+            <a href="#" sc-camel-on-click="{{ goLogin }}" style="align-self:center;font-size:var(--text-body-sm);font-weight:500">Voltar para entrar</a>
+          </form>
+        </sc-if>
+      </div>
+    </div>
+  </main>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;height:100vh;overflow:hidden;background:var(--bg-app)">
+    <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+      <div sc-camel-on-click="{{ closeDrawer }}" style="position:fixed;inset:0;z-index:40;background:var(--surface-overlay);backdrop-filter:blur(4px)"></div>
+    </sc-if>
+    <aside style="width:var(--sidebar-w);flex-shrink:0;display:flex;flex-direction:column;gap:16px;padding:12px;box-sizing:border-box;background:var(--surface-card);border-right:1px solid var(--border-default);height:100%;position:{{ sb.pos }};top:0;bottom:0;left:0;z-index:50;transform:{{ sb.tf }};transition:transform var(--dur-base,200ms) var(--ease-out,ease)">
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:var(--radius-lg);border:1px solid var(--border-default)">
+        <span style="width:32px;height:32px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--surface-inverse);color:var(--text-inverse);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="MktControlDesignSystem_295891.Icon" name="store-01" size="18" hint-size="18px,18px"></x-import></span>
+        <span style="display:flex;flex-direction:column;min-width:0">
+          <span style="font-size:var(--text-caption);color:var(--text-soft)">Mkt Control</span>
+          <span style="font-size:var(--text-body-sm);font-weight:500;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ store }}</span>
+        </span>
+      </div>
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.SidebarNav" dc-props="{{ navProps }}" style="flex:1;min-height:0;display:flex" hint-size="100%,400px"></x-import>
+      <div style="display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:var(--radius-lg);background:var(--surface-sunken)">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Badge" tone="{{ caixaTone }}" dot="{{ true }}" hint-size="110px,24px">{{ caixaLabel }}</x-import>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:32px;height:32px;flex-shrink:0;border-radius:50%;background:var(--selected-bg);color:var(--selected-fg);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">{{ user.initials }}</span>
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column">
+            <span style="font-size:var(--text-body-sm);font-weight:500;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ user.name }}</span>
+            <span style="font-size:var(--text-caption);color:var(--text-sub)">Administrador</span>
+          </span>
+          <x-import component-from-global-scope="MktControlDesignSystem_295891.IconButton" icon="logout-01" label="Sair" variant="ghost" size="sm" sc-camel-on-click="{{ logout }}" hint-size="32px,32px"></x-import>
+        </div>
+      </div>
+    </aside>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <header style="height:var(--topbar-h);flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 var(--page-pad);border-bottom:1px solid var(--border-default);background:var(--surface-card);position:relative">
+        <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+          <x-import component-from-global-scope="MktControlDesignSystem_295891.IconButton" icon="menu-01" label="Abrir menu" variant="ghost" sc-camel-on-click="{{ openDrawer }}" hint-size="40px,40px"></x-import>
+        </sc-if>
+        <h1 style="margin:0;flex:1;min-width:0;font-size:var(--text-h3);font-weight:500;color:var(--text-strong);letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ pageTitle }}</h1>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.IconButton" icon="{{ hideIcon }}" label="{{ hideLabel }}" variant="ghost" sc-camel-on-click="{{ toggleHidden }}" hint-size="40px,40px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.IconButton" icon="{{ themeIcon }}" label="{{ themeLabel }}" variant="ghost" sc-camel-on-click="{{ toggleTheme }}" hint-size="40px,40px"></x-import>
+        <div style="position:relative">
+          <x-import component-from-global-scope="MktControlDesignSystem_295891.IconButton" icon="notification-01" label="Notificações" variant="ghost" sc-camel-on-click="{{ toggleNotif }}" hint-size="40px,40px"></x-import>
+          <sc-if value="{{ notifCount }}" hint-placeholder-val="{{ false }}">
+            <span style="position:absolute;top:4px;right:4px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:var(--radius-full);background:var(--danger-solid);color:var(--text-on-color);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;pointer-events:none">{{ notifCount }}</span>
+          </sc-if>
+        </div>
+        <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:58px;right:16px;z-index:60;width:min(360px,calc(100vw - 32px));background:var(--surface-card);border:1px solid var(--border-default);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);padding:8px;display:flex;flex-direction:column">
+            <div style="padding:8px 10px 10px;font-weight:500;color:var(--text-strong)">Notificações</div>
+            <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="3">
+              <button type="button" sc-camel-on-click="{{ n.go }}" style="display:flex;align-items:flex-start;gap:10px;padding:10px;border:0;border-radius:var(--radius-lg);background:transparent;text-align:left;cursor:pointer;font-family:inherit;color:inherit" style-hover="background:var(--surface-hover)">
+                <span style="width:8px;height:8px;margin-top:6px;border-radius:50%;flex-shrink:0;background:{{ n.color }}"></span>
+                <span style="display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:var(--text-body-sm);font-weight:500;color:var(--text-strong)">{{ n.title }}</span>
+                  <span style="font-size:var(--text-caption);color:var(--text-sub)">{{ n.msg }}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </header>
+
+      <main sc-camel-on-click="{{ closeNotif }}" style="flex:1;overflow:auto;padding:var(--page-pad)">
+        <div style="max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:var(--gutter)">
+
+          <!-- PAINEL -->
+          <sc-if value="{{ is.painel }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+              <div>
+                <div style="font-size:var(--text-body-sm);color:var(--text-sub)">{{ longDate }}</div>
+                <h2 style="margin:0;font-size:var(--text-h1);line-height:var(--lh-h1);font-weight:500;letter-spacing:var(--tracking-tight);color:var(--text-strong)">{{ greeting }}</h2>
+              </div>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Tabs" items="{{ periodTabs }}" value="{{ period }}" sc-camel-on-change="{{ setPeriod }}" sc-camel-aria-label="Período" hint-size="240px,44px"></x-import>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:var(--gutter)">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Faturamento" icon="money-receive-01" value="{{ kpi.rev }}" hidden="{{ hidden }}" delta="{{ kpi.delta }}" sc-camel-delta-label="{{ kpi.deltaLabel }}" hint-size="100%,130px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="CMV" icon="package" value="{{ kpi.cmv }}" hidden="{{ hidden }}" footer="custo histórico de cada venda" hint-size="100%,130px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Margem bruta" icon="percent" value="{{ kpi.mg }}" hidden="{{ hidden }}" footer="{{ kpi.mgPct }}" hint-size="100%,130px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Ticket médio" icon="invoice-03" value="{{ kpi.ticket }}" hidden="{{ hidden }}" footer="{{ kpi.nLabel }}" hint-size="100%,130px"></x-import>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:var(--gutter)">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" style="grid-column:{{ chartSpan }}" hint-size="100%,320px">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                    <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Faturamento x CMV</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Últimos 7 dias</div></div>
+                    <div style="display:flex;gap:16px;font-size:var(--text-caption);color:var(--text-sub)">
+                      <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:var(--chart-primary)"></span>Faturamento</span>
+                      <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:var(--chart-secondary-legend)"></span>CMV</span>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;height:210px;align-items:end">
+                    <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+                      <div title="{{ d.tip }}" style="display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end">
+                        <div style="display:flex;gap:3px;align-items:flex-end;height:100%;width:100%;justify-content:center">
+                          <div style="width:38%;max-width:18px;height:{{ d.revH }};background:{{ d.revC }};border-radius:6px 6px 2px 2px"></div>
+                          <div style="width:38%;max-width:18px;height:{{ d.cmvH }};background:var(--chart-secondary);border-radius:6px 6px 2px 2px"></div>
+                        </div>
+                        <span style="font-size:var(--text-caption);color:{{ d.lc }}">{{ d.label }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,320px">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                    <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Lotes a vencer</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Vencidos e próximos 7 dias</div></div>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" size="sm" sc-camel-on-click="{{ nav.lotes }}" hint-size="90px,32px">Ver lotes</x-import>
+                  </div>
+                  <ul style="list-style:none;margin:0;padding:0">
+                    <sc-for list="{{ lotsSoon }}" as="l" hint-placeholder-count="4">
+                      <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-soft)">
+                        <span style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:500;color:var(--text-strong)">{{ l.name }}</span><span style="font-size:12px;color:var(--text-soft)">Lote {{ l.code }} · {{ l.qtyLabel }}</span></span>
+                        <x-import component-from-global-scope="MktControlDesignSystem_295891.Badge" size="sm" tone="{{ l.tone }}" dot="{{ true }}" hint-size="80px,20px">{{ l.status }}</x-import>
+                      </li>
+                    </sc-for>
+                  </ul>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,320px">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                    <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Reposição</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">{{ repoSub }}</div></div>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" size="sm" sc-camel-on-click="{{ nav.reposicao }}" hint-size="90px,32px">Ver lista</x-import>
+                  </div>
+                  <ul style="list-style:none;margin:0;padding:0">
+                    <sc-for list="{{ repoTop }}" as="p" hint-placeholder-count="4">
+                      <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-soft)">
+                        <span style="font-weight:500;color:var(--text-strong)">{{ p.name }}</span>
+                        <span style="font-size:13px;color:var(--text-sub);font-variant-numeric:tabular-nums;white-space:nowrap"><strong style="color:var(--warning-fg);font-weight:600">{{ p.stockFmt }}</strong> / {{ p.min }} {{ p.unit }}</span>
+                      </li>
+                    </sc-for>
+                  </ul>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" style="grid-column:{{ chartSpan }}" hint-size="100%,320px">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                    <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Últimas vendas</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Hoje</div></div>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" size="sm" sc-camel-on-click="{{ nav.vendas }}" hint-size="110px,32px">Ver todas</x-import>
+                  </div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ salesCols }}" rows="{{ recentSales }}" sc-camel-row-key="id" sc-camel-on-row-click="{{ openSale }}" dense="{{ true }}" hint-size="100%,240px"></x-import>
+                </div>
+              </x-import>
+            </div>
+          </sc-if>
+
+          <!-- VENDAS -->
+          <sc-if value="{{ is.vendas }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" sc-camel-leading-icon="search-01" placeholder="Buscar por nº da venda ou produto" value="{{ vf.q }}" sc-camel-on-change="{{ setVf.q }}" style="flex:1 1 260px" hint-size="260px,40px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Tabs" items="{{ periodTabs }}" value="{{ vf.period }}" sc-camel-on-change="{{ setVfPeriod }}" sc-camel-aria-label="Período" hint-size="240px,44px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Select" value="{{ vf.pay }}" sc-camel-on-change="{{ setVf.pay }}" options="{{ payOptions }}" style="width:200px" hint-size="200px,40px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-leading-icon="download-01" sc-camel-on-click="{{ exportSales }}" hint-size="140px,40px">Exportar CSV</x-import>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--gutter)">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Faturamento no filtro" icon="money-receive-01" value="{{ vsum.rev }}" hidden="{{ hidden }}" footer="{{ vsum.nLabel }}" hint-size="100%,120px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Ticket médio" icon="invoice-03" value="{{ vsum.ticket }}" hidden="{{ hidden }}" footer="vendas concluídas" hint-size="100%,120px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Canceladas" icon="cancel-01" value="{{ vsum.canc }}" hidden="{{ hidden }}" footer="{{ vsum.cancLabel }}" hint-size="100%,120px"></x-import>
+            </div>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,600px">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ salesCols }}" rows="{{ salesPage }}" sc-camel-row-key="id" sc-camel-on-row-click="{{ openSale }}" empty="Nenhuma venda encontrada para este filtro." hint-size="100%,560px"></x-import>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:var(--text-body-sm);color:var(--text-sub)">
+                  <span>{{ pageInfo }}</span>
+                  <div style="display:flex;gap:8px">
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" size="sm" sc-camel-leading-icon="arrow-left-01" disabled="{{ pg.noPrev }}" sc-camel-on-click="{{ pg.prev }}" hint-size="100px,32px">Anterior</x-import>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" size="sm" sc-camel-trailing-icon="arrow-right-01" disabled="{{ pg.noNext }}" sc-camel-on-click="{{ pg.next }}" hint-size="100px,32px">Próxima</x-import>
+                  </div>
+                </div>
+              </div>
+            </x-import>
+          </sc-if>
+
+          <!-- CAIXA -->
+          <sc-if value="{{ is.caixa }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ caixaOpen }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,140px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Badge" tone="success" dot="{{ true }}" hint-size="110px,24px">Caixa aberto</x-import>
+                    <div style="font-size:var(--text-h3);font-weight:500;color:var(--text-strong)">{{ cx.title }}</div>
+                    <div style="font-size:var(--text-body-sm);color:var(--text-sub)">{{ cx.sub }}</div>
+                  </div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-leading-icon="money-send-01" sc-camel-on-click="{{ dlgOpen.sangria }}" hint-size="160px,40px">Registrar sangria</x-import>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-leading-icon="money-receive-01" sc-camel-on-click="{{ dlgOpen.suprimento }}" hint-size="170px,40px">Registrar suprimento</x-import>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" sc-camel-leading-icon="lock-key" sc-camel-on-click="{{ dlgOpen.fechar }}" hint-size="130px,40px">Fechar caixa</x-import>
+                  </div>
+                </div>
+              </x-import>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--gutter)">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Troco inicial" icon="coins-01" value="{{ cx.troco }}" hidden="{{ hidden }}" footer="{{ cx.abertura }}" hint-size="100%,120px"></x-import>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Vendas em dinheiro" icon="cash-01" value="{{ cx.cash }}" hidden="{{ hidden }}" footer="{{ cx.cashN }}" hint-size="100%,120px"></x-import>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Sangrias − suprimentos" icon="exchange-01" value="{{ cx.net }}" hidden="{{ hidden }}" footer="{{ cx.movN }}" hint-size="100%,120px"></x-import>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Esperado na gaveta" icon="wallet-01" value="{{ cx.expected }}" hidden="{{ hidden }}" footer="visível só para administradores" hint-size="100%,120px"></x-import>
+              </div>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,260px">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Movimentos do caixa</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Abertura, sangrias e suprimentos de hoje</div></div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ movCols }}" rows="{{ movRows }}" sc-camel-row-key="id" dense="{{ true }}" hint-size="100%,200px"></x-import>
+                </div>
+              </x-import>
+            </sc-if>
+            <sc-if value="{{ caixaClosed }}" hint-placeholder-val="{{ false }}">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,220px">
+                <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 0">
+                  <span style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--surface-sunken);color:var(--text-strong);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="MktControlDesignSystem_295891.Icon" name="lock-key" size="24" hint-size="24px,24px"></x-import></span>
+                  <div style="font-size:var(--text-h3);font-weight:500;color:var(--text-strong)">Nenhum caixa aberto</div>
+                  <div style="color:var(--text-sub);max-width:380px">Abra o caixa com o valor de troco para liberar as vendas no PDV.</div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="brand" size="lg" sc-camel-leading-icon="cash-01" sc-camel-on-click="{{ dlgOpen.abrir }}" hint-size="160px,48px">Abrir caixa</x-import>
+                </div>
+              </x-import>
+            </sc-if>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,360px">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Histórico de fechamentos</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Fechamento cego: o operador informa o valor contado sem ver o esperado.</div></div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Badge" tone="{{ quebraTone }}" hint-size="160px,24px">{{ quebraTotal }}</x-import>
+                </div>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ histCols }}" rows="{{ cxHist }}" sc-camel-row-key="id" hint-size="100%,300px"></x-import>
+              </div>
+            </x-import>
+          </sc-if>
+
+          <!-- PRODUTOS -->
+          <sc-if value="{{ is.produtos }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" sc-camel-leading-icon="search-01" placeholder="Buscar por nome ou código de barras" value="{{ pfil.q }}" sc-camel-on-change="{{ setProdQ }}" style="flex:1 1 260px" hint-size="260px,40px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-leading-icon="file-import" sc-camel-on-click="{{ dlgOpen.importar }}" hint-size="170px,40px">Importar produtos</x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" sc-camel-leading-icon="add-01" sc-camel-on-click="{{ newProduct }}" hint-size="140px,40px">Novo produto</x-import>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{ catTags }}" as="c" hint-placeholder-count="6">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Tag" selected="{{ c.on }}" sc-camel-on-click="{{ c.pick }}" hint-size="90px,28px">{{ c.label }}</x-import>
+              </sc-for>
+            </div>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,560px">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ prodCols }}" rows="{{ prodRows }}" sc-camel-row-key="id" sc-camel-on-row-click="{{ editProduct }}" empty="Nenhum produto encontrado." hint-size="100%,520px"></x-import>
+            </x-import>
+          </sc-if>
+
+          <!-- LOTES -->
+          <sc-if value="{{ is.lotes }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Tabs" items="{{ lotTabs }}" value="{{ lotFilter }}" sc-camel-on-change="{{ setLotFilter }}" sc-camel-aria-label="Situação do lote" hint-size="420px,44px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="danger" sc-camel-leading-icon="delete-02" disabled="{{ noExpired }}" sc-camel-on-click="{{ dlgOpen.baixa }}" hint-size="170px,40px">Baixar vencidos</x-import>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--gutter)">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Custo em lotes vencidos" icon="alert-02" value="{{ lotSum.exp }}" hidden="{{ hidden }}" footer="{{ lotSum.expN }}" hint-size="100%,120px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Vence em 7 dias" icon="calendar-03" value="{{ lotSum.soon }}" hidden="{{ hidden }}" footer="{{ lotSum.soonN }}" hint-size="100%,120px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Perdas por validade" icon="package-out-of-stock" value="{{ lotSum.loss }}" hidden="{{ hidden }}" footer="últimos 30 dias" hint-size="100%,120px"></x-import>
+            </div>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,480px">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:var(--text-body-sm);color:var(--text-sub)">Ordem PVPS: o lote que vence primeiro sai primeiro no PDV.</div>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ lotCols }}" rows="{{ lotRows }}" sc-camel-row-key="key" empty="Nenhum lote nesta situação." hint-size="100%,440px"></x-import>
+              </div>
+            </x-import>
+          </sc-if>
+
+          <!-- ENTRADAS -->
+          <sc-if value="{{ is.entradas }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+              <div style="font-size:var(--text-body-sm);color:var(--text-sub)">Cada entrada cria um lote com validade e custo de compra.</div>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" sc-camel-leading-icon="package-receive" sc-camel-on-click="{{ dlgOpen.entrada }}" hint-size="170px,40px">Registrar entrada</x-import>
+            </div>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,400px">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ entCols }}" rows="{{ entradas }}" sc-camel-row-key="id" hint-size="100%,360px"></x-import>
+            </x-import>
+          </sc-if>
+
+          <!-- REPOSIÇÃO -->
+          <sc-if value="{{ is.reposicao }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+              <div style="font-size:var(--text-body-sm);color:var(--text-sub)">Sugestão = 2 × estoque mínimo − estoque atual.</div>
+              <div style="display:flex;gap:8px">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-leading-icon="printer" sc-camel-on-click="{{ printPage }}" hint-size="110px,40px">Imprimir</x-import>
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" sc-camel-leading-icon="download-01" sc-camel-on-click="{{ exportRepo }}" hint-size="150px,40px">Exportar lista</x-import>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--gutter)">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Produtos abaixo do mínimo" icon="package-out-of-stock" money="{{ false }}" value="{{ repoCount }}" footer="atualizado a cada venda" hint-size="100%,120px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Custo estimado da compra" icon="shopping-basket-01" value="{{ repoCost }}" hidden="{{ hidden }}" footer="pelo último custo de entrada" hint-size="100%,120px"></x-import>
+            </div>
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,400px">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ repoCols }}" rows="{{ repoRows }}" sc-camel-row-key="id" empty="Nenhum produto abaixo do mínimo." hint-size="100%,360px"></x-import>
+            </x-import>
+          </sc-if>
+
+          <!-- RELATÓRIOS -->
+          <sc-if value="{{ is.relatorios }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Tabs" items="{{ periodTabs }}" value="{{ period }}" sc-camel-on-change="{{ setPeriod }}" sc-camel-aria-label="Período" hint-size="240px,44px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-leading-icon="download-01" sc-camel-on-click="{{ exportReport }}" hint-size="160px,40px">Exportar relatório</x-import>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--gutter)">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Faturamento" icon="money-receive-01" value="{{ kpi.rev }}" hidden="{{ hidden }}" delta="{{ kpi.delta }}" sc-camel-delta-label="{{ kpi.deltaLabel }}" hint-size="100%,130px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Margem bruta" icon="percent" value="{{ kpi.mg }}" hidden="{{ hidden }}" footer="{{ kpi.mgPct }}" hint-size="100%,130px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Perdas por validade" icon="package-out-of-stock" value="{{ lotSum.loss }}" hidden="{{ hidden }}" footer="baixas de lotes vencidos" hint-size="100%,130px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.StatCard" label="Quebras de caixa" icon="alert-02" value="{{ quebraSum }}" hidden="{{ hidden }}" footer="soma de faltas e sobras" hint-size="100%,130px"></x-import>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:var(--gutter)">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,300px">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Margem por categoria</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Faturamento − CMV</div></div>
+                  <sc-for list="{{ catRep }}" as="c" hint-placeholder-count="5">
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <div style="display:flex;justify-content:space-between;gap:12px;font-size:var(--text-body-sm)"><span style="color:var(--text-strong);font-weight:500">{{ c.cat }}</span><span style="color:var(--text-sub);font-variant-numeric:tabular-nums">{{ c.label }}</span></div>
+                      <div style="height:8px;border-radius:var(--radius-full);background:var(--surface-sunken);overflow:hidden"><div style="height:100%;width:{{ c.w }};background:var(--chart-primary);border-radius:var(--radius-full)"></div></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,300px">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Formas de pagamento</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Participação no faturamento</div></div>
+                  <sc-for list="{{ payRep }}" as="c" hint-placeholder-count="4">
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <div style="display:flex;justify-content:space-between;gap:12px;font-size:var(--text-body-sm)"><span style="color:var(--text-strong);font-weight:500">{{ c.pay }}</span><span style="color:var(--text-sub);font-variant-numeric:tabular-nums">{{ c.label }}</span></div>
+                      <div style="height:8px;border-radius:var(--radius-full);background:var(--surface-sunken);overflow:hidden"><div style="height:100%;width:{{ c.w }};background:var(--neutral-950,#0E121B);border-radius:var(--radius-full)"></div></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" style="grid-column:{{ chartSpan }}" hint-size="100%,360px">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Produtos por margem</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Ordenado pela margem em reais no período</div></div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ topCols }}" rows="{{ topProds }}" sc-camel-row-key="id" dense="{{ true }}" hint-size="100%,300px"></x-import>
+                </div>
+              </x-import>
+            </div>
+          </sc-if>
+
+          <!-- USUÁRIOS -->
+          <sc-if value="{{ is.usuarios }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Tabs" items="{{ userTabs }}" value="{{ userTab }}" sc-camel-on-change="{{ setUserTab }}" sc-camel-aria-label="Usuários" hint-size="280px,44px"></x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" sc-camel-leading-icon="add-01" sc-camel-on-click="{{ newUser }}" hint-size="160px,40px">Adicionar usuário</x-import>
+            </div>
+            <sc-if value="{{ ut.equipe }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,320px">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ userCols }}" rows="{{ users }}" sc-camel-row-key="id" sc-camel-on-row-click="{{ editUser }}" hint-size="100%,280px"></x-import>
+              </x-import>
+            </sc-if>
+            <sc-if value="{{ ut.atividade }}" hint-placeholder-val="{{ false }}">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,420px">
+                <x-import component-from-global-scope="MktControlDesignSystem_295891.Table" columns="{{ actCols }}" rows="{{ activity }}" sc-camel-row-key="id" dense="{{ true }}" hint-size="100%,380px"></x-import>
+              </x-import>
+            </sc-if>
+          </sc-if>
+
+          <!-- CONFIGURAÇÕES -->
+          <sc-if value="{{ is.config }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:var(--gutter);align-items:start">
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,380px">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Dados da loja</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Aparecem no cupom e nos relatórios.</div></div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Nome da loja" value="{{ cfg.loja }}" sc-camel-on-change="{{ setCfg.loja }}" hint-size="100%,66px"></x-import>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="CNPJ" value="{{ cfg.cnpj }}" sc-camel-on-change="{{ setCfg.cnpj }}" hint-size="100%,66px"></x-import>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Telefone" value="{{ cfg.tel }}" sc-camel-on-change="{{ setCfg.tel }}" hint-size="100%,66px"></x-import>
+                  </div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Endereço" value="{{ cfg.end }}" sc-camel-on-change="{{ setCfg.end }}" hint-size="100%,66px"></x-import>
+                  <div style="display:flex;justify-content:flex-end"><x-import component-from-global-scope="MktControlDesignSystem_295891.Button" sc-camel-on-click="{{ saveCfg }}" hint-size="150px,40px">Salvar alterações</x-import></div>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,380px">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Estoque e validade</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Regras aplicadas em todas as vendas e entradas.</div></div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Switch" label="Saída por PVPS (primeiro que vence, primeiro que sai)" checked="{{ cfg.pvps }}" sc-camel-on-change="{{ tgl.pvps }}" hint-size="100%,24px"></x-import>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Switch" label="Baixar lotes vencidos automaticamente à meia-noite" checked="{{ cfg.autoBaixa }}" sc-camel-on-change="{{ tgl.autoBaixa }}" hint-size="100%,24px"></x-import>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Switch" label="Bloquear venda de lote vencido no PDV" checked="{{ cfg.bloqVencido }}" sc-camel-on-change="{{ tgl.bloqVencido }}" hint-size="100%,24px"></x-import>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Alertar validade com" numeric="{{ true }}" suffix="dias" value="{{ cfg.alertDays }}" sc-camel-on-change="{{ setCfg.alertDays }}" hint-size="100%,66px"></x-import>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Estoque mínimo padrão" numeric="{{ true }}" suffix="un" value="{{ cfg.minPadrao }}" sc-camel-on-change="{{ setCfg.minPadrao }}" hint-size="100%,66px"></x-import>
+                  </div>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,320px">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Caixa</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">Controle de dinheiro na gaveta.</div></div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Switch" label="Exigir motivo em sangrias e suprimentos" checked="{{ cfg.motivo }}" sc-camel-on-change="{{ tgl.motivo }}" hint-size="100%,24px"></x-import>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Switch" label="Fechamento cego (operador não vê o esperado)" checked="{{ cfg.cego }}" sc-camel-on-change="{{ tgl.cego }}" hint-size="100%,24px"></x-import>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Avisar sangria quando a gaveta passar de" prefix="R$" numeric="{{ true }}" value="{{ cfg.limite }}" sc-camel-on-change="{{ setCfg.limite }}" hint-size="100%,66px"></x-import>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Tolerância de quebra" prefix="R$" numeric="{{ true }}" value="{{ cfg.tolerancia }}" sc-camel-on-change="{{ setCfg.tolerancia }}" hint-size="100%,66px"></x-import>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="MktControlDesignSystem_295891.Card" hint-size="100%,320px">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div><div style="font-size:var(--text-body-lg);font-weight:500;color:var(--text-strong)">Conta e segurança</div><div style="font-size:var(--text-body-sm);color:var(--text-sub)">{{ user.email }}</div></div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="font-size:var(--text-body-sm);font-weight:500;color:var(--text-strong)">Aparência</span>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Tabs" items="{{ themeTabs }}" value="{{ theme }}" sc-camel-on-change="{{ setTheme }}" sc-camel-aria-label="Tema" hint-size="200px,44px"></x-import>
+                  </div>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Select" label="Encerrar sessão por inatividade" value="{{ cfg.sessao }}" sc-camel-on-change="{{ setCfg.sessao }}" options="{{ sessaoOptions }}" hint-size="100%,66px"></x-import>
+                  <x-import component-from-global-scope="MktControlDesignSystem_295891.Switch" label="Pedir código por e-mail em novos dispositivos" checked="{{ cfg.dois }}" sc-camel-on-change="{{ tgl.dois }}" hint-size="100%,24px"></x-import>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-leading-icon="lock-key" sc-camel-on-click="{{ dlgOpen.senha }}" hint-size="140px,40px">Alterar senha</x-import>
+                    <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="ghost" sc-camel-on-click="{{ endSessions }}" hint-size="200px,40px">Encerrar outras sessões</x-import>
+                  </div>
+                </div>
+              </x-import>
+            </div>
+          </sc-if>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- DIALOGS -->
+  <x-import component-from-global-scope="MktControlDesignSystem_295891.Dialog" open="{{ dlg.venda }}" sc-camel-on-close="{{ closeDlg }}" title="{{ sale.title }}" description="{{ sale.desc }}" width="{{ 520 }}" hint-size="0px,0px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <ul style="list-style:none;margin:0;padding:0">
+        <sc-for list="{{ sale.items }}" as="it" hint-placeholder-count="3">
+          <li style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums">
+            <span style="display:flex;flex-direction:column"><span style="font-weight:500;color:var(--text-strong)">{{ it.name }}</span><span style="font-size:var(--text-caption);color:var(--text-sub)">{{ it.line }}</span></span>
+            <span style="color:var(--text-strong);white-space:nowrap">{{ it.totalFmt }}</span>
+          </li>
+        </sc-for>
+      </ul>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:var(--text-body-sm);font-variant-numeric:tabular-nums">
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-sub)">CMV</span><span>{{ sale.cmv }}</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-sub)">Margem</span><span style="color:var(--success-fg);font-weight:500">{{ sale.mg }}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:8px"><span style="font-size:var(--text-body-md);color:var(--text-strong);font-weight:500">Total</span><x-import component-from-global-scope="MktControlDesignSystem_295891.Money" value="{{ sale.total }}" size="lg" hidden="{{ hidden }}" hint-size="120px,32px"></x-import></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+        <sc-if value="{{ sale.canCancel }}" hint-placeholder-val="{{ false }}">
+          <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="ghost" sc-camel-on-click="{{ cancelSale }}" style="color:var(--danger-fg)" hint-size="130px,40px">Cancelar venda</x-import>
+        </sc-if>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-leading-icon="printer" sc-camel-on-click="{{ reprint }}" hint-size="150px,40px">Imprimir 2ª via</x-import>
+      </div>
+    </div>
+  </x-import>
+
+  <x-import component-from-global-scope="MktControlDesignSystem_295891.Dialog" open="{{ dlg.mov }}" sc-camel-on-close="{{ closeDlg }}" title="{{ movTitle }}" description="{{ movDesc }}" hint-size="0px,0px">
+    <form sc-camel-on-submit="{{ submitMov }}" sc-camel-no-validate="{{ true }}" style="display:flex;flex-direction:column;gap:16px">
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Valor" prefix="R$" numeric="{{ true }}" sc-camel-input-mode="decimal" size="lg" value="{{ mf.valor }}" sc-camel-on-change="{{ setMf.valor }}" error="{{ err.valor }}" placeholder="0,00" hint-size="100%,74px"></x-import>
+      <sc-if value="{{ movNeedsMotivo }}" hint-placeholder-val="{{ true }}">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Motivo" size="lg" value="{{ mf.motivo }}" sc-camel-on-change="{{ setMf.motivo }}" error="{{ err.motivo }}" placeholder="{{ movPh }}" hint-size="100%,74px"></x-import>
+      </sc-if>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-on-click="{{ closeDlg }}" hint-size="100px,40px">Cancelar</x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" type="submit" variant="{{ movVariant }}" hint-size="160px,40px">{{ movCta }}</x-import>
+      </div>
+    </form>
+  </x-import>
+
+  <x-import component-from-global-scope="MktControlDesignSystem_295891.Dialog" open="{{ dlg.produto }}" sc-camel-on-close="{{ closeDlg }}" title="{{ pfTitle }}" width="{{ 560 }}" hint-size="0px,0px">
+    <form sc-camel-on-submit="{{ saveProduct }}" sc-camel-no-validate="{{ true }}" style="display:flex;flex-direction:column;gap:16px">
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Nome do produto" value="{{ pf.name }}" sc-camel-on-change="{{ setPf.name }}" error="{{ err.name }}" hint-size="100%,66px"></x-import>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Código de barras" sc-camel-leading-icon="bar-code-01" sc-camel-input-mode="numeric" value="{{ pf.sku }}" sc-camel-on-change="{{ setPf.sku }}" hint-size="100%,66px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Select" label="Categoria" value="{{ pf.cat }}" sc-camel-on-change="{{ setPf.cat }}" options="{{ catOptions }}" hint-size="100%,66px"></x-import>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:16px">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Preço de venda" prefix="R$" numeric="{{ true }}" sc-camel-input-mode="decimal" value="{{ pf.price }}" sc-camel-on-change="{{ setPf.price }}" error="{{ err.price }}" hint-size="100%,66px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Custo" prefix="R$" numeric="{{ true }}" sc-camel-input-mode="decimal" value="{{ pf.cost }}" sc-camel-on-change="{{ setPf.cost }}" hint-size="100%,66px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Estoque mínimo" numeric="{{ true }}" sc-camel-input-mode="decimal" value="{{ pf.min }}" sc-camel-on-change="{{ setPf.min }}" hint-size="100%,66px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Select" label="Unidade" value="{{ pf.unit }}" sc-camel-on-change="{{ setPf.unit }}" options="{{ unitOptions }}" hint-size="100%,66px"></x-import>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:var(--radius-lg);background:var(--surface-sunken);font-size:var(--text-body-sm)">
+        <span style="color:var(--text-sub)">Margem sobre o preço</span>
+        <span style="font-weight:500;color:{{ pfMargin.color }};font-variant-numeric:tabular-nums">{{ pfMargin.label }}</span>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap">
+        <div>
+          <sc-if value="{{ pfEditing }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="ghost" sc-camel-leading-icon="delete-02" sc-camel-on-click="{{ deleteProduct }}" style="color:var(--danger-fg)" hint-size="130px,40px">Excluir</x-import>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:8px">
+          <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-on-click="{{ closeDlg }}" hint-size="100px,40px">Cancelar</x-import>
+          <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" type="submit" hint-size="140px,40px">Salvar produto</x-import>
+        </div>
+      </div>
+    </form>
+  </x-import>
+
+  <x-import component-from-global-scope="MktControlDesignSystem_295891.Dialog" open="{{ dlg.entrada }}" sc-camel-on-close="{{ closeDlg }}" title="Registrar entrada" description="Informe a nota e o lote recebido." width="{{ 560 }}" hint-size="0px,0px">
+    <form sc-camel-on-submit="{{ saveEntrada }}" sc-camel-no-validate="{{ true }}" style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Fornecedor" value="{{ ef.forn }}" sc-camel-on-change="{{ setEf.forn }}" error="{{ err.forn }}" hint-size="100%,66px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Nº da nota" value="{{ ef.nota }}" sc-camel-on-change="{{ setEf.nota }}" hint-size="100%,66px"></x-import>
+      </div>
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Select" label="Produto" value="{{ ef.pid }}" sc-camel-on-change="{{ setEf.pid }}" options="{{ prodOptions }}" hint-size="100%,66px"></x-import>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Lote" value="{{ ef.lote }}" sc-camel-on-change="{{ setEf.lote }}" error="{{ err.lote }}" hint-size="100%,66px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Validade" type="date" value="{{ ef.exp }}" sc-camel-on-change="{{ setEf.exp }}" error="{{ err.exp }}" hint-size="100%,66px"></x-import>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Quantidade" numeric="{{ true }}" sc-camel-input-mode="decimal" value="{{ ef.qty }}" sc-camel-on-change="{{ setEf.qty }}" error="{{ err.qty }}" hint-size="100%,66px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Custo unitário" prefix="R$" numeric="{{ true }}" sc-camel-input-mode="decimal" value="{{ ef.cost }}" sc-camel-on-change="{{ setEf.cost }}" error="{{ err.cost }}" hint-size="100%,66px"></x-import>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:var(--radius-lg);background:var(--surface-sunken);font-size:var(--text-body-sm)">
+        <span style="color:var(--text-sub)">Total da entrada</span>
+        <span style="font-weight:500;color:var(--text-strong);font-variant-numeric:tabular-nums">{{ efTotal }}</span>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-on-click="{{ closeDlg }}" hint-size="100px,40px">Cancelar</x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" type="submit" hint-size="160px,40px">Registrar entrada</x-import>
+      </div>
+    </form>
+  </x-import>
+
+  <x-import component-from-global-scope="MktControlDesignSystem_295891.Dialog" open="{{ dlg.usuario }}" sc-camel-on-close="{{ closeDlg }}" title="{{ ufTitle }}" description="O usuário recebe um convite por e-mail para criar a senha." width="{{ 520 }}" hint-size="0px,0px">
+    <form sc-camel-on-submit="{{ saveUser }}" sc-camel-no-validate="{{ true }}" style="display:flex;flex-direction:column;gap:16px">
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Nome" value="{{ uf.name }}" sc-camel-on-change="{{ setUf.name }}" error="{{ err.uname }}" hint-size="100%,66px"></x-import>
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="E-mail" type="email" value="{{ uf.email }}" sc-camel-on-change="{{ setUf.email }}" error="{{ err.uemail }}" hint-size="100%,66px"></x-import>
+      <div role="radiogroup" aria-label="Perfil" style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:var(--text-body-sm);font-weight:500;color:var(--text-strong)">Perfil</span>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Radio" name="perfil" value="CASHIER" checked="{{ uf.isCashier }}" sc-camel-on-change="{{ pickCashier }}" label="Operador de caixa" description="PDV, caixa e consulta de produtos. Não vê custos, margens nem o valor esperado do caixa." hint-size="100%,44px"></x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Radio" name="perfil" value="ADMIN" checked="{{ uf.isAdmin }}" sc-camel-on-change="{{ pickAdmin }}" label="Administrador" description="Acesso total, incluindo custos, margens, relatórios e usuários." hint-size="100%,44px"></x-import>
+      </div>
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Switch" label="Acesso ativo" checked="{{ uf.active }}" sc-camel-on-change="{{ toggleUfActive }}" hint-size="100%,24px"></x-import>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-on-click="{{ closeDlg }}" hint-size="100px,40px">Cancelar</x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" type="submit" hint-size="140px,40px">{{ ufCta }}</x-import>
+      </div>
+    </form>
+  </x-import>
+
+  <x-import component-from-global-scope="MktControlDesignSystem_295891.Dialog" open="{{ dlg.importar }}" sc-camel-on-close="{{ closeDlg }}" title="Importar produtos" description="Envie uma planilha CSV com uma linha por produto." width="{{ 520 }}" hint-size="0px,0px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <label style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 16px;border:1px dashed var(--border-strong);border-radius:var(--radius-lg);background:var(--surface-sunken);cursor:pointer;text-align:center">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Icon" name="upload-01" size="24" hint-size="24px,24px"></x-import>
+        <span style="font-weight:500;color:var(--text-strong)">{{ importLabel }}</span>
+        <span style="font-size:var(--text-caption);color:var(--text-sub)">Colunas: codigo, nome, categoria, unidade, preco, custo, minimo</span>
+        <input type="file" accept=".csv" sc-camel-on-change="{{ pickFile }}" style="display:none">
+      </label>
+      <a href="#" sc-camel-on-click="{{ downloadTemplate }}" style="font-size:var(--text-body-sm);font-weight:500">Baixar modelo de planilha</a>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-on-click="{{ closeDlg }}" hint-size="100px,40px">Cancelar</x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" disabled="{{ noFile }}" sc-camel-on-click="{{ doImport }}" hint-size="160px,40px">Importar produtos</x-import>
+      </div>
+    </div>
+  </x-import>
+
+  <x-import component-from-global-scope="MktControlDesignSystem_295891.Dialog" open="{{ dlg.baixa }}" sc-camel-on-close="{{ closeDlg }}" title="Baixar lotes vencidos" description="{{ baixaDesc }}" hint-size="0px,0px">
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-on-click="{{ closeDlg }}" hint-size="100px,40px">Cancelar</x-import>
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="danger" sc-camel-on-click="{{ doBaixa }}" hint-size="160px,40px">Registrar perda</x-import>
+    </div>
+  </x-import>
+
+  <x-import component-from-global-scope="MktControlDesignSystem_295891.Dialog" open="{{ dlg.senha }}" sc-camel-on-close="{{ closeDlg }}" title="Alterar senha" hint-size="0px,0px">
+    <form sc-camel-on-submit="{{ savePass }}" sc-camel-no-validate="{{ true }}" style="display:flex;flex-direction:column;gap:16px">
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Senha atual" type="password" value="{{ sf.atual }}" sc-camel-on-change="{{ setSf.atual }}" error="{{ err.atual }}" hint-size="100%,66px"></x-import>
+      <x-import component-from-global-scope="MktControlDesignSystem_295891.Input" label="Nova senha" type="password" value="{{ sf.nova }}" sc-camel-on-change="{{ setSf.nova }}" error="{{ err.nova }}" hint="Mínimo de 8 caracteres, com letras e números." hint-size="100%,86px"></x-import>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" variant="secondary" sc-camel-on-click="{{ closeDlg }}" hint-size="100px,40px">Cancelar</x-import>
+        <x-import component-from-global-scope="MktControlDesignSystem_295891.Button" type="submit" hint-size="140px,40px">Salvar senha</x-import>
+      </div>
+    </form>
+  </x-import>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;right:16px;bottom:16px;z-index:200">
+    <x-import component-from-global-scope="MktControlDesignSystem_295891.Toast" tone="{{ toast.tone }}" title="{{ toast.title }}" message="{{ toast.message }}" sc-camel-on-close="{{ closeToast }}" hint-size="320px,56px"></x-import>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script="">
+const h = React.createElement;
+const NS = () => window.MktControlDesignSystem_295891 || {};
+const TODAY = '2026-10-29';
+const r2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+const fmt = n => Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const brl = n => (n < 0 ? '−' : '') + 'R$ ' + fmt(n);
+const num = s => { s = String(s ?? '').trim(); if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); return parseFloat(s) || 0; };
+const addDays = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+const daysTo = d => Math.round((new Date(d + 'T12:00:00') - new Date(TODAY + 'T12:00:00')) / 864e5);
+const dmy = d => d.slice(8, 10) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4);
+const dm = d => d.slice(8, 10) + '/' + d.slice(5, 7);
+const pad = n => String(n).padStart(2, '0');
+const pct = n => (isFinite(n) ? n : 0).toFixed(1).replace('.', ',') + '%';
+const qtyFmt = (q, u) => (u === 'kg' ? q.toLocaleString('pt-BR', { maximumFractionDigits: 3 }) : q) + ' ' + u;
+const when = (d, t) => (d === TODAY ? 'Hoje' : d === addDays(TODAY, -1) ? 'Ontem' : dm(d)) + ', ' + t;
+const CATS = ['Mercearia', 'Laticínios', 'Bebidas', 'Padaria', 'Frios', 'Limpeza', 'Hortifrúti'];
+const PAYS = ['Dinheiro', 'Pix', 'Cartão de débito', 'Cartão de crédito'];
+
+const PRODUCTS = [
+  { id: 'p1', sku: '7891000100103', name: 'Leite integral 1L', cat: 'Laticínios', price: 5.49, cost: 3.92, min: 24, unit: 'un', lots: [{ code: 'L2410', exp: '2026-10-31', qty: 18 }, { code: 'L2418', exp: '2026-11-12', qty: 30 }] },
+  { id: 'p2', sku: '7896004000107', name: 'Arroz branco 5kg', cat: 'Mercearia', price: 27.9, cost: 21.3, min: 10, unit: 'un', lots: [{ code: 'A0921', exp: '2027-05-01', qty: 14 }] },
+  { id: 'p3', sku: '7891910000197', name: 'Feijão carioca 1kg', cat: 'Mercearia', price: 8.79, cost: 6.1, min: 15, unit: 'un', lots: [{ code: 'F1102', exp: '2027-02-10', qty: 9 }] },
+  { id: 'p4', sku: '7894900011517', name: 'Refrigerante cola 2L', cat: 'Bebidas', price: 9.99, cost: 6.45, min: 12, unit: 'un', lots: [{ code: 'R3301', exp: '2027-01-20', qty: 36 }] },
+  { id: 'p5', sku: '7891025101062', name: 'Iogurte morango 170g', cat: 'Laticínios', price: 3.29, cost: 2.05, min: 20, unit: 'un', lots: [{ code: 'I2398', exp: '2026-10-27', qty: 6 }, { code: 'I2405', exp: '2026-11-03', qty: 22 }] },
+  { id: 'p6', sku: '7891080000324', name: 'Café torrado 500g', cat: 'Mercearia', price: 18.49, cost: 13.2, min: 8, unit: 'un', lots: [{ code: 'C0711', exp: '2027-03-15', qty: 4 }] },
+  { id: 'p7', sku: '2000000000017', name: 'Pão francês', cat: 'Padaria', price: 16.9, cost: 7.8, min: 5, unit: 'kg', lots: [{ code: 'P2910', exp: '2026-10-29', qty: 12 }] },
+  { id: 'p8', sku: '7891149103102', name: 'Sabão em pó 1kg', cat: 'Limpeza', price: 14.9, cost: 10.4, min: 6, unit: 'un', lots: [{ code: 'S0420', exp: '2028-04-01', qty: 11 }] },
+  { id: 'p9', sku: '7891107101621', name: 'Óleo de soja 900ml', cat: 'Mercearia', price: 7.49, cost: 5.6, min: 12, unit: 'un', lots: [{ code: 'O1203', exp: '2027-06-10', qty: 20 }] },
+  { id: 'p10', sku: '2000000000024', name: 'Queijo muçarela', cat: 'Frios', price: 49.9, cost: 34.5, min: 3, unit: 'kg', lots: [{ code: 'Q2601', exp: '2026-11-04', qty: 2.5 }] },
+  { id: 'p11', sku: '7896065800012', name: 'Água mineral 500ml', cat: 'Bebidas', price: 2.5, cost: 1.1, min: 48, unit: 'un', lots: [{ code: 'W0907', exp: '2027-09-01', qty: 96 }] },
+  { id: 'p12', sku: '2000000000031', name: 'Presunto cozido', cat: 'Frios', price: 39.9, cost: 26.8, min: 2, unit: 'kg', lots: [{ code: 'PR2602', exp: '2026-10-26', qty: 1.8 }] },
+];
+
+function genSales(products) {
+  let s = 42; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const out = []; let n = 18240; const pays = ['Dinheiro', 'Pix', 'Pix', 'Cartão de débito', 'Cartão de crédito']; const ops = ['Carlos Souza', 'Juliana Lima'];
+  for (let k = 29; k >= 0; k--) {
+    const d = addDays(TODAY, -k); const dow = new Date(d + 'T12:00:00').getDay();
+    const cnt = (dow === 6 ? 44 : dow === 0 ? 22 : 30) + Math.floor(rnd() * 10) - (k === 0 ? 14 : 0);
+    const ts = []; for (let i = 0; i < cnt; i++) ts.push(7 * 60 + Math.floor(rnd() * (k === 0 ? 390 : 780))); ts.sort((a, b) => a - b);
+    ts.forEach(t => {
+      const ni = 1 + Math.floor(rnd() * 4); const items = [];
+      for (let j = 0; j < ni; j++) { const p = products[Math.floor(rnd() * products.length)]; const qty = p.unit === 'kg' ? r2(0.2 + rnd() * 0.8) : 1 + Math.floor(rnd() * 3); items.push({ pid: p.id, name: p.name, cat: p.cat, unit: p.unit, qty, price: p.price, total: r2(p.price * qty), cmv: r2(p.cost * qty) }); }
+      out.push({ id: 's' + n, num: n++, date: d, time: pad(t / 60 | 0) + ':' + pad(t % 60), op: ops[Math.floor(rnd() * 2)], pay: pays[Math.floor(rnd() * pays.length)], items, total: r2(items.reduce((a, i) => a + i.total, 0)), cmv: r2(items.reduce((a, i) => a + i.cmv, 0)), status: rnd() < 0.025 ? 'cancelada' : 'concluida' });
+    });
+  }
+  return out.reverse();
+}
+
+function csv(name, rows) {
+  const body = rows.map(r => r.map(c => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(';')).join('\n');
+  const url = URL.createObjectURL(new Blob(['\ufeff' + body], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+const EMPTY_FORM = { email: 'ana@bompreco.com.br', senha: 'mkt12345', lembrar: true, nome: '', cadEmail: '', cadSenha: '', cadConf: '', loja: '', cnpj: '', tel: '', tipo: 'Mercadinho', termos: false, codigo: '', novaSenha: '' };
+
+class Component extends DCLogic {
+  state = (() => {
+    const sales = genSales(PRODUCTS);
+    const cashHist = [0, -12.4, 0, 0, 3.5, 0, -25].map((diff, i) => {
+      const d = addDays(TODAY, -(i + 1));
+      const cash = r2(sales.filter(s => s.date === d && s.pay === 'Dinheiro' && s.status === 'concluida').reduce((a, s) => a + s.total, 0));
+      const exp = r2(150 + cash - (cash > 400 ? 300 : 0));
+      return { id: 'h' + i, date: d, op: i % 3 === 1 ? 'Juliana Lima' : 'Carlos Souza', horas: '07:5' + (i % 6) + ' – 20:0' + (i % 4), esperado: exp, contado: r2(exp + diff), quebra: diff };
+    });
+    return {
+      screen: 'login', cadStep: 1, recStep: 1, form: { ...EMPTY_FORM }, err: {}, showPass: false, loading: false,
+      user: { name: 'Ana Ribeiro', email: 'ana@bompreco.com.br' }, store: 'Mercadinho Bom Preço',
+      page: 'painel', theme: 'light', hidden: false, drawer: false, notifOpen: false, w: typeof window !== 'undefined' ? window.innerWidth : 1280,
+      period: '7d', vf: { q: '', period: 'hoje', pay: 'todos' }, vpage: 0, pq: '', pcat: 'Todos', lotFilter: 'todos', userTab: 'equipe',
+      products: PRODUCTS.map(p => ({ ...p, lots: p.lots.map(l => ({ ...l })) })), sales,
+      caixa: { open: true, op: 'Carlos Souza', at: '07:52', troco: 150, movs: [{ id: 'm1', time: '08:30', type: 'Suprimento', valor: 50, motivo: 'Troco em moedas', user: 'Ana Ribeiro' }, { id: 'm2', time: '12:10', type: 'Sangria', valor: 120, motivo: 'Pagamento de entregador', user: 'Carlos Souza' }] },
+      cashHist,
+      losses: [{ date: addDays(TODAY, -6), name: 'Iogurte morango 170g', qty: 8, valor: 16.4 }, { date: addDays(TODAY, -3), name: 'Pão francês', qty: 2.4, valor: 18.72 }],
+      entradas: [
+        { id: 'e5', date: addDays(TODAY, -1), forn: 'Laticínios Serra Azul', nota: 'NF 004512', itens: 3, total: 612.4, user: 'Ana Ribeiro' },
+        { id: 'e4', date: addDays(TODAY, -3), forn: 'Distribuidora Central', nota: 'NF 118230', itens: 8, total: 2148.9, user: 'Ana Ribeiro' },
+        { id: 'e3', date: addDays(TODAY, -6), forn: 'Padaria Trigo Bom', nota: 'NF 000871', itens: 1, total: 93.6, user: 'Carlos Souza' },
+        { id: 'e2', date: addDays(TODAY, -8), forn: 'Bebidas Norte', nota: 'NF 052219', itens: 4, total: 874.2, user: 'Ana Ribeiro' },
+        { id: 'e1', date: addDays(TODAY, -12), forn: 'Frios da Serra', nota: 'NF 009915', itens: 2, total: 188.35, user: 'Ana Ribeiro' },
+      ],
+      users: [
+        { id: 1, name: 'Ana Ribeiro', email: 'ana@bompreco.com.br', role: 'ADMIN', active: true, last: 'Agora' },
+        { id: 2, name: 'Carlos Souza', email: 'carlos@bompreco.com.br', role: 'CASHIER', active: true, last: 'Hoje, 07:52' },
+        { id: 3, name: 'Juliana Lima', email: 'juliana@bompreco.com.br', role: 'CASHIER', active: true, last: 'Ontem, 19:58' },
+        { id: 4, name: 'Pedro Alves', email: 'pedro@bompreco.com.br', role: 'CASHIER', active: false, last: '12/09/2026' },
+      ],
+      activity: [
+        { id: 'a1', when: 'Hoje, 12:10', user: 'Carlos Souza', act: 'Sangria', det: 'R$ 120,00 · Pagamento de entregador' },
+        { id: 'a2', when: 'Hoje, 08:30', user: 'Ana Ribeiro', act: 'Suprimento', det: 'R$ 50,00 · Troco em moedas' },
+        { id: 'a3', when: 'Hoje, 07:52', user: 'Carlos Souza', act: 'Abertura de caixa', det: 'Troco R$ 150,00' },
+        { id: 'a4', when: 'Ontem, 20:02', user: 'Juliana Lima', act: 'Fechamento de caixa', det: 'Quebra −R$ 12,40' },
+        { id: 'a5', when: 'Ontem, 16:41', user: 'Ana Ribeiro', act: 'Entrada de mercadoria', det: 'NF 004512 · Laticínios Serra Azul' },
+        { id: 'a6', when: 'Ontem, 10:15', user: 'Ana Ribeiro', act: 'Produto alterado', det: 'Café torrado 500g · preço R$ 17,99 → R$ 18,49' },
+        { id: 'a7', when: '26/10, 09:03', user: 'Ana Ribeiro', act: 'Usuário criado', det: 'Juliana Lima · Operador de caixa' },
+      ],
+      cfg: { loja: 'Mercadinho Bom Preço', cnpj: '12.345.678/0001-90', tel: '(11) 3456-7890', end: 'Rua das Flores, 120 · São Paulo, SP', pvps: true, autoBaixa: false, bloqVencido: true, alertDays: '7', minPadrao: '5', motivo: true, cego: true, limite: '800,00', tolerancia: '2,00', sessao: '8h', dois: true },
+      dlg: null, saleId: null, movType: 'Sangria', mf: { valor: '', motivo: '' }, pf: {}, pfId: null, ef: {}, uf: {}, ufId: null, sf: { atual: '', nova: '' }, file: null, toast: null,
+    };
+  })();
+
+  componentDidMount() {
+    let t = null; try { t = localStorage.getItem('mkt-theme'); } catch (e) {}
+    if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    this.applyTheme(t);
+    this._rs = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this._rs);
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._rs); clearTimeout(this._tt); }
+  applyTheme(t) { document.documentElement.setAttribute('data-theme', t); try { localStorage.setItem('mkt-theme', t); } catch (e) {} this.setState({ theme: t }); }
+  notify(title, message, tone = 'success') { clearTimeout(this._tt); this.setState({ toast: { title, message: message || '', tone } }); this._tt = setTimeout(() => this.setState({ toast: null }), 3600); }
+  log(act, det) { this.setState(s => ({ activity: [{ id: 'a' + Date.now(), when: 'Hoje, ' + new Date().toTimeString().slice(0, 5), user: s.user.name, act, det }, ...s.activity] })); }
+  stockOf(p) { return r2(p.lots.reduce((a, l) => a + l.qty, 0)); }
+  bind(key, fields, clearErr = true) {
+    const o = {}; fields.forEach(f => { o[f] = e => { const v = e && e.target ? e.target.value : e; this.setState(s => ({ [key]: { ...s[key], [f]: v }, err: clearErr ? {} : s.err })); }; }); return o;
+  }
+  inPeriod(d, p) { const k = daysTo(d); return p === 'hoje' ? k === 0 : p === '7d' ? k > -7 : k > -30; }
+  prevPeriod(d, p) { const k = daysTo(d); return p === 'hoje' ? k === -1 : p === '7d' ? (k <= -7 && k > -14) : false; }
+  validPass(p) { return p.length >= 8 && /[a-zA-Z]/.test(p) && /\d/.test(p); }
+  wait(fn) { this.setState({ loading: true }); setTimeout(() => { this.setState({ loading: false }); fn(); }, 650); }
+
+  renderVals() {
+    const S = this.state, ns = NS();
+    const narrow = S.w < 900, wide = S.w >= 1024;
+    const badge = (tone, label) => h(ns.Badge || 'span', { tone, size: 'sm', dot: true }, label);
+    const money = (v, extra) => h(ns.Money || 'span', { value: v, size: 'sm', hidden: S.hidden, ...extra }, ns.Money ? undefined : brl(v));
+    const sub = (a, b) => h('span', { style: { display: 'flex', flexDirection: 'column' } }, h('span', { style: { fontWeight: 500 } }, a), h('span', { style: { fontSize: 12, color: 'var(--text-soft)' } }, b));
+    const muted = t => h('span', { style: { color: 'var(--text-sub)' } }, t);
+    const go = page => () => this.setState({ page, drawer: false, notifOpen: false, vpage: 0 });
+    const prevent = fn => e => { e && e.preventDefault && e.preventDefault(); fn(); };
+    const F = S.form;
+
+    // ---------- auth ----------
+    const set = this.bind('form', Object.keys(EMPTY_FORM));
+    set.cnpj = e => { const d = e.target.value.replace(/\D/g, '').slice(0, 14); let v = d; if (d.length > 11) v = d.replace(/^(\d{2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2}).*/, (m, a, b, c, dd, ee) => a + '.' + b + '.' + c + '/' + dd + (ee ? '-' + ee : '')); else if (d.length > 3) v = d.replace(/^(\d{3})(\d{0,3})(\d{0,3})(\d{0,2}).*/, (m, a, b, c, dd) => [a, b, c].filter(Boolean).join('.') + (dd ? '-' + dd : '')); this.setState(s => ({ form: { ...s.form, cnpj: v }, err: {} })); };
+    set.codigo = e => { const v = e.target.value.replace(/\D/g, '').slice(0, 6); this.setState(s => ({ form: { ...s.form, codigo: v }, err: {} })); };
+    const pwv = S.cadStep === 1 ? F.cadSenha : F.novaSenha;
+    const score = !pwv ? 0 : (pwv.length >= 8) + (/\d/.test(pwv) && /[a-zA-Z]/.test(pwv)) + (/[^a-zA-Z0-9]/.test(pwv) || pwv.length >= 12);
+    const pcol = ['var(--border-default)', 'var(--danger-solid)', 'var(--warning-solid)', 'var(--success-solid)'][score];
+    const pw = { c1: score >= 1 ? pcol : 'var(--border-default)', c2: score >= 2 ? pcol : 'var(--border-default)', c3: score >= 3 ? pcol : 'var(--border-default)', label: ['', 'Fraca', 'Média', 'Forte'][score] };
+    const stepC = n => n <= S.cadStep ? 'var(--action-brand)' : 'var(--border-default)';
+    const IB = ns.IconButton;
+    const passToggle = IB ? h(IB, { icon: S.showPass ? 'view-off' : 'view', label: S.showPass ? 'Ocultar senha' : 'Mostrar senha', variant: 'ghost', size: 'sm', onClick: () => this.setState({ showPass: !S.showPass }), style: { marginRight: -6 } }) : null;
+
+    const submitLogin = prevent(() => {
+      const err = {};
+      if (!/^\S+@\S+\.\S+$/.test(F.email.trim())) err.email = 'Informe um e-mail válido.';
+      if (!F.senha) err.senha = 'Informe a senha.';
+      if (Object.keys(err).length) return this.setState({ err });
+      this.wait(() => {
+        const u = S.users.find(x => x.email === F.email.trim().toLowerCase());
+        if (!u || F.senha !== 'mkt12345') return this.setState({ err: { senha: 'E-mail ou senha incorretos.' } });
+        if (!u.active) return this.setState({ err: { email: 'Este acesso está desativado. Fale com o administrador da loja.' } });
+        if (u.role !== 'ADMIN') return this.setState({ err: { email: 'Este painel é exclusivo para administradores. Operadores usam o PDV.' } });
+        this.setState({ screen: 'app', page: 'painel', user: { name: u.name, email: u.email }, err: {} });
+      });
+    });
+    const submitCadastro = prevent(() => {
+      const err = {};
+      if (S.cadStep === 1) {
+        if (F.nome.trim().split(/\s+/).length < 2) err.nome = 'Informe nome e sobrenome.';
+        if (!/^\S+@\S+\.\S+$/.test(F.cadEmail.trim())) err.cadEmail = 'Informe um e-mail válido.';
+        else if (S.users.some(u => u.email === F.cadEmail.trim().toLowerCase())) err.cadEmail = 'Este e-mail já tem conta. Entre ou recupere a senha.';
+        if (!this.validPass(F.cadSenha)) err.cadSenha = 'Use 8 caracteres ou mais, com letras e números.';
+        if (F.cadConf !== F.cadSenha) err.cadConf = 'As senhas não conferem.';
+        if (Object.keys(err).length) return this.setState({ err });
+        return this.setState({ cadStep: 2, err: {} });
+      }
+      if (S.cadStep === 2) {
+        if (!F.loja.trim()) err.loja = 'Informe o nome da loja.';
+        const d = F.cnpj.replace(/\D/g, ''); if (d.length !== 11 && d.length !== 14) err.cnpj = 'CNPJ ou CPF incompleto.';
+        if (!F.termos) err.termos = 'Aceite os termos para continuar.';
+        if (Object.keys(err).length) return this.setState({ err });
+        return this.wait(() => { this.setState({ cadStep: 3, err: {} }); this.notify('Código enviado', 'Enviamos um código para ' + F.cadEmail.trim() + '.', 'info'); });
+      }
+      if (F.codigo.length !== 6) return this.setState({ err: { codigo: 'Digite os 6 números do código.' } });
+      this.wait(() => {
+        const nu = { id: Date.now(), name: F.nome.trim(), email: F.cadEmail.trim().toLowerCase(), role: 'ADMIN', active: true, last: 'Agora' };
+        this.setState(s => ({ screen: 'app', page: 'painel', user: { name: nu.name, email: nu.email }, store: F.loja.trim(), cfg: { ...s.cfg, loja: F.loja.trim(), cnpj: F.cnpj, tel: F.tel }, users: [nu, ...s.users.filter(u => u.role !== 'ADMIN')], cadStep: 1 }));
+        this.notify('Conta criada', 'Cadastre seus produtos para começar.');
+      });
+    });
+    const submitRecuperar = prevent(() => {
+      if (S.recStep === 3) return this.setState({ screen: 'login', recStep: 1, form: { ...F, senha: '' } });
+      if (S.recStep === 1) {
+        if (!/^\S+@\S+\.\S+$/.test(F.email.trim())) return this.setState({ err: { email: 'Informe um e-mail válido.' } });
+        return this.wait(() => { this.setState({ recStep: 2, err: {} }); this.notify('Código enviado', 'Se houver conta com este e-mail, o código chega em instantes.', 'info'); });
+      }
+      const err = {};
+      if (F.codigo.length !== 6) err.codigo = 'Digite os 6 números do código.';
+      if (!this.validPass(F.novaSenha)) err.novaSenha = 'Use 8 caracteres ou mais, com letras e números.';
+      if (Object.keys(err).length) return this.setState({ err });
+      this.wait(() => this.setState({ recStep: 3, err: {}, form: { ...F, codigo: '' } }));
+    });
+    const authTo = (screen, extra = {}) => prevent(() => this.setState({ screen, err: {}, cadStep: 1, recStep: 1, showPass: false, ...extra }));
+
+    // ---------- data ----------
+    const done = S.sales.filter(s => s.status === 'concluida');
+    const per = done.filter(s => this.inPeriod(s.date, S.period));
+    const prev = done.filter(s => this.prevPeriod(s.date, S.period));
+    const sum = (arr, k) => r2(arr.reduce((a, x) => a + x[k], 0));
+    const rev = sum(per, 'total'), cmv = sum(per, 'cmv'), mg = r2(rev - cmv), prevRev = sum(prev, 'total');
+    const kpi = { rev, cmv, mg, ticket: per.length ? r2(rev / per.length) : 0, nLabel: per.length.toLocaleString('pt-BR') + ' vendas', mgPct: pct(rev ? mg / rev * 100 : 0) + ' do faturamento', delta: prevRev ? r2((rev - prevRev) / prevRev * 100) : undefined, deltaLabel: S.period === 'hoje' ? 'vs. ontem até agora' : S.period === '7d' ? 'vs. 7 dias anteriores' : undefined };
+
+    const wk = []; for (let k = 6; k >= 0; k--) { const d = addDays(TODAY, -k); const ds = done.filter(s => s.date === d); wk.push({ d, rev: sum(ds, 'total'), cmv: sum(ds, 'cmv') }); }
+    const wmax = Math.max(...wk.map(x => x.rev)) || 1;
+    const week = wk.map((x, i) => ({ label: new Date(x.d + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').replace(/^./, c => c.toUpperCase()), revH: (x.rev / wmax * 100) + '%', cmvH: (x.cmv / wmax * 100) + '%', revC: i === 6 ? 'var(--chart-primary)' : 'var(--chart-primary-muted)', lc: i === 6 ? 'var(--text-strong)' : 'var(--text-soft)', tip: S.hidden ? dmy(x.d) : dmy(x.d) + ': ' + brl(x.rev) + ' · CMV ' + brl(x.cmv) }));
+
+    const alertDays = parseInt(S.cfg.alertDays, 10) || 7;
+    const lotStatus = exp => { const k = daysTo(exp); return k < 0 ? { tone: 'danger', label: 'Vencido', g: 'vencidos' } : k === 0 ? { tone: 'danger', label: 'Vence hoje', g: 'semana' } : k <= alertDays ? { tone: 'warning', label: 'Em ' + k + (k === 1 ? ' dia' : ' dias'), g: 'semana' } : { tone: 'success', label: 'Em dia', g: 'ok' }; };
+    const allLots = S.products.flatMap(p => p.lots.filter(l => l.qty > 0).map(l => ({ ...l, key: p.id + l.code, pid: p.id, name: p.name, unit: p.unit, cost: p.cost, risk: r2(l.qty * p.cost), st: lotStatus(l.exp) }))).sort((a, b) => a.exp.localeCompare(b.exp));
+    const expired = allLots.filter(l => l.st.g === 'vencidos'), soon = allLots.filter(l => l.st.g === 'semana');
+    const lossSum = r2(S.losses.filter(x => daysTo(x.date) > -30).reduce((a, x) => a + x.valor, 0));
+    const repo = S.products.filter(p => this.stockOf(p) < p.min).map(p => { const st = this.stockOf(p); const sug = r2(p.min * 2 - st); return { ...p, stock: st, stockFmt: qtyFmt(st, p.unit).split(' ')[0], sug, est: r2(sug * p.cost) }; });
+
+    // vendas filter
+    const q = S.vf.q.trim().toLowerCase();
+    const vlist = S.sales.filter(s => this.inPeriod(s.date, S.vf.period) && (S.vf.pay === 'todos' || s.pay === S.vf.pay) && (!q || String(s.num).includes(q) || s.items.some(i => i.name.toLowerCase().includes(q))));
+    const vdone = vlist.filter(s => s.status === 'concluida'), vcanc = vlist.filter(s => s.status === 'cancelada');
+    const PS = 15, pages = Math.max(1, Math.ceil(vlist.length / PS)), vp = Math.min(S.vpage, pages - 1);
+    const saleRow = s => ({ ...s, whenL: when(s.date, s.time), nItems: s.items.length });
+    const salesCols = [
+      { key: 'num', label: 'Venda', render: r => h('span', { style: { fontWeight: 500 } }, '#' + r.num) },
+      { key: 'whenL', label: 'Data' }, { key: 'op', label: 'Operador' }, { key: 'nItems', label: 'Itens', align: 'right' }, { key: 'pay', label: 'Pagamento' },
+      { key: 'status', label: 'Status', render: r => r.status === 'cancelada' ? badge('danger', 'Cancelada') : badge('success', 'Concluída') },
+      { key: 'total', label: 'Total', align: 'right', render: r => money(r.total, r.status === 'cancelada' ? { style: { textDecoration: 'line-through', opacity: .6 } } : {}) },
+    ];
+
+    // caixa
+    const C = S.caixa;
+    const cashToday = done.filter(s => s.date === TODAY && s.pay === 'Dinheiro');
+    const cashSum = sum(cashToday, 'total');
+    const sang = r2(C.movs.filter(m => m.type === 'Sangria').reduce((a, m) => a + m.valor, 0));
+    const sup = r2(C.movs.filter(m => m.type === 'Suprimento').reduce((a, m) => a + m.valor, 0));
+    const expected = r2(C.troco + cashSum + sup - sang);
+    const quebraSum = r2(S.cashHist.reduce((a, x) => a + x.quebra, 0));
+    const movRows = [{ id: 'm0', time: C.at, type: 'Abertura', valor: C.troco, motivo: 'Troco inicial', user: C.op }, ...C.movs];
+    const movCols = [{ key: 'time', label: 'Hora' }, { key: 'type', label: 'Tipo', render: r => badge(r.type === 'Sangria' ? 'danger' : r.type === 'Suprimento' ? 'info' : 'neutral', r.type) }, { key: 'motivo', label: 'Motivo', wrap: true }, { key: 'user', label: 'Registrado por' }, { key: 'valor', label: 'Valor', align: 'right', render: r => money(r.type === 'Sangria' ? -r.valor : r.valor) }];
+    const histCols = [{ key: 'date', label: 'Data', render: r => dmy(r.date) }, { key: 'op', label: 'Operador' }, { key: 'horas', label: 'Horário' }, { key: 'esperado', label: 'Esperado', align: 'right', render: r => money(r.esperado) }, { key: 'contado', label: 'Contado', align: 'right', render: r => money(r.contado) }, { key: 'quebra', label: 'Quebra', align: 'right', render: r => r.quebra === 0 ? badge('success', 'Sem quebra') : badge(r.quebra < 0 ? 'danger' : 'warning', (r.quebra < 0 ? 'Falta ' : 'Sobra ') + (S.hidden ? '••' : brl(Math.abs(r.quebra)))) }];
+
+    // produtos
+    const pq = S.pq.trim().toLowerCase();
+    const prodRows = S.products.filter(p => (S.pcat === 'Todos' || p.cat === S.pcat) && (!pq || p.name.toLowerCase().includes(pq) || p.sku.includes(pq))).map(p => ({ ...p, stock: this.stockOf(p) }));
+    const prodCols = [
+      { key: 'name', label: 'Produto', render: r => sub(r.name, r.sku) }, { key: 'cat', label: 'Categoria' },
+      { key: 'stock', label: 'Estoque', align: 'right', render: r => h('span', { style: { color: r.stock < r.min ? 'var(--warning-fg)' : undefined, fontWeight: r.stock < r.min ? 600 : 400 } }, qtyFmt(r.stock, r.unit)) },
+      { key: 'min', label: 'Mínimo', align: 'right', render: r => muted(qtyFmt(r.min, r.unit)) },
+      { key: 'price', label: 'Preço', align: 'right', render: r => money(r.price) }, { key: 'cost', label: 'Custo', align: 'right', render: r => money(r.cost) },
+      { key: 'mg', label: 'Margem', align: 'right', render: r => h('span', { style: { color: 'var(--success-fg)', fontWeight: 500 } }, S.hidden ? '••' : pct((r.price - r.cost) / r.price * 100)) },
+      { key: 'a', label: '', align: 'right', render: r => IB ? h(IB, { icon: 'pencil-edit-01', label: 'Editar ' + r.name, size: 'sm', variant: 'ghost', onClick: e => { e.stopPropagation(); openProd(r); } }) : null },
+    ];
+    const openProd = p => this.setState({ dlg: 'produto', pfId: p ? p.id : null, err: {}, pf: p ? { name: p.name, sku: p.sku, cat: p.cat, unit: p.unit, price: fmt(p.price), cost: fmt(p.cost), min: String(p.min) } : { name: '', sku: '', cat: 'Mercearia', unit: 'un', price: '', cost: '', min: S.cfg.minPadrao } });
+    const pfm = num(S.pf.price) ? (num(S.pf.price) - num(S.pf.cost)) / num(S.pf.price) * 100 : null;
+
+    // lotes
+    const lotRows = (S.lotFilter === 'todos' ? allLots : allLots.filter(l => l.st.g === S.lotFilter));
+    const lotCols = [{ key: 'name', label: 'Produto', render: r => sub(r.name, 'Lote ' + r.code) }, { key: 'exp', label: 'Validade', render: r => dmy(r.exp) }, { key: 'qty', label: 'Quantidade', align: 'right', render: r => qtyFmt(r.qty, r.unit) }, { key: 'risk', label: 'Custo do lote', align: 'right', render: r => money(r.risk) }, { key: 'st', label: 'Situação', render: r => badge(r.st.tone, r.st.label) }];
+
+    // relatórios
+    const catAgg = {}; const prodAgg = {}; const payAgg = {};
+    per.forEach(s => { payAgg[s.pay] = (payAgg[s.pay] || 0) + s.total; s.items.forEach(i => { const c = catAgg[i.cat] || (catAgg[i.cat] = { rev: 0, cmv: 0 }); c.rev += i.total; c.cmv += i.cmv; const p = prodAgg[i.pid] || (prodAgg[i.pid] = { id: i.pid, name: i.name, unit: i.unit, qty: 0, rev: 0, cmv: 0 }); p.qty += i.qty; p.rev += i.total; p.cmv += i.cmv; }); });
+    const catArr = Object.entries(catAgg).map(([cat, v]) => ({ cat, mg: r2(v.rev - v.cmv), p: v.rev ? (v.rev - v.cmv) / v.rev * 100 : 0 })).sort((a, b) => b.mg - a.mg);
+    const cmax = catArr[0] ? catArr[0].mg : 1;
+    const catRep = catArr.map(c => ({ cat: c.cat, w: (c.mg / cmax * 100) + '%', label: (S.hidden ? 'R$ ••••' : brl(c.mg)) + ' · ' + pct(c.p) }));
+    const payRep = PAYS.map(p => ({ pay: p, v: payAgg[p] || 0 })).map(x => ({ pay: x.pay, w: (rev ? x.v / rev * 100 : 0) + '%', label: pct(rev ? x.v / rev * 100 : 0) + (S.hidden ? '' : ' · ' + brl(r2(x.v))) }));
+    const topProds = Object.values(prodAgg).map(p => ({ ...p, rev: r2(p.rev), cmv: r2(p.cmv), mg: r2(p.rev - p.cmv) })).sort((a, b) => b.mg - a.mg);
+    const topCols = [{ key: 'name', label: 'Produto' }, { key: 'qty', label: 'Vendido', align: 'right', render: r => qtyFmt(r2(r.qty), r.unit) }, { key: 'rev', label: 'Faturamento', align: 'right', render: r => money(r.rev) }, { key: 'cmv', label: 'CMV', align: 'right', render: r => money(r.cmv) }, { key: 'mg', label: 'Margem', align: 'right', render: r => money(r.mg, { tone: 'margin' }) }, { key: 'p', label: '%', align: 'right', render: r => muted(pct(r.rev ? r.mg / r.rev * 100 : 0)) }];
+
+    // usuários
+    const userCols = [{ key: 'name', label: 'Nome', render: r => sub(r.name, r.email) }, { key: 'role', label: 'Perfil', render: r => badge(r.role === 'ADMIN' ? 'info' : 'neutral', r.role === 'ADMIN' ? 'Administrador' : 'Operador de caixa') }, { key: 'active', label: 'Acesso', render: r => r.active ? badge('success', 'Ativo') : badge('neutral', 'Desativado') }, { key: 'last', label: 'Último acesso', render: r => muted(r.last) }];
+    const actCols = [{ key: 'when', label: 'Quando' }, { key: 'user', label: 'Usuário' }, { key: 'act', label: 'Ação', render: r => h('span', { style: { fontWeight: 500 } }, r.act) }, { key: 'det', label: 'Detalhe', wrap: true, render: r => muted(S.hidden ? r.det.replace(/R\$ [\d.,]+/g, 'R$ ••') : r.det) }];
+    const openUser = u => this.setState({ dlg: 'usuario', ufId: u ? u.id : null, err: {}, uf: u ? { name: u.name, email: u.email, role: u.role, active: u.active } : { name: '', email: '', role: 'CASHIER', active: true } });
+
+    // notifications
+    const notifs = [
+      ...(expired.length ? [{ title: expired.length + (expired.length > 1 ? ' lotes vencidos' : ' lote vencido'), msg: 'Registre a perda para baixar do estoque.', color: 'var(--danger-solid)', go: go('lotes') }] : []),
+      ...(soon.length ? [{ title: soon.length + ' lotes vencem em até ' + alertDays + ' dias', msg: 'Priorize a venda desses itens.', color: 'var(--warning-solid)', go: go('lotes') }] : []),
+      ...(repo.length ? [{ title: repo.length + ' produtos abaixo do mínimo', msg: 'Lista de reposição atualizada.', color: 'var(--warning-solid)', go: go('reposicao') }] : []),
+      ...(C.open && expected > num(S.cfg.limite) ? [{ title: 'Gaveta acima de ' + brl(num(S.cfg.limite)), msg: 'Considere registrar uma sangria.', color: 'var(--info-solid)', go: go('caixa') }] : []),
+    ];
+
+    const sale = S.sales.find(s => s.id === S.saleId);
+    const titles = { painel: 'Painel', vendas: 'Vendas', caixa: 'Caixa', produtos: 'Produtos', lotes: 'Lotes e validade', entradas: 'Entradas de mercadoria', reposicao: 'Reposição', relatorios: 'Relatórios', usuarios: 'Usuários', config: 'Configurações' };
+    const hr = new Date().getHours();
+    const ef = S.ef;
+    const isMov = S.dlg === 'sangria' || S.dlg === 'suprimento' || S.dlg === 'abrir' || S.dlg === 'fechar';
+
+    return {
+      isAuth: S.screen !== 'app', isApp: S.screen === 'app', wide, narrow, notWide: !wide, authCols: wide ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr)',
+      auth: { login: S.screen === 'login', cadastro: S.screen === 'cadastro', recuperar: S.screen === 'recuperar' },
+      form: F, err: S.err, set, loading: S.loading, passType: S.showPass ? 'text' : 'password', passToggle, pw,
+      loginLabel: S.loading ? 'Entrando…' : 'Entrar',
+      toggleLembrar: v => this.setState(s => ({ form: { ...s.form, lembrar: v } })), toggleTermos: v => this.setState(s => ({ form: { ...s.form, termos: v }, err: {} })),
+      submitLogin, submitCadastro, submitRecuperar,
+      goCadastro: authTo('cadastro'), goRecuperar: authTo('recuperar'), goLogin: authTo('login'),
+      demoAdmin: authTo('login', { form: { ...F, email: 'ana@bompreco.com.br', senha: 'mkt12345' } }), demoCashier: authTo('login', { form: { ...F, email: 'carlos@bompreco.com.br', senha: 'mkt12345' } }),
+      steps: { s1: stepC(1), s2: stepC(2), s3: stepC(3) }, cad: { s1: S.cadStep === 1, s2: S.cadStep === 2, s3: S.cadStep === 3 },
+      cadStepLabel: 'Etapa ' + S.cadStep + ' de 3', cadTitle: ['Crie sua conta', 'Dados da loja', 'Confirme seu e-mail'][S.cadStep - 1],
+      cadSub: ['Você será o administrador da loja.', 'Usados no cupom e nos relatórios. Dá para alterar depois.', 'Digite o código de 6 números enviado para ' + (F.cadEmail || 'seu e-mail') + '.'][S.cadStep - 1],
+      cadCta: S.loading ? 'Aguarde…' : ['Continuar', 'Enviar código', 'Criar conta'][S.cadStep - 1],
+      cadBack: () => S.cadStep === 1 ? this.setState({ screen: 'login', err: {} }) : this.setState({ cadStep: S.cadStep - 1, err: {} }),
+      resend: prevent(() => this.notify('Código reenviado', 'Confira também a caixa de spam.', 'info')),
+      codeStyle: { letterSpacing: '0.5em', fontVariantNumeric: 'tabular-nums', fontSize: 22 },
+      tipoOptions: ['Mercadinho', 'Padaria', 'Açougue', 'Hortifrúti', 'Loja de conveniência', 'Outro'].map(v => ({ value: v, label: v })),
+      rec: { s1: S.recStep === 1, s2: S.recStep === 2, done: S.recStep === 3 },
+      recTitle: ['Recuperar senha', 'Defina uma nova senha', 'Senha redefinida'][S.recStep - 1],
+      recSub: ['Informe o e-mail da conta. Enviaremos um código de verificação.', 'Digite o código enviado para ' + F.email + ' e a nova senha.', 'Use a nova senha para entrar no painel.'][S.recStep - 1],
+      recCta: S.loading ? 'Aguarde…' : ['Enviar código', 'Redefinir senha', 'Ir para o login'][S.recStep - 1],
+      themeIcon: S.theme === 'dark' ? 'sun-03' : 'moon-02', themeLabel: S.theme === 'dark' ? 'Modo claro' : 'Modo escuro',
+      toggleTheme: () => this.applyTheme(S.theme === 'dark' ? 'light' : 'dark'), theme: S.theme, setTheme: v => this.applyTheme(v),
+      themeTabs: [{ value: 'light', label: 'Claro' }, { value: 'dark', label: 'Escuro' }],
+
+      // shell
+      store: S.store, user: { ...S.user, initials: S.user.name.split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() },
+      sb: { pos: narrow ? 'fixed' : 'relative', tf: narrow && !S.drawer ? 'translateX(-105%)' : 'none' },
+      drawerOpen: narrow && S.drawer, openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      navProps: { value: S.page, onSelect: p => go(p)(), style: { width: '100%', height: 'auto', flex: 1, minHeight: 0, border: 0, padding: 0, background: 'transparent' }, sections: [
+        { items: [{ value: 'painel', label: 'Painel', icon: 'dashboard-square-01' }] },
+        { title: 'Operação', items: [{ value: 'vendas', label: 'Vendas', icon: 'shopping-cart-01' }, { value: 'caixa', label: 'Caixa', icon: 'cash-01' }] },
+        { title: 'Estoque', items: [{ value: 'produtos', label: 'Produtos', icon: 'package' }, { value: 'lotes', label: 'Lotes e validade', icon: 'calendar-03', badge: expired.length + soon.length || undefined, badgeTone: 'danger' }, { value: 'entradas', label: 'Entradas', icon: 'package-receive' }, { value: 'reposicao', label: 'Reposição', icon: 'delivery-truck-01', badge: repo.length || undefined, badgeTone: 'warning' }] },
+        { title: 'Gestão', items: [{ value: 'relatorios', label: 'Relatórios', icon: 'analytics-01' }, { value: 'usuarios', label: 'Usuários', icon: 'user-group' }, { value: 'config', label: 'Configurações', icon: 'settings-01' }] },
+      ] },
+      caixaTone: C.open ? 'success' : 'neutral', caixaLabel: C.open ? 'Caixa aberto' : 'Caixa fechado',
+      logout: () => { this.setState({ screen: 'login', drawer: false, notifOpen: false, form: { ...EMPTY_FORM, senha: '' } }); this.notify('Sessão encerrada', '', 'info'); },
+      pageTitle: titles[S.page], hidden: S.hidden, hideIcon: S.hidden ? 'view' : 'view-off', hideLabel: S.hidden ? 'Mostrar valores' : 'Ocultar valores', toggleHidden: () => this.setState({ hidden: !S.hidden }),
+      notifs, notifCount: notifs.length || null, notifOpen: S.notifOpen, toggleNotif: () => this.setState({ notifOpen: !S.notifOpen }), closeNotif: () => S.notifOpen && this.setState({ notifOpen: false }),
+      is: Object.fromEntries(Object.keys(titles).map(k => [k, S.page === k])),
+      nav: Object.fromEntries(Object.keys(titles).map(k => [k, go(k)])),
+      chartSpan: S.w >= 1180 ? 'span 2' : 'auto',
+
+      // painel
+      longDate: new Date(TODAY + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }),
+      greeting: (hr < 12 ? 'Bom dia' : hr < 18 ? 'Boa tarde' : 'Boa noite') + ', ' + S.user.name.split(' ')[0],
+      periodTabs: [{ value: 'hoje', label: 'Hoje' }, { value: '7d', label: '7 dias' }, { value: '30d', label: '30 dias' }],
+      period: S.period, setPeriod: v => this.setState({ period: v }), kpi, week,
+      lotsSoon: [...expired, ...soon].slice(0, 5).map(l => ({ ...l, qtyLabel: qtyFmt(l.qty, l.unit), tone: l.st.tone, status: l.st.label })),
+      repoTop: repo.slice(0, 5), repoSub: repo.length + ' produtos abaixo do mínimo',
+      salesCols, recentSales: S.sales.filter(s => s.date === TODAY).slice(0, 6).map(saleRow), openSale: r => this.setState({ dlg: 'venda', saleId: r.id }),
+
+      // vendas
+      vf: S.vf, setVf: this.bind('vf', ['q', 'pay']), setVfPeriod: v => this.setState(s => ({ vf: { ...s.vf, period: v }, vpage: 0 })),
+      payOptions: [{ value: 'todos', label: 'Todas as formas' }, ...PAYS.map(p => ({ value: p, label: p }))],
+      vsum: { rev: sum(vdone, 'total'), ticket: vdone.length ? r2(sum(vdone, 'total') / vdone.length) : 0, nLabel: vdone.length + ' vendas concluídas', canc: sum(vcanc, 'total'), cancLabel: vcanc.length + (vcanc.length === 1 ? ' venda' : ' vendas') },
+      salesPage: vlist.slice(vp * PS, vp * PS + PS).map(saleRow),
+      pageInfo: vlist.length ? (vp * PS + 1) + '–' + Math.min(vlist.length, vp * PS + PS) + ' de ' + vlist.length + ' vendas' : '0 vendas',
+      pg: { noPrev: vp === 0, noNext: vp >= pages - 1, prev: () => this.setState({ vpage: vp - 1 }), next: () => this.setState({ vpage: vp + 1 }) },
+      exportSales: () => { csv('vendas.csv', [['Venda', 'Data', 'Hora', 'Operador', 'Pagamento', 'Status', 'Itens', 'Total', 'CMV'], ...vlist.map(s => [s.num, dmy(s.date), s.time, s.op, s.pay, s.status, s.items.length, fmt(s.total), fmt(s.cmv)])]); this.notify('Arquivo exportado', vlist.length + ' vendas em vendas.csv'); },
+      sale: sale ? { title: 'Venda #' + sale.num, desc: when(sale.date, sale.time) + ' · ' + sale.op + ' · ' + sale.pay + (sale.status === 'cancelada' ? ' · Cancelada' : ''), items: sale.items.map(i => ({ name: i.name, line: qtyFmt(i.qty, i.unit) + ' × ' + brl(i.price), totalFmt: S.hidden ? 'R$ ••' : brl(i.total) })), cmv: S.hidden ? 'R$ ••' : brl(sale.cmv), mg: S.hidden ? 'R$ ••' : brl(r2(sale.total - sale.cmv)) + ' · ' + pct((sale.total - sale.cmv) / sale.total * 100), total: sale.total, canCancel: sale.status === 'concluida' } : { title: '', items: [], canCancel: false },
+      cancelSale: () => { this.setState(s => ({ sales: s.sales.map(x => x.id === s.saleId ? { ...x, status: 'cancelada' } : x), dlg: null })); this.log('Venda cancelada', '#' + sale.num + ' · ' + brl(sale.total)); this.notify('Venda cancelada', '#' + sale.num + ' · itens devolvidos ao estoque.'); },
+      reprint: () => this.notify('Enviado para impressão', 'Segunda via da venda #' + (sale && sale.num) + '.', 'info'),
+
+      // caixa
+      caixaOpen: C.open, caixaClosed: !C.open,
+      cx: { title: 'Operador: ' + C.op, sub: 'Aberto hoje às ' + C.at, troco: C.troco, abertura: 'aberto às ' + C.at, cash: cashSum, cashN: cashToday.length + ' vendas em dinheiro', net: r2(sang - sup), movN: C.movs.length + ' movimentos', expected },
+      movCols, movRows, histCols, cxHist: S.cashHist, quebraSum,
+      quebraTotal: S.hidden ? 'Quebra na semana: ••' : 'Quebra na semana: ' + brl(quebraSum), quebraTone: quebraSum < 0 ? 'danger' : 'success',
+      dlg: { venda: S.dlg === 'venda', mov: isMov, produto: S.dlg === 'produto', entrada: S.dlg === 'entrada', usuario: S.dlg === 'usuario', importar: S.dlg === 'importar', baixa: S.dlg === 'baixa', senha: S.dlg === 'senha' },
+      dlgOpen: Object.fromEntries(['sangria', 'suprimento', 'fechar', 'abrir', 'importar', 'baixa', 'senha', 'entrada'].map(k => [k, () => this.setState({ dlg: k, err: {}, mf: { valor: k === 'abrir' ? '150,00' : '', motivo: '' }, file: null, sf: { atual: '', nova: '' }, ef: { forn: '', nota: '', pid: S.products[0].id, lote: '', exp: '', qty: '', cost: fmt(S.products[0].cost) } })])),
+      closeDlg: () => this.setState({ dlg: null, err: {} }),
+      movTitle: { sangria: 'Registrar sangria', suprimento: 'Registrar suprimento', abrir: 'Abrir caixa', fechar: 'Fechar caixa' }[S.dlg] || '',
+      movDesc: { sangria: 'Retirada de dinheiro da gaveta.', suprimento: 'Entrada de dinheiro na gaveta, sem venda.', abrir: 'Informe o troco que está na gaveta.', fechar: 'Conte o dinheiro da gaveta e informe o total. A quebra é calculada contra o esperado.' }[S.dlg] || '',
+      movNeedsMotivo: S.dlg === 'sangria' || S.dlg === 'suprimento', movPh: S.dlg === 'sangria' ? 'Ex.: depósito no banco' : 'Ex.: troco em moedas',
+      movCta: { sangria: 'Registrar sangria', suprimento: 'Registrar suprimento', abrir: 'Abrir caixa', fechar: 'Fechar caixa' }[S.dlg] || 'Confirmar',
+      movVariant: S.dlg === 'abrir' ? 'brand' : S.dlg === 'sangria' ? 'danger' : 'primary',
+      mf: S.mf, setMf: this.bind('mf', ['valor', 'motivo']),
+      submitMov: prevent(() => {
+        const v = r2(num(S.mf.valor)), err = {}, k = S.dlg;
+        if (k !== 'fechar' && v <= 0) err.valor = 'Informe um valor maior que zero.';
+        if (k === 'sangria' && v > expected) err.valor = 'Valor maior que o disponível na gaveta.';
+        if ((k === 'sangria' || k === 'suprimento') && S.cfg.motivo && !S.mf.motivo.trim()) err.motivo = 'Informe o motivo.';
+        if (Object.keys(err).length) return this.setState({ err });
+        const t = new Date().toTimeString().slice(0, 5);
+        if (k === 'abrir') { this.setState({ dlg: null, caixa: { open: true, op: S.user.name, at: t, troco: v, movs: [] } }); this.log('Abertura de caixa', 'Troco ' + brl(v)); return this.notify('Caixa aberto', 'Troco de ' + brl(v) + '. Vendas liberadas.'); }
+        if (k === 'fechar') {
+          const qb = r2(v - expected);
+          this.setState(s => ({ dlg: null, caixa: { ...s.caixa, open: false }, cashHist: [{ id: 'h' + Date.now(), date: TODAY, op: C.op, horas: C.at + ' – ' + t, esperado: expected, contado: v, quebra: qb }, ...s.cashHist] }));
+          this.log('Fechamento de caixa', qb === 0 ? 'Sem quebra' : 'Quebra ' + brl(qb));
+          return this.notify('Caixa fechado', qb === 0 ? 'Sem quebra.' : (qb < 0 ? 'Falta de ' : 'Sobra de ') + brl(Math.abs(qb)) + '.', qb < 0 ? 'danger' : 'success');
+        }
+        const type = k === 'sangria' ? 'Sangria' : 'Suprimento';
+        this.setState(s => ({ dlg: null, caixa: { ...s.caixa, movs: [...s.caixa.movs, { id: 'm' + Date.now(), time: t, type, valor: v, motivo: S.mf.motivo.trim() || '—', user: S.user.name }] } }));
+        this.log(type, brl(v) + ' · ' + (S.mf.motivo.trim() || 'sem motivo'));
+        this.notify(type + ' registrada', brl(v));
+      }),
+
+      // produtos
+      pfil: { q: S.pq }, setProdQ: e => this.setState({ pq: e.target.value }),
+      catTags: ['Todos', ...CATS].map(c => ({ label: c, on: S.pcat === c, pick: () => this.setState({ pcat: c }) })),
+      prodCols, prodRows, newProduct: () => openProd(null), editProduct: r => openProd(r),
+      pf: S.pf, setPf: this.bind('pf', ['name', 'sku', 'cat', 'unit', 'price', 'cost', 'min']), pfTitle: S.pfId ? 'Editar produto' : 'Novo produto', pfEditing: !!S.pfId,
+      pfMargin: pfm === null ? { label: '—', color: 'var(--text-sub)' } : { label: pct(pfm), color: pfm < 0 ? 'var(--danger-fg)' : pfm < 15 ? 'var(--warning-fg)' : 'var(--success-fg)' },
+      catOptions: CATS.map(c => ({ value: c, label: c })), unitOptions: [{ value: 'un', label: 'un' }, { value: 'kg', label: 'kg' }, { value: 'l', label: 'l' }, { value: 'cx', label: 'cx' }],
+      saveProduct: prevent(() => {
+        const P = S.pf, err = {};
+        if (!P.name.trim()) err.name = 'Informe o nome.';
+        if (num(P.price) <= 0) err.price = 'Informe o preço.';
+        if (Object.keys(err).length) return this.setState({ err });
+        const data = { name: P.name.trim(), sku: P.sku.trim(), cat: P.cat, unit: P.unit, price: r2(num(P.price)), cost: r2(num(P.cost)), min: num(P.min) };
+        if (S.pfId) this.setState(s => ({ dlg: null, products: s.products.map(p => p.id === s.pfId ? { ...p, ...data } : p) }));
+        else this.setState(s => ({ dlg: null, products: [{ id: 'p' + Date.now(), lots: [], ...data }, ...s.products] }));
+        this.log(S.pfId ? 'Produto alterado' : 'Produto criado', data.name);
+        this.notify(S.pfId ? 'Produto atualizado' : 'Produto cadastrado', data.name);
+      }),
+      deleteProduct: () => { const p = S.products.find(x => x.id === S.pfId); this.setState(s => ({ dlg: null, products: s.products.filter(x => x.id !== s.pfId) })); this.log('Produto excluído', p.name); this.notify('Produto excluído', p.name); },
+      importLabel: S.file ? S.file : 'Escolha um arquivo .csv', noFile: !S.file, pickFile: e => { const f = e.target.files && e.target.files[0]; f && this.setState({ file: f.name }); },
+      downloadTemplate: prevent(() => csv('modelo-produtos.csv', [['codigo', 'nome', 'categoria', 'unidade', 'preco', 'custo', 'minimo'], ['7891000100103', 'Leite integral 1L', 'Laticínios', 'un', '5,49', '3,92', '24']])),
+      doImport: () => { this.setState({ dlg: null }); this.log('Importação de produtos', S.file); this.notify('Importação concluída', S.file + ' processado.'); },
+
+      // lotes
+      lotTabs: [{ value: 'todos', label: 'Todos (' + allLots.length + ')' }, { value: 'vencidos', label: 'Vencidos (' + expired.length + ')' }, { value: 'semana', label: 'A vencer (' + soon.length + ')' }, { value: 'ok', label: 'Em dia' }],
+      lotFilter: S.lotFilter, setLotFilter: v => this.setState({ lotFilter: v }), lotCols, lotRows, noExpired: !expired.length,
+      lotSum: { exp: r2(expired.reduce((a, l) => a + l.risk, 0)), expN: expired.length + ' lotes', soon: r2(soon.reduce((a, l) => a + l.risk, 0)), soonN: soon.length + ' lotes', loss: lossSum },
+      baixaDesc: expired.length + (expired.length === 1 ? ' lote vencido será retirado' : ' lotes vencidos serão retirados') + ' do estoque e registrados como perda de ' + brl(r2(expired.reduce((a, l) => a + l.risk, 0))) + '.',
+      doBaixa: () => {
+        const v = r2(expired.reduce((a, l) => a + l.risk, 0)), keys = new Set(expired.map(l => l.key));
+        this.setState(s => ({ dlg: null, products: s.products.map(p => ({ ...p, lots: p.lots.filter(l => !keys.has(p.id + l.code)) })), losses: [...expired.map(l => ({ date: TODAY, name: l.name, qty: l.qty, valor: l.risk })), ...s.losses] }));
+        this.log('Baixa por validade', expired.length + ' lotes · ' + brl(v));
+        this.notify('Perda registrada', expired.length + ' lotes baixados · ' + brl(v));
+      },
+
+      // entradas
+      entCols: [{ key: 'date', label: 'Data', render: r => dmy(r.date) }, { key: 'forn', label: 'Fornecedor', render: r => sub(r.forn, r.nota) }, { key: 'itens', label: 'Itens', align: 'right' }, { key: 'user', label: 'Registrado por', render: r => muted(r.user) }, { key: 'total', label: 'Total', align: 'right', render: r => money(r.total) }],
+      entradas: S.entradas, ef, setEf: { ...this.bind('ef', ['forn', 'nota', 'lote', 'exp', 'qty', 'cost']), pid: e => { const p = S.products.find(x => x.id === e.target.value); this.setState(s => ({ ef: { ...s.ef, pid: p.id, cost: fmt(p.cost) } })); } },
+      prodOptions: S.products.map(p => ({ value: p.id, label: p.name })),
+      efTotal: brl(r2(num(ef.qty) * num(ef.cost))),
+      saveEntrada: prevent(() => {
+        const err = {};
+        if (!String(ef.forn || '').trim()) err.forn = 'Informe o fornecedor.';
+        if (!String(ef.lote || '').trim()) err.lote = 'Informe o lote.';
+        if (!ef.exp) err.exp = 'Informe a validade.'; else if (daysTo(ef.exp) < 0) err.exp = 'Validade já passou.';
+        if (num(ef.qty) <= 0) err.qty = 'Informe a quantidade.';
+        if (num(ef.cost) <= 0) err.cost = 'Informe o custo.';
+        if (Object.keys(err).length) return this.setState({ err });
+        const p = S.products.find(x => x.id === ef.pid), tot = r2(num(ef.qty) * num(ef.cost));
+        this.setState(s => ({ dlg: null, products: s.products.map(x => x.id === ef.pid ? { ...x, cost: r2(num(ef.cost)), lots: [...x.lots, { code: ef.lote.trim(), exp: ef.exp, qty: num(ef.qty) }] } : x), entradas: [{ id: 'e' + Date.now(), date: TODAY, forn: ef.forn.trim(), nota: ef.nota.trim() || 'Sem nota', itens: 1, total: tot, user: S.user.name }, ...s.entradas] }));
+        this.log('Entrada de mercadoria', p.name + ' · lote ' + ef.lote.trim());
+        this.notify('Entrada registrada', p.name + ' · lote ' + ef.lote.trim() + ' · ' + brl(tot));
+      }),
+      // pick product updates cost default
+      setEfPid: null,
+
+      // reposição
+      repoCount: repo.length, repoCost: r2(repo.reduce((a, p) => a + p.est, 0)), repoRows: repo,
+      repoCols: [{ key: 'name', label: 'Produto', render: r => sub(r.name, r.cat) }, { key: 'stock', label: 'Atual', align: 'right', render: r => h('span', { style: { color: 'var(--warning-fg)', fontWeight: 600 } }, qtyFmt(r.stock, r.unit)) }, { key: 'min', label: 'Mínimo', align: 'right', render: r => muted(qtyFmt(r.min, r.unit)) }, { key: 'sug', label: 'Comprar', align: 'right', render: r => h('span', { style: { fontWeight: 500 } }, qtyFmt(r.sug, r.unit)) }, { key: 'cost', label: 'Último custo', align: 'right', render: r => money(r.cost) }, { key: 'est', label: 'Estimado', align: 'right', render: r => money(r.est) }],
+      exportRepo: () => { csv('reposicao.csv', [['Produto', 'Código', 'Atual', 'Mínimo', 'Comprar', 'Unidade', 'Último custo', 'Estimado'], ...repo.map(p => [p.name, p.sku, p.stock, p.min, p.sug, p.unit, fmt(p.cost), fmt(p.est)])]); this.notify('Lista exportada', repo.length + ' produtos em reposicao.csv'); },
+      printPage: () => window.print(),
+
+      // relatórios
+      catRep, payRep, topProds, topCols,
+      exportReport: () => { csv('relatorio-margem.csv', [['Produto', 'Vendido', 'Faturamento', 'CMV', 'Margem'], ...topProds.map(p => [p.name, r2(p.qty), fmt(p.rev), fmt(p.cmv), fmt(p.mg)])]); this.notify('Relatório exportado', 'relatorio-margem.csv'); },
+
+      // usuários
+      userTabs: [{ value: 'equipe', label: 'Equipe' }, { value: 'atividade', label: 'Registro de atividade' }], userTab: S.userTab, setUserTab: v => this.setState({ userTab: v }),
+      ut: { equipe: S.userTab === 'equipe', atividade: S.userTab === 'atividade' },
+      users: S.users, userCols, activity: S.activity, actCols, newUser: () => openUser(null), editUser: r => openUser(r),
+      uf: { ...S.uf, isAdmin: S.uf.role === 'ADMIN', isCashier: S.uf.role === 'CASHIER' }, setUf: this.bind('uf', ['name', 'email']),
+      pickAdmin: () => this.setState(s => ({ uf: { ...s.uf, role: 'ADMIN' } })), pickCashier: () => this.setState(s => ({ uf: { ...s.uf, role: 'CASHIER' } })), toggleUfActive: v => this.setState(s => ({ uf: { ...s.uf, active: v } })),
+      ufTitle: S.ufId ? 'Editar usuário' : 'Adicionar usuário', ufCta: S.ufId ? 'Salvar' : 'Enviar convite',
+      saveUser: prevent(() => {
+        const U = S.uf, err = {};
+        if (!U.name.trim()) err.uname = 'Informe o nome.';
+        if (!/^\S+@\S+\.\S+$/.test(U.email.trim())) err.uemail = 'Informe um e-mail válido.';
+        else if (S.users.some(u => u.email === U.email.trim().toLowerCase() && u.id !== S.ufId)) err.uemail = 'Já existe um usuário com este e-mail.';
+        if (Object.keys(err).length) return this.setState({ err });
+        const data = { name: U.name.trim(), email: U.email.trim().toLowerCase(), role: U.role, active: U.active };
+        if (S.ufId) this.setState(s => ({ dlg: null, users: s.users.map(u => u.id === s.ufId ? { ...u, ...data } : u) }));
+        else this.setState(s => ({ dlg: null, users: [...s.users, { id: Date.now(), last: 'Convite enviado', ...data }] }));
+        this.log(S.ufId ? 'Usuário alterado' : 'Usuário convidado', data.name + ' · ' + (data.role === 'ADMIN' ? 'Administrador' : 'Operador de caixa'));
+        this.notify(S.ufId ? 'Usuário atualizado' : 'Convite enviado', data.email);
+      }),
+
+      // config
+      cfg: S.cfg, setCfg: this.bind('cfg', ['loja', 'cnpj', 'tel', 'end', 'alertDays', 'minPadrao', 'limite', 'tolerancia', 'sessao'], false),
+      tgl: Object.fromEntries(['pvps', 'autoBaixa', 'bloqVencido', 'motivo', 'cego', 'dois'].map(k => [k, v => { this.setState(s => ({ cfg: { ...s.cfg, [k]: v } })); this.notify('Preferência salva', ''); }])),
+      sessaoOptions: [{ value: '1h', label: 'Após 1 hora' }, { value: '8h', label: 'Após 8 horas' }, { value: '24h', label: 'Após 24 horas' }, { value: 'nunca', label: 'Nunca' }],
+      saveCfg: () => { this.setState({ store: S.cfg.loja }); this.log('Dados da loja alterados', S.cfg.loja); this.notify('Dados da loja salvos', ''); },
+      sf: S.sf, setSf: this.bind('sf', ['atual', 'nova']),
+      savePass: prevent(() => {
+        const err = {};
+        if (S.sf.atual !== 'mkt12345') err.atual = 'Senha atual incorreta.';
+        if (!this.validPass(S.sf.nova)) err.nova = 'Use 8 caracteres ou mais, com letras e números.';
+        if (Object.keys(err).length) return this.setState({ err });
+        this.setState({ dlg: null }); this.log('Senha alterada', 'Conta ' + S.user.email); this.notify('Senha alterada', 'Use a nova senha no próximo acesso.');
+      }),
+      endSessions: () => this.notify('Outras sessões encerradas', 'Somente este dispositivo continua conectado.'),
+
+      toast: S.toast, closeToast: () => this.setState({ toast: null }),
+    };
+  }
+}
+</script>
+
+
