@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getDatabaseUrl, getLogLevel, getSessionSecret } from "./env";
+import {
+  getDatabaseUrl,
+  getLogLevel,
+  getMailFrom,
+  getResendApiKey,
+  getSessionSecret,
+} from "./env";
 
 vi.mock("server-only", () => ({}));
 afterEach(() => vi.unstubAllEnvs());
@@ -42,5 +48,27 @@ describe("server environment", () => {
     expect(() => getSessionSecret()).not.toThrow("short-secret-value");
     vi.stubEnv("SESSION_SECRET", "x".repeat(32));
     expect(getSessionSecret()).toHaveLength(32);
+  });
+
+  it("treats the Resend key as optional outside production and required in it", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("RESEND_API_KEY", "");
+    expect(getResendApiKey()).toBeUndefined();
+    vi.stubEnv("RESEND_API_KEY", "re_test_key");
+    expect(getResendApiKey()).toBe("re_test_key");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("RESEND_API_KEY", undefined);
+    expect(() => getResendApiKey()).toThrow("RESEND_API_KEY");
+  });
+
+  it("defaults the sender outside production and requires it in production", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("MAIL_FROM", undefined);
+    expect(getMailFrom()).toBe("Mkt Control <no-reply@localhost>");
+    vi.stubEnv("MAIL_FROM", "Loja <oi@example.com>");
+    expect(getMailFrom()).toBe("Loja <oi@example.com>");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("MAIL_FROM", undefined);
+    expect(() => getMailFrom()).toThrow("MAIL_FROM");
   });
 });
