@@ -3,6 +3,7 @@ import { and, desc, eq, lt, or } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
 import { activityLog } from "@/infrastructure/db/schema";
 
+// Activity rows must be written through here (see logActivity): ms-precision createdAt keeps the cursor exact.
 export function insertActivity(values: {
   userId: string | null;
   userName: string;
