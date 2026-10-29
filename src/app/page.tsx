@@ -6,7 +6,11 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { SESSION_COOKIE } from "@/contracts/auth";
+import { readSessionToken } from "@/domains/auth/session";
+import { LogoutButton } from "./logout-button";
 
 const pillars: { icon: LucideIcon; title: string; description: string }[] = [
   {
@@ -34,7 +38,12 @@ const pillars: { icon: LucideIcon; title: string; description: string }[] = [
   },
 ];
 
-export default function Home() {
+const roleLabel = { ADMIN: "Administrador", CASHIER: "Operador de caixa" };
+
+export default async function Home() {
+  const session = await readSessionToken(
+    (await cookies()).get(SESSION_COOKIE)?.value,
+  );
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-4 py-12 sm:px-8 sm:py-16">
       <header className="flex flex-col gap-4">
@@ -49,12 +58,22 @@ export default function Home() {
           A base técnica está pronta. As funcionalidades do balcão serão
           entregues uma por vez.
         </p>
-        <Link
-          href="/login"
-          className="w-fit font-medium text-link underline underline-offset-4"
-        >
-          Entrar no sistema
-        </Link>
+        {session ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-strong">
+              Você entrou como <strong>{session.username}</strong> (
+              {roleLabel[session.role]}).
+            </p>
+            <LogoutButton />
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="w-fit font-medium text-link underline underline-offset-4"
+          >
+            Entrar no sistema
+          </Link>
+        )}
       </header>
 
       <section
