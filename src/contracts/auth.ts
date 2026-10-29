@@ -6,6 +6,16 @@ export const SESSION_COOKIE = "mkt_session";
 export const CSRF_COOKIE = "mkt_csrf";
 export const CSRF_HEADER = "x-csrf-token";
 
+const PASSWORD_MESSAGE = "Use 8 caracteres ou mais, com letras e números.";
+
+/** Rule for choosing a new password; login keeps a lenient schema so old passwords still work. */
+export const passwordRuleSchema = z
+  .string()
+  .min(8, PASSWORD_MESSAGE)
+  .max(256, PASSWORD_MESSAGE)
+  .regex(/\p{L}/u, PASSWORD_MESSAGE)
+  .regex(/\d/, PASSWORD_MESSAGE);
+
 export const loginRequestSchema = z.object({
   email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
   // Upper bound caps the cost of hashing attacker-supplied input.

@@ -1,4 +1,5 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { passwordRuleSchema } from "@/contracts/auth";
 import { hashPassword, verifyPassword } from "./password";
 
 it("verifies the right password and rejects a wrong one", async () => {
@@ -23,4 +24,23 @@ it("salts every hash and rejects malformed stored values", async () => {
   await expect(verifyPassword("same", "bcrypt$10$abc$def")).resolves.toBe(
     false,
   );
+});
+
+describe("passwordRuleSchema", () => {
+  it.each(["abcd1234", "Senha123!"])("accepts %s", (value) => {
+    expect(passwordRuleSchema.safeParse(value).success).toBe(true);
+  });
+
+  it.each([
+    ["letters only", "abcdefgh"],
+    ["digits only", "12345678"],
+    ["too short", "a1"],
+    ["257 characters", `a1${"x".repeat(255)}`],
+  ])("rejects %s with the friendly message", (_label, value) => {
+    const result = passwordRuleSchema.safeParse(value);
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe(
+      "Use 8 caracteres ou mais, com letras e números.",
+    );
+  });
 });
