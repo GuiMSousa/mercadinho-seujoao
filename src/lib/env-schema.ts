@@ -16,9 +16,6 @@ export const logLevelSchema = z
   .enum(["trace", "debug", "info", "warn", "error", "fatal", "silent"])
   .default("info");
 
-// HS256 signing key for session JWTs; 32+ characters keeps guessing the key impractical.
-export const sessionSecretSchema = z.string().min(32);
-
 export const resendApiKeySchema = z.string().trim().min(1);
 export const mailFromSchema = z.string().trim().min(1);
 

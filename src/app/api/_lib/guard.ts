@@ -1,10 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { CSRF_COOKIE, CSRF_HEADER, SESSION_COOKIE } from "@/contracts/auth";
 import { accessDenial } from "@/domains/auth/access";
-import {
-  readSessionToken,
-  SESSION_MAX_AGE_SECONDS,
-} from "@/domains/auth/session";
+import { hashToken, readSession } from "@/domains/auth/sessions";
 
 const MESSAGES = {
   400: "Requisição inválida.",
@@ -21,14 +18,16 @@ export function errorResponse(
 
 /** Reads the session and applies the shared access rule; used by the proxy and by every route. */
 export async function guard(request: NextRequest) {
-  const session = await readSessionToken(
-    request.cookies.get(SESSION_COOKIE)?.value,
-  );
+  const session = await readSession(request.cookies.get(SESSION_COOKIE)?.value);
+  // Both sides are hashes, so the comparison reveals nothing about the token itself.
+  const csrfOk =
+    session !== null &&
+    hashToken(request.headers.get(CSRF_HEADER) ?? "") === session.csrfHash;
   const denial = accessDenial({
     pathname: request.nextUrl.pathname,
     method: request.method,
-    session,
-    csrfHeader: request.headers.get(CSRF_HEADER),
+    session: session && { role: session.user.role },
+    csrfOk,
     origin: request.headers.get("origin"),
     host:
       request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
@@ -39,8 +38,11 @@ export async function guard(request: NextRequest) {
 export function setSessionCookies(
   request: NextRequest,
   response: NextResponse,
-  token: string,
-  csrf: string,
+  {
+    token,
+    csrfToken,
+    maxAgeSeconds,
+  }: { token: string; csrfToken: string; maxAgeSeconds: number | null },
 ) {
   // Secure only over HTTPS: on plain-HTTP LAN access the browser would drop a Secure cookie.
   const secure =
@@ -50,10 +52,11 @@ export function setSessionCookies(
     sameSite: "lax",
     secure,
     path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS,
+    // No maxAge: a browser-session cookie that ends when the browser closes.
+    ...(maxAgeSeconds === null ? {} : { maxAge: maxAgeSeconds }),
   } as const;
   response.cookies.set(SESSION_COOKIE, token, { ...options, httpOnly: true });
-  response.cookies.set(CSRF_COOKIE, csrf, { ...options, httpOnly: false });
+  response.cookies.set(CSRF_COOKIE, csrfToken, { ...options, httpOnly: false });
 }
 
 export function clearSessionCookies(response: NextResponse) {

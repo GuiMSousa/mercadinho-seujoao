@@ -30,7 +30,6 @@ No `.env.local` (ignorado pelo Git), defina:
 - `POSTGRES_PORT` (padrão 5432);
 - `DATABASE_URL=postgresql://<user>:<senha>@localhost:<porta>/<db>`, com os mesmos valores. A senha aparece nos dois lugares, então troque nos dois.
 - `DATABASE_URL_TEST`: mesma conexão, mas com o banco `mkt_control_test` (ver "Banco de testes" abaixo).
-- `SESSION_SECRET`: 32+ caracteres aleatórios. O comando está no `.env.example`. Trocar esse valor desconecta todos os usuários.
 
 Nunca use `NEXT_PUBLIC_*` para segredos.
 

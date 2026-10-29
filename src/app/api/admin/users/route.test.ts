@@ -1,31 +1,31 @@
 import { NextRequest } from "next/server";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 import { SESSION_COOKIE, usersListResponseSchema } from "@/contracts/auth";
 import { listUsers } from "@/domains/auth/service";
-import { createSessionToken } from "@/domains/auth/session";
+import { readSession } from "@/domains/auth/sessions";
 import { GET } from "./route";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/domains/auth/service", () => ({ listUsers: vi.fn() }));
+vi.mock("@/domains/auth/sessions", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/domains/auth/sessions")>()),
+  readSession: vi.fn(),
+}));
 
 const ID = "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3b";
-
-beforeEach(() =>
-  vi.stubEnv("SESSION_SECRET", "test-secret-with-at-least-32-characters"),
-);
-afterEach(() => vi.unstubAllEnvs());
 
 async function get(role?: "ADMIN" | "CASHIER") {
   const headers = new Headers();
   if (role) {
-    const token = await createSessionToken({
-      id: ID,
-      name: "U",
-      email: "u@example.com",
-      role,
-      csrf: "t",
+    vi.mocked(readSession).mockResolvedValue({
+      id: "hashed-id",
+      user: { id: ID, name: "U", email: "u@example.com", role },
+      csrfHash: "hash",
+      remember: false,
     });
-    headers.set("cookie", `${SESSION_COOKIE}=${token}`);
+    headers.set("cookie", `${SESSION_COOKIE}=token`);
+  } else {
+    vi.mocked(readSession).mockResolvedValue(null);
   }
   return GET(
     new NextRequest("http://localhost:3000/api/admin/users", { headers }),

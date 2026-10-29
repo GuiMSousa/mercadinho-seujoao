@@ -4,7 +4,6 @@ import {
   getLogLevel,
   getMailFrom,
   getResendApiKey,
-  getSessionSecret,
 } from "./env";
 
 vi.mock("server-only", () => ({}));
@@ -40,14 +39,6 @@ describe("server environment", () => {
     vi.stubEnv("LOG_LEVEL", "not-a-level");
     expect(() => getDatabaseUrl()).toThrow("DATABASE_URL");
     expect(() => getLogLevel()).toThrow("LOG_LEVEL");
-  });
-
-  it("requires a session secret of at least 32 characters without echoing it", () => {
-    vi.stubEnv("SESSION_SECRET", "short-secret-value");
-    expect(() => getSessionSecret()).toThrow("SESSION_SECRET");
-    expect(() => getSessionSecret()).not.toThrow("short-secret-value");
-    vi.stubEnv("SESSION_SECRET", "x".repeat(32));
-    expect(getSessionSecret()).toHaveLength(32);
   });
 
   it("treats the Resend key as optional outside production and required in it", () => {

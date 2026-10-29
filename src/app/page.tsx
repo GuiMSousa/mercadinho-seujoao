@@ -9,7 +9,7 @@ import {
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { SESSION_COOKIE } from "@/contracts/auth";
-import { readSessionToken } from "@/domains/auth/session";
+import { readSession } from "@/domains/auth/sessions";
 import { LogoutButton } from "./logout-button";
 
 const pillars: { icon: LucideIcon; title: string; description: string }[] = [
@@ -41,7 +41,7 @@ const pillars: { icon: LucideIcon; title: string; description: string }[] = [
 const roleLabel = { ADMIN: "Administrador", CASHIER: "Operador de caixa" };
 
 export default async function Home() {
-  const session = await readSessionToken(
+  const session = await readSession(
     (await cookies()).get(SESSION_COOKIE)?.value,
   );
   return (
@@ -61,8 +61,8 @@ export default async function Home() {
         {session ? (
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-strong">
-              Você entrou como <strong>{session.name}</strong> (
-              {roleLabel[session.role]}).
+              Você entrou como <strong>{session.user.name}</strong> (
+              {roleLabel[session.user.role]}).
             </p>
             <LogoutButton />
           </div>

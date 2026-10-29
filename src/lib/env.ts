@@ -5,7 +5,6 @@ import {
   mailFromSchema,
   parseEnv,
   resendApiKeySchema,
-  sessionSecretSchema,
 } from "./env-schema";
 
 export function getDatabaseUrl() {
@@ -14,14 +13,6 @@ export function getDatabaseUrl() {
 
 export function getLogLevel() {
   return parseEnv("LOG_LEVEL", process.env.LOG_LEVEL, logLevelSchema);
-}
-
-export function getSessionSecret() {
-  return parseEnv(
-    "SESSION_SECRET",
-    process.env.SESSION_SECRET,
-    sessionSecretSchema,
-  );
 }
 
 const isProduction = () => process.env.NODE_ENV === "production";

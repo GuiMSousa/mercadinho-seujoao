@@ -31,7 +31,7 @@ export function buildOpenApiDocument() {
       title: "Mkt Control API",
       version: "0.1.0",
       description:
-        "Sessão por cookie HTTP-only com JWT. Requisições que alteram estado (exceto o login) exigem o cabeçalho anti-CSRF com o valor do cookie mkt_csrf.",
+        "Sessão por cookie HTTP-only com token opaco guardado no banco. Requisições que alteram estado (exceto o login) exigem o cabeçalho anti-CSRF com o valor do cookie mkt_csrf.",
     },
     components: {
       securitySchemes: {

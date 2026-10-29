@@ -1,9 +1,8 @@
-import { randomBytes } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { loginRequestSchema, loginResponseSchema } from "@/contracts/auth";
 import { clientIp, loginRateLimiter } from "@/domains/auth/login-rate-limit";
 import { authenticate } from "@/domains/auth/service";
-import { createSessionToken } from "@/domains/auth/session";
+import { createSession } from "@/domains/auth/sessions";
 import { errorResponse, guard, setSessionCookies } from "../../_lib/guard";
 
 export async function POST(request: NextRequest) {
@@ -30,11 +29,15 @@ export async function POST(request: NextRequest) {
   const user = await authenticate(input.data.email, input.data.password);
   if (!user) return errorResponse(401, "E-mail ou senha inválidos.");
 
-  const csrf = randomBytes(32).toString("base64url");
-  const token = await createSessionToken({ ...user, csrf });
+  const session = await createSession({
+    userId: user.id,
+    remember: false,
+    userAgent: request.headers.get("user-agent"),
+    ip: clientIp(request.headers),
+  });
   const response = NextResponse.json(
-    loginResponseSchema.parse({ user, csrfToken: csrf }),
+    loginResponseSchema.parse({ user, csrfToken: session.csrfToken }),
   );
-  setSessionCookies(request, response, token, csrf);
+  setSessionCookies(request, response, session);
   return response;
 }

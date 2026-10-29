@@ -27,11 +27,11 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem:** 45 testes em 16 arquivos, todos sem banco (mocks de `pg`, `server-only` e, nas rotas, do service).
-  - Fronteiras: ambiente (inclui `SESSION_SECRET` com 32+ caracteres sem ecoar o valor), logger e pool.
+- **Hoje existem:** 76 testes em 18 arquivos, sem banco (mocks de `pg`, `server-only` e, nas rotas, do service).
+  - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
-    - JWT, que recusa token adulterado, sem assinatura (`alg: none`) ou expirado;
+    - sessões no banco (expiração, ociosidade por loja, usuário inativo, renovação deslizante com "manter conectado" e revogação das outras sessões), com teste contra o PostgreSQL real em `sessions.db.test.ts`;
     - regra de acesso;
     - rate limit com janela e limite de memória;
     - proxy;
@@ -89,7 +89,7 @@ Escolha o escopo da revisão pelo risco e pelo diff real. Use revisão independe
 - **Prioridades deste produto:**
   - sigilo de custo, CMV e margem para `CASHIER`;
   - autorização no servidor;
-  - sessão JWT, CSRF e limite de login;
+  - sessão no banco, CSRF e limite de login;
   - CSP;
   - integridade de caixa e venda (transações, caixa único);
   - importação de planilhas.

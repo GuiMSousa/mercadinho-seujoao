@@ -41,7 +41,8 @@ src/
 │   └── openapi.json          # contrato versionado (npm run spec:generate)
 ├── domains/auth/
 │   ├── access.ts             # regra única de acesso (público, sessão, ADMIN, CSRF, origem)
-│   ├── session.ts            # JWT HS256 (jose) com claims validadas por Zod
+│   ├── sessions.ts           # sessões no banco: criar, ler (expiração, ociosidade), revogar
+│   ├── sessions-repository.ts # único acesso a `sessions` (e leitura de `users`/`stores` para validá-las)
 │   ├── password.ts           # hash scrypt (node:crypto)
 │   ├── login-rate-limit.ts   # janela deslizante em memória + IP do cliente
 │   ├── service.ts            # authenticate (tempo constante para usuário inexistente)
@@ -76,15 +77,15 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 2. **Limite por IP:** 10 tentativas a cada 15 minutos; a 11ª → 429 com `Retry-After`.
 3. **Entrada:** validada com Zod; usuário convertido para minúsculas.
 4. **Senha:** conferida com scrypt, também quando o usuário não existe (não revela quais usuários existem).
-5. **Sessão:** JWT HS256 de 12 h com `sub`, `name`, `email`, `role` e `csrf`, no cookie `mkt_session` (HTTP-only, `SameSite=Lax`, `Secure` sob HTTPS).
-6. **CSRF:** o mesmo token vai no cookie legível `mkt_csrf` e na resposta.
+5. **Sessão:** token aleatório de 32 bytes no cookie `mkt_session` (HTTP-only, `SameSite=Lax`, `Secure` sob HTTPS); o banco guarda só o SHA-256 em `sessions.id`. Sem "manter conectado" o cookie é de navegador e a sessão dura 12 h; com ele, 30 dias deslizantes. A inatividade segue `stores.sessionIdle` (padrão 8 h) e usuário inativo perde a sessão.
+6. **CSRF:** token aleatório por sessão, guardado como SHA-256 em `sessions.csrfHash`, enviado no cookie legível `mkt_csrf` e na resposta.
 
 **Acesso** (`accessDenial`, usado pelo proxy e por cada rota):
 
-- `/`, `/login` e o login são públicos; qualquer outro caminho exige sessão (padrão seguro).
-- `/admin` e `/api/admin` exigem `ADMIN`.
-- Métodos que alteram estado exigem `x-csrf-token` igual ao claim `csrf` e mesma origem.
-- O proxy redireciona páginas sem sessão para `/login`.
+- Públicos: `/`, `/login`, `/cadastro`, `/recuperar`, `/design-system`, `/api/setup`, `/api/theme` e as rotas de `/api/auth` de entrada (login, cadastro, recuperação); qualquer outro caminho exige sessão (padrão seguro).
+- `/painel`, `/api/admin`, `/api/account` e `/api/store` exigem `ADMIN`.
+- Métodos que alteram estado exigem `x-csrf-token` cujo SHA-256 seja igual a `sessions.csrfHash` e mesma origem.
+- O proxy redireciona páginas sem sessão para `/login`; em `/`, `ADMIN` vai para `/painel` e sem sessão vai para `/login`.
 
 Pastas novas só nascem com código real.
 
@@ -106,13 +107,12 @@ Guardas automáticas atuais (ESLint):
 
 ## Ambiente
 
-| Variável                                                             | Onde                                | Uso                                                                                                              |
-| -------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                                                       | runtime (app, drizzle-kit, scripts) | Conexão PostgreSQL. Não é necessária no build                                                                    |
-| `DATABASE_URL_UNPOOLED`                                              | migrations (opcional)               | Conexão direta, se o provedor exigir                                                                             |
-| `LOG_LEVEL`                                                          | runtime                             | Nível do Pino (padrão `info`)                                                                                    |
-| `SESSION_SECRET`                                                     | runtime (app, proxy)                | Chave HS256 das sessões, 32+ caracteres aleatórios. Não é necessária no build; trocá-la encerra todas as sessões |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT` | Docker Compose                      | Credenciais do container local                                                                                   |
+| Variável                                                             | Onde                                | Uso                                           |
+| -------------------------------------------------------------------- | ----------------------------------- | --------------------------------------------- |
+| `DATABASE_URL`                                                       | runtime (app, drizzle-kit, scripts) | Conexão PostgreSQL. Não é necessária no build |
+| `DATABASE_URL_UNPOOLED`                                              | migrations (opcional)               | Conexão direta, se o provedor exigir          |
+| `LOG_LEVEL`                                                          | runtime                             | Nível do Pino (padrão `info`)                 |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT` | Docker Compose                      | Credenciais do container local                |
 
 Carregamento:
 
@@ -123,24 +123,24 @@ Carregamento:
 
 ## Decisões
 
-| Decisão                                                            | Motivo                                                                                                               | Alternativa                              | Revisitar quando                                                  |
-| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------- |
-| Next.js + Drizzle no lugar de Express + Prisma + HTML sem build    | Escopo da base declarado prioritário pelo usuário (2026-10-28)                                                       | Stack descrita no sistema atual          | O dono do produto pedir manter a stack antiga                     |
-| PostgreSQL também em dev (sem SQLite)                              | Mesmo motor em dev e produção; transações e tipos iguais                                                             | SQLite local                             | Nunca para dados; talvez para um modo demo                        |
-| Cliente de banco em `src/infrastructure/db` (não `src/db`)         | Requisito "integrações em src/infrastructure"                                                                        | Layout padrão do toolkit                 | —                                                                 |
-| Pacote `cn` (shadcn) no lugar de clsx + tailwind-merge             | O registry atual do shadcn gera `import { cn } from "cn"`; evita duas implementações                                 | clsx + tailwind-merge do template        | O pacote `cn` deixar de ser mantido                               |
-| `cn` configurado em `@ds/lib/cn` (`createCn` com as escalas do DS) | Sem a configuração, `cn("text-body-lg text-strong")` descarta o tamanho, lido como cor                               | Manter nomes padrão do Tailwind          | O `cn` passar a ler o tema do CSS                                 |
-| Design system em `design-system/` (alias `@ds/*`), fora de `src/`  | Pedido explícito; agrupa tokens, componentes e referências e mantém `src/` para o app                                | `src/components/ui` do shadcn            | —                                                                 |
-| Tokens com paletas e escalas padrão do Tailwind zeradas            | Classe fora do sistema não gera CSS; o ESLint barra hex, px e valores arbitrários                                    | Somar tokens às escalas padrão           | —                                                                 |
-| Lucide no lugar do HugeIcons da referência                         | Já instalado; evita uma segunda biblioteca de ícones                                                                 | Vendorizar os 77 SVGs do HugeIcons       | Faltar um ícone essencial no Lucide                               |
-| ESLint 9.39 (não 10)                                               | `eslint-plugin-react`, `-import` e `-jsx-a11y` declaram peer só até ESLint 9                                         | ESLint 10.13                             | Os plugins do `eslint-config-next` declararem ESLint 10           |
-| TypeScript 5.9 (não 7.0)                                           | `typescript-eslint` 8.72 exige TS < 6.1                                                                              | TS 7 nativo                              | `typescript-eslint` suportar TS 7                                 |
-| `output: "standalone"` + usuário `node`                            | Imagem enxuta, sem root, sem segredos                                                                                | `next start` com `node_modules` completo | —                                                                 |
-| Sessão stateless em JWT HS256 com `jose`                           | Padrão do guia oficial de autenticação do Next.js 16 (doc em `node_modules/next/dist/docs`); evita JWT escrito à mão | Sessão em banco                          | Precisar revogar sessões individuais antes de expirarem           |
-| Hash `scrypt` do `node:crypto` (N=2^17, r=8, p=1)                  | Mínimo da OWASP para scrypt; sem dependência nativa                                                                  | argon2id (pacote nativo)                 | A OWASP elevar o mínimo ou haver pacote argon2 sem build nativo   |
-| CSRF por token no JWT + cookie legível + verificação de origem     | Requisito "cabeçalho anti-CSRF"; funciona em HTTP na LAN e HTTPS no túnel                                            | Só `SameSite`                            | —                                                                 |
-| Rate limit em memória (janela deslizante, até 10 mil IPs)          | Um único servidor no PC da loja                                                                                      | PostgreSQL/Redis                         | Rodar mais de uma instância                                       |
-| IP do cliente por `cf-connecting-ip` ou primeiro `x-forwarded-for` | O Next não expõe o socket às rotas e só preenche `x-forwarded-for` quando ausente                                    | Proxy reverso próprio                    | O acesso direto pela LAN virar risco: ver a pendência em setup.md |
+| Decisão                                                                            | Motivo                                                                                                                        | Alternativa                              | Revisitar quando                                                          |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------- |
+| Next.js + Drizzle no lugar de Express + Prisma + HTML sem build                    | Escopo da base declarado prioritário pelo usuário (2026-10-28)                                                                | Stack descrita no sistema atual          | O dono do produto pedir manter a stack antiga                             |
+| PostgreSQL também em dev (sem SQLite)                                              | Mesmo motor em dev e produção; transações e tipos iguais                                                                      | SQLite local                             | Nunca para dados; talvez para um modo demo                                |
+| Cliente de banco em `src/infrastructure/db` (não `src/db`)                         | Requisito "integrações em src/infrastructure"                                                                                 | Layout padrão do toolkit                 | —                                                                         |
+| Pacote `cn` (shadcn) no lugar de clsx + tailwind-merge                             | O registry atual do shadcn gera `import { cn } from "cn"`; evita duas implementações                                          | clsx + tailwind-merge do template        | O pacote `cn` deixar de ser mantido                                       |
+| `cn` configurado em `@ds/lib/cn` (`createCn` com as escalas do DS)                 | Sem a configuração, `cn("text-body-lg text-strong")` descarta o tamanho, lido como cor                                        | Manter nomes padrão do Tailwind          | O `cn` passar a ler o tema do CSS                                         |
+| Design system em `design-system/` (alias `@ds/*`), fora de `src/`                  | Pedido explícito; agrupa tokens, componentes e referências e mantém `src/` para o app                                         | `src/components/ui` do shadcn            | —                                                                         |
+| Tokens com paletas e escalas padrão do Tailwind zeradas                            | Classe fora do sistema não gera CSS; o ESLint barra hex, px e valores arbitrários                                             | Somar tokens às escalas padrão           | —                                                                         |
+| Lucide no lugar do HugeIcons da referência                                         | Já instalado; evita uma segunda biblioteca de ícones                                                                          | Vendorizar os 77 SVGs do HugeIcons       | Faltar um ícone essencial no Lucide                                       |
+| ESLint 9.39 (não 10)                                                               | `eslint-plugin-react`, `-import` e `-jsx-a11y` declaram peer só até ESLint 9                                                  | ESLint 10.13                             | Os plugins do `eslint-config-next` declararem ESLint 10                   |
+| TypeScript 5.9 (não 7.0)                                                           | `typescript-eslint` 8.72 exige TS < 6.1                                                                                       | TS 7 nativo                              | `typescript-eslint` suportar TS 7                                         |
+| `output: "standalone"` + usuário `node`                                            | Imagem enxuta, sem root, sem segredos                                                                                         | `next start` com `node_modules` completo | —                                                                         |
+| Sessão em banco (token opaco, SHA-256 em `sessions.id`)                            | Revogação imediata (logout, encerrar outras sessões, usuário desativado) e ociosidade configurável; sem segredo de assinatura | JWT stateless (`jose`, removido)         | Vários servidores ou carga que torne a consulta por requisição um gargalo |
+| Hash `scrypt` do `node:crypto` (N=2^17, r=8, p=1)                                  | Mínimo da OWASP para scrypt; sem dependência nativa                                                                           | argon2id (pacote nativo)                 | A OWASP elevar o mínimo ou haver pacote argon2 sem build nativo           |
+| CSRF por token por sessão (hash no banco) + cookie legível + verificação de origem | Requisito "cabeçalho anti-CSRF"; funciona em HTTP na LAN e HTTPS no túnel                                                     | Só `SameSite`                            | —                                                                         |
+| Rate limit em memória (janela deslizante, até 10 mil IPs)                          | Um único servidor no PC da loja                                                                                               | PostgreSQL/Redis                         | Rodar mais de uma instância                                               |
+| IP do cliente por `cf-connecting-ip` ou primeiro `x-forwarded-for`                 | O Next não expõe o socket às rotas e só preenche `x-forwarded-for` quando ausente                                             | Proxy reverso próprio                    | O acesso direto pela LAN virar risco: ver a pendência em setup.md         |
 
 ## Manutenção
 

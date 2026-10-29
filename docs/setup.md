@@ -129,7 +129,7 @@ Rode-os após a primeira mudança material de instruções.
 
 **Dependências adicionadas:**
 
-- `jose` 6.2.13 (JWT);
+- `jose` 6.2.13 (JWT; removido na Task 4 da fundação, quando as sessões passaram para o banco);
 - `@base-ui/react` e `class-variance-authority` (reinstalados para os componentes `button`/`input`/`label` do shadcn, ajustados para texto de 16 px);
 - dev: `tsx` 4.23.15, `@apidevtools/swagger-parser` 13.1.0, `openapi-types`.
 
