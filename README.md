@@ -17,7 +17,7 @@ npm run dev                  # http://localhost:3000
 
 Verificação completa (sem banco nem credenciais): `npm run check`.
 
-Primeiro acesso (uma vez): `npm run db:migrate` e `npm run user:create -- <seu-usuario> ADMIN`. A senha inicial aparece só nessa hora; depois entre em `/login`.
+Primeiro acesso (uma vez): `npm run db:migrate` e `npm run user:create -- <email> "<Nome completo>" ADMIN`. A senha inicial aparece só nessa hora; depois entre em `/login`.
 
 Imagem de produção: `docker build -t mkt-control .` e depois `docker run -p 3000:3000 -e DATABASE_URL=... -e SESSION_SECRET=... mkt-control`.
 

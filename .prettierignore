@@ -13,3 +13,5 @@ AGENTS.md
 src/contracts/openapi.json
 design-system/references/
 docs/design-reference/
+# Local agent scratch space (git-ignored).
+.superpowers/

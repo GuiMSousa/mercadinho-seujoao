@@ -15,6 +15,22 @@ jobs:
     timeout-minutes: 20
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+      # Throwaway credentials for the CI-only database service below.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mkt_control_test
+      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/mkt_control_test
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mkt_control_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mkt_control_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -35,3 +51,6 @@ jobs:
       - run: npm run spec:check
       # The build needs no database or secrets: the pool and the session key are read at runtime.
       - run: npm run build
+      # Real-database tests: apply the migrations to the service, then run the *.db.test.ts files.
+      - run: npm run db:migrate
+      - run: npm run test:db

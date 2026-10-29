@@ -29,9 +29,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Testes: `npm test`
 - Build: `npm run build`
 - Migrations: `npm run db:generate` (gera SQL sem conectar; revise) e `npm run db:migrate` (só no destino autorizado)
+- Testes com banco real: `npm run test:db` (banco `mkt_control_test`, `DATABASE_URL_TEST`; migrations nele com `npm run db:migrate:test`)
 - Verificação completa: `npm run check` (não conecta ao banco nem aplica migrations)
 - Contrato OpenAPI: `npm run spec:check` (spec válida, igual ao `openapi.json` versionado e cobrindo toda rota de `src/app/api`); depois de mudar contratos ou rotas, `npm run spec:generate`
-- Criar usuário: `npm run user:create -- <usuario> <ADMIN|CASHIER>` (senha aleatória exibida uma vez; precisa do banco migrado)
+- Criar usuário: `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` (senha aleatória exibida uma vez; precisa do banco migrado)
 - E2E (`test:e2e`): ainda não existe; entra com o primeiro fluxo de tela.
 
 ## Acordos de trabalho

@@ -25,10 +25,10 @@ export async function POST(request: NextRequest) {
   const input = loginRequestSchema.safeParse(
     await request.json().catch(() => null),
   );
-  if (!input.success) return errorResponse(400, "Informe usuário e senha.");
+  if (!input.success) return errorResponse(400, "Informe e-mail e senha.");
 
-  const user = await authenticate(input.data.username, input.data.password);
-  if (!user) return errorResponse(401, "Usuário ou senha inválidos.");
+  const user = await authenticate(input.data.email, input.data.password);
+  if (!user) return errorResponse(401, "E-mail ou senha inválidos.");
 
   const csrf = randomBytes(32).toString("base64url");
   const token = await createSessionToken({ ...user, csrf });

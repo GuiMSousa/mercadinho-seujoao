@@ -16,7 +16,8 @@ async function request(pathname: string, role?: "ADMIN" | "CASHIER") {
   if (role) {
     const token = await createSessionToken({
       id: "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3b",
-      username: role.toLowerCase(),
+      name: role,
+      email: `${role.toLowerCase()}@example.com`,
       role,
       csrf: "t",
     });

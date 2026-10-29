@@ -7,7 +7,8 @@ vi.mock("server-only", () => ({}));
 const SECRET = "test-secret-with-at-least-32-characters";
 const session: Session = {
   id: "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3b",
-  username: "maria",
+  name: "Maria",
+  email: "maria@example.com",
   role: "CASHIER",
   csrf: "csrf-token",
 };
@@ -27,7 +28,8 @@ it("rejects tampered, unsigned, expired and missing tokens", async () => {
   const forgedClaims = Buffer.from(
     JSON.stringify({
       sub: session.id,
-      username: "maria",
+      name: "Maria",
+      email: "maria@example.com",
       role: "ADMIN",
       csrf: "x",
     }),
@@ -36,7 +38,8 @@ it("rejects tampered, unsigned, expired and missing tokens", async () => {
     .setSubject(session.id)
     .encode();
   const expired = await new SignJWT({
-    username: "maria",
+    name: "Maria",
+    email: "maria@example.com",
     role: "ADMIN",
     csrf: "x",
   })

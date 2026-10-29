@@ -18,17 +18,18 @@ npm ci
 cp .env.example .env.local
 npm run db:up
 npm run db:migrate
-npm run user:create -- <seu-usuario> ADMIN
+npm run user:create -- <email> "<Nome completo>" ADMIN
 npm run dev
 ```
 
-Abra `http://localhost:3000/login`. O `user:create` mostra a senha inicial uma única vez; guarde-a em local seguro. Para operadores, use `CASHIER`. Usuários com o mesmo nome são recusados.
+Abra `http://localhost:3000/login` e entre com o e-mail. O `user:create` mostra a senha inicial uma única vez; guarde-a em local seguro. Para operadores, use `CASHIER`. E-mails repetidos são recusados.
 
 No `.env.local` (ignorado pelo Git), defina:
 
 - `POSTGRES_USER`, `POSTGRES_DB` e `POSTGRES_PASSWORD`, usando uma senha longa e aleatória gerada localmente;
 - `POSTGRES_PORT` (padrão 5432);
 - `DATABASE_URL=postgresql://<user>:<senha>@localhost:<porta>/<db>`, com os mesmos valores. A senha aparece nos dois lugares, então troque nos dois.
+- `DATABASE_URL_TEST`: mesma conexão, mas com o banco `mkt_control_test` (ver "Banco de testes" abaixo).
 - `SESSION_SECRET`: 32+ caracteres aleatórios. O comando está no `.env.example`. Trocar esse valor desconecta todos os usuários.
 
 Nunca use `NEXT_PUBLIC_*` para segredos.
@@ -40,17 +41,29 @@ O npm 11 bloqueia install scripts não aprovados (`allowScripts`). Os avisos sob
 - `npm run db:up` sobe `postgres:18-alpine` (`compose.yaml`) e espera o healthcheck. A porta fica só no loopback (`127.0.0.1`) e os dados no volume `mkt-control_postgres-data`.
 - `npm run db:down` para e remove o container, mantendo o volume. Apagar o volume (`docker volume rm mkt-control_postgres-data`) destrói os dados locais.
 - Rode o Compose sempre pelos scripts, ou passe `--env-file .env.local`. Sem ele, o Compose recusa iniciar por falta de `POSTGRES_*`.
-- **Migrations** (a `0000` cria `user_role` e `users`):
+- **Migrations** (a `0000` cria `user_role` e `users`; a `0001` adiciona loja, sessões, códigos de verificação e log de atividade, e troca `username` por `name`/`email`):
   1. `npm run db:generate` gera o SQL em `drizzle/` sem conectar.
   2. Revise o diff.
   3. `npm run db:migrate` aplica no banco de `DATABASE_URL_UNPOOLED`/`DATABASE_URL`.
 
   Nunca use produção como ambiente de teste.
 
+- **A migration `0001` apaga todos os usuários** (`DELETE FROM "users"`), porque o `username` antigo não vira e-mail. Em desenvolvimento, recrie-os com `npm run user:create -- <email> "<Nome completo>" ADMIN`. Não aplique a `0001` num banco cujos usuários precisem ser mantidos.
+
+### Banco de testes
+
+Os testes com banco real (`*.db.test.ts`) usam o banco `mkt_control_test`, no mesmo servidor, e rodam cada teste numa transação que sofre rollback. Preparação, uma vez:
+
+```bash
+docker compose --env-file .env.local exec postgres sh -c 'createdb -U "$POSTGRES_USER" mkt_control_test'
+```
+
+Depois defina `DATABASE_URL_TEST` no `.env.local` (mesmas credenciais, banco `mkt_control_test`) e aplique as migrations nele com `npm run db:migrate:test`. Repita `db:migrate:test` sempre que houver migration nova.
+
 ## Verificar
 
 - `npm run check` roda formatação, lint, tipos, lint tipado, autoteste das regras, testes, contrato OpenAPI (`spec:check`) e build. Não precisa de banco nem de credenciais; é o mesmo conjunto do GitHub Actions.
-- Testes com banco real ainda não existem; quando existirem, precisam de `npm run db:up` antes.
+- `npm run test:db` roda os testes com banco real (`*.db.test.ts`). Precisa de `npm run db:up`, do banco `mkt_control_test` migrado e de `DATABASE_URL_TEST`. Não faz parte do `npm run check`; o GitHub Actions roda os dois, com um serviço `postgres:18-alpine`.
 
 ## Agentes
 

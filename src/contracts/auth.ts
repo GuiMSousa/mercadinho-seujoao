@@ -7,14 +7,15 @@ export const CSRF_COOKIE = "mkt_csrf";
 export const CSRF_HEADER = "x-csrf-token";
 
 export const loginRequestSchema = z.object({
-  username: z.string().trim().toLowerCase().min(1).max(64),
+  email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
   // Upper bound caps the cost of hashing attacker-supplied input.
   password: z.string().min(1).max(256),
 });
 
 export const userSummarySchema = z.object({
   id: z.uuid(),
-  username: z.string(),
+  name: z.string(),
+  email: z.string(),
   role: z.enum(userRole.enumValues),
 });
 

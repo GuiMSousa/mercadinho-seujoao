@@ -1,4 +1,4 @@
-// Creates a user with a random password, printed once. Run: npm run user:create -- <usuario> <ADMIN|CASHIER>
+// Creates a user with a random password, printed once. Run: npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>
 import { randomBytes } from "node:crypto";
 // @next/env is CommonJS; ESM needs the default import.
 import nextEnv from "@next/env";
@@ -10,21 +10,25 @@ const { hashPassword } = await import("../src/domains/auth/password");
 const { insertUser } = await import("../src/domains/auth/repository");
 const { closeDatabase } = await import("../src/infrastructure/db");
 
-const [rawUsername, role] = process.argv.slice(2);
-const username = loginRequestSchema.shape.username.safeParse(rawUsername);
-if (!username.success || (role !== "ADMIN" && role !== "CASHIER")) {
-  console.error("Uso: npm run user:create -- <usuario> <ADMIN|CASHIER>");
+const [rawEmail, rawName, role] = process.argv.slice(2);
+const email = loginRequestSchema.shape.email.safeParse(rawEmail);
+const name = rawName?.trim();
+if (!email.success || !name || (role !== "ADMIN" && role !== "CASHIER")) {
+  console.error(
+    'Uso: npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>',
+  );
   process.exit(1);
 }
 
 const password = randomBytes(12).toString("base64url");
 try {
   const user = await insertUser({
-    username: username.data,
+    name,
+    email: email.data,
     passwordHash: await hashPassword(password),
     role,
   });
-  console.log(`Usuário ${user.username} (${user.role}) criado.`);
+  console.log(`Usuário ${user.email} (${user.role}) criado.`);
   console.log(`Senha inicial (exibida só agora): ${password}`);
 } catch (error) {
   // Drizzle wraps the driver error, and its own message lists the query parameters (the password
@@ -33,7 +37,7 @@ try {
   const { code, message } = cause as { code?: string; message?: string };
   console.error(
     code === "23505"
-      ? "Esse usuário já existe."
+      ? "Esse e-mail já está cadastrado."
       : `Falha ao criar o usuário: ${message}`,
   );
   process.exitCode = 1;

@@ -20,7 +20,8 @@ async function get(role?: "ADMIN" | "CASHIER") {
   if (role) {
     const token = await createSessionToken({
       id: ID,
-      username: "u",
+      name: "U",
+      email: "u@example.com",
       role,
       csrf: "t",
     });
@@ -39,7 +40,7 @@ it("refuses a CASHIER with 403 even if the proxy is bypassed", async () => {
 
 it("returns the contract-valid user list to an ADMIN", async () => {
   vi.mocked(listUsers).mockResolvedValue([
-    { id: ID, username: "dono", role: "ADMIN" },
+    { id: ID, name: "Dono", email: "dono@example.com", role: "ADMIN" },
   ]);
   const response = await get("ADMIN");
   expect(response.status).toBe(200);

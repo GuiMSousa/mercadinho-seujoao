@@ -3,11 +3,17 @@ import { accessDenial, type AccessRequest } from "./access";
 
 const cashier = {
   id: "u1",
-  username: "caixa",
+  name: "Caixa",
+  email: "caixa@example.com",
   role: "CASHIER",
   csrf: "t",
 } as const;
-const admin = { ...cashier, username: "dono", role: "ADMIN" } as const;
+const admin = {
+  ...cashier,
+  name: "Dono",
+  email: "dono@example.com",
+  role: "ADMIN",
+} as const;
 const base: AccessRequest = {
   pathname: "/api/admin/users",
   method: "GET",

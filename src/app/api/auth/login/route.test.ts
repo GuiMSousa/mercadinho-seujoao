@@ -20,7 +20,7 @@ afterEach(() => vi.unstubAllEnvs());
 // Each test uses its own IP because the limiter keeps state for the whole process.
 function login(
   ip: string,
-  body: unknown = { username: "Maria", password: "senha" },
+  body: unknown = { email: " Maria@Example.com ", password: "senha" },
   origin?: string,
   extraHeaders: Record<string, string> = {},
 ) {
@@ -55,12 +55,13 @@ it("refuses the 11th login attempt from the same IP within 15 minutes with 429",
 it("opens a session with an HTTP-only JWT cookie and a contract-valid body", async () => {
   vi.mocked(authenticate).mockResolvedValue({
     id: "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3b",
-    username: "maria",
+    name: "Maria",
+    email: "maria@example.com",
     role: "CASHIER",
   });
   const response = await login("198.51.100.1");
   expect(response.status).toBe(200);
-  expect(authenticate).toHaveBeenCalledWith("maria", "senha");
+  expect(authenticate).toHaveBeenCalledWith("maria@example.com", "senha");
   const body = loginResponseSchema.parse(await response.json());
   const session = response.cookies.get(SESSION_COOKIE);
   expect(session?.httpOnly).toBe(true);
@@ -72,7 +73,8 @@ it("opens a session with an HTTP-only JWT cookie and a contract-valid body", asy
 it("sets site-wide Lax cookies that are Secure only over HTTPS", async () => {
   vi.mocked(authenticate).mockResolvedValue({
     id: "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3b",
-    username: "maria",
+    name: "Maria",
+    email: "maria@example.com",
     role: "CASHIER",
   });
   // Plain HTTP (dev, LAN): a Secure cookie would be dropped and the next request would look anonymous.
@@ -92,7 +94,10 @@ it("sets site-wide Lax cookies that are Secure only over HTTPS", async () => {
 });
 
 it("rejects malformed bodies and cross-origin logins without checking credentials", async () => {
-  expect((await login("198.51.100.2", { username: "" })).status).toBe(400);
+  expect(
+    (await login("198.51.100.2", { email: "not-an-email", password: "x" }))
+      .status,
+  ).toBe(400);
   expect(
     (await login("198.51.100.3", undefined, "https://evil.example")).status,
   ).toBe(403);

@@ -11,15 +11,16 @@ export type Session = UserSummary & { csrf: string };
 
 const claimsSchema = z.object({
   sub: userSummarySchema.shape.id,
-  username: userSummarySchema.shape.username,
+  name: userSummarySchema.shape.name,
+  email: userSummarySchema.shape.email,
   role: userSummarySchema.shape.role,
   csrf: z.string().min(1),
 });
 
 const signingKey = () => new TextEncoder().encode(getSessionSecret());
 
-export function createSessionToken({ id, username, role, csrf }: Session) {
-  return new SignJWT({ username, role, csrf })
+export function createSessionToken({ id, name, email, role, csrf }: Session) {
+  return new SignJWT({ name, email, role, csrf })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(id)
     .setIssuedAt()
@@ -38,8 +39,8 @@ export async function readSessionToken(
     const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
     const claims = claimsSchema.safeParse(payload);
     if (!claims.success) return null;
-    const { sub, username, role, csrf } = claims.data;
-    return { id: sub, username, role, csrf };
+    const { sub, name, email, role, csrf } = claims.data;
+    return { id: sub, name, email, role, csrf };
   } catch {
     return null;
   }

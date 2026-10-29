@@ -20,7 +20,7 @@ export function LoginForm() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          username: form.get("username"),
+          email: form.get("email"),
           password: form.get("password"),
         }),
       });
@@ -42,7 +42,7 @@ export function LoginForm() {
 
   return (
     // method/action matter only if JS has not hydrated: credentials then go in a POST body,
-    // never in the URL (a bare <form> would GET /login?username=...&password=...).
+    // never in the URL (a bare <form> would GET /login?email=...&password=...).
     <form
       method="post"
       action="/api/auth/login"
@@ -51,13 +51,14 @@ export function LoginForm() {
       aria-describedby={error ? "login-error" : undefined}
     >
       <Input
-        id="username"
-        name="username"
-        label="Usuário"
+        id="email"
+        name="email"
+        type="email"
+        label="E-mail"
         size="lg"
         autoComplete="username"
         required
-        maxLength={64}
+        maxLength={254}
       />
       <Input
         id="password"

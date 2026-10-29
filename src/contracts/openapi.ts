@@ -58,7 +58,7 @@ export function buildOpenApiDocument() {
               content: json("LoginResponse"),
             },
             "400": error("Corpo inválido."),
-            "401": error("Usuário ou senha inválidos."),
+            "401": error("E-mail ou senha inválidos."),
             "403": error("Origem diferente do servidor."),
             "429": {
               description: "Limite de tentativas excedido.",

@@ -14,7 +14,8 @@ afterEach(() => vi.unstubAllEnvs());
 async function logout(csrfHeader?: string) {
   const token = await createSessionToken({
     id: "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3b",
-    username: "maria",
+    name: "Maria",
+    email: "maria@example.com",
     role: "CASHIER",
     csrf: "expected-token",
   });

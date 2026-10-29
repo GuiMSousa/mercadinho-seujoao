@@ -76,7 +76,7 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 2. **Limite por IP:** 10 tentativas a cada 15 minutos; a 11ª → 429 com `Retry-After`.
 3. **Entrada:** validada com Zod; usuário convertido para minúsculas.
 4. **Senha:** conferida com scrypt, também quando o usuário não existe (não revela quais usuários existem).
-5. **Sessão:** JWT HS256 de 12 h com `sub`, `username`, `role` e `csrf`, no cookie `mkt_session` (HTTP-only, `SameSite=Lax`, `Secure` sob HTTPS).
+5. **Sessão:** JWT HS256 de 12 h com `sub`, `name`, `email`, `role` e `csrf`, no cookie `mkt_session` (HTTP-only, `SameSite=Lax`, `Secure` sob HTTPS).
 6. **CSRF:** o mesmo token vai no cookie legível `mkt_csrf` e na resposta.
 
 **Acesso** (`accessDenial`, usado pelo proxy e por cada rota):
@@ -97,8 +97,8 @@ Guardas automáticas atuais (ESLint):
 
 ## Dados e migrations
 
-- **Schema:** `src/infrastructure/db/schema/` (re-exportado por `index.ts`). Hoje: enum `user_role` (`ADMIN`, `CASHIER`) e tabela `users` (`id` uuid com `gen_random_uuid()`, `username` único sempre em minúsculas, `password_hash` no formato `scrypt$N$r$p$salt$hash`, `role`, `created_at`). As próximas tabelas virão do PRODUCT.md, fluxo a fluxo.
-- **SQL versionado:** `drizzle/0000_needy_nightcrawler.sql` (cria `user_role` e `users`). Gerar não exige conexão.
+- **Schema:** `src/infrastructure/db/schema/` (re-exportado por `index.ts`). Hoje: enums `user_role` (`ADMIN`, `CASHIER`) e `verification_purpose`, e as tabelas `users` (`id` uuid com `gen_random_uuid()`, `name`, `email` único sempre em minúsculas, `password_hash` anulável no formato `scrypt$N$r$p$salt$hash`, `role`, `active`, `last_login_at`, `password_changed_at`, `created_at`), `stores` (uma linha por instalação, garantida por `stores_singleton`), `sessions` (id = SHA-256 do token; apagada em cascata com o usuário), `verification_codes` e `activity_log` (`user_id` vira nulo ao apagar o usuário). Testes com banco real: `*.db.test.ts` via `npm run test:db`, cada um numa transação com rollback (`withTestDb`). As próximas tabelas virão do PRODUCT.md, fluxo a fluxo.
+- **SQL versionado:** `drizzle/0000_needy_nightcrawler.sql` (cria `user_role` e `users`) e `drizzle/0001_auth_foundation.sql` (apaga os usuários antigos, troca `username` por `name`/`email` e cria loja, sessões, códigos e log de atividade). Gerar não exige conexão.
 - **Aplicação:** `npm run db:migrate` usa `DATABASE_URL_UNPOOLED` ou `DATABASE_URL`, só no destino autorizado. Nunca durante build, import ou requisição. Sem `db:push` no fluxo padrão.
 - **Conexão:** `getDb()` valida a URL com Zod e cria o pool só no primeiro uso. Por isso `lint`, `test` e `build` funcionam sem credenciais. `closeDatabase()` existe só para encerramento controlado e testes.
 - **Transações:** obrigatórias em vendas (baixa PVPS de vários lotes, CMV e pagamento) e no caixa. O driver `pg` as suporta.

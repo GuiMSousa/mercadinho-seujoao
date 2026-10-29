@@ -61,7 +61,7 @@ export default async function Home() {
         {session ? (
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-strong">
-              Você entrou como <strong>{session.username}</strong> (
+              Você entrou como <strong>{session.name}</strong> (
               {roleLabel[session.role]}).
             </p>
             <LogoutButton />
