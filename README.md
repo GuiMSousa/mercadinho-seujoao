@@ -26,7 +26,7 @@ Imagem de produção: `docker build -t mkt-control .` e depois `docker run -p 30
 - [Produto e escopo](PRODUCT.md).
 - [Preparação local](docs/onboarding.md).
 - [Estrutura e decisões técnicas](docs/architecture.md).
-- [Design e acessibilidade](docs/design.md).
+- [Design, acessibilidade e tokens](DESIGN.md); vitrine em `/design-system`.
 - [Verificações de qualidade](docs/quality.md).
 - [Instruções para agentes](AGENTS.md).
 - [Setup e evidências](docs/setup.md).

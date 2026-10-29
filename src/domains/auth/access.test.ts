@@ -35,7 +35,9 @@ it("refuses CASHIER on ADMIN-only pages and APIs and allows ADMIN", () => {
 it("requires a session everywhere except the public paths", () => {
   expect(deny({ pathname: "/api/admin/users" })).toBe(401);
   expect(deny({ pathname: "/vendas" })).toBe(401);
-  for (const pathname of ["/", "/login"]) expect(deny({ pathname })).toBeNull();
+  for (const pathname of ["/", "/login", "/design-system"])
+    expect(deny({ pathname })).toBeNull();
+  expect(deny({ pathname: "/design-system/x" })).toBe(401);
   expect(deny({ pathname: "/api/auth/login", method: "POST" })).toBeNull();
 });
 

@@ -1,0 +1,4 @@
+:root{
+--radius-xs:6px;--radius-sm:8px;--radius-md:10px;--radius-lg:12px;--radius-xl:16px;--radius-2xl:20px;--radius-3xl:24px;--radius-full:999px;
+--radius-control:var(--radius-md);--radius-card:var(--radius-xl);--radius-dialog:var(--radius-2xl);
+}

@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@ds/*": ["./design-system/*"]
     }
   },
   "include": [
@@ -30,5 +31,12 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", ".agents", ".claude", ".codex", "graphify-out"]
+  "exclude": [
+    "node_modules",
+    ".agents",
+    ".claude",
+    ".codex",
+    "graphify-out",
+    "design-system/references"
+  ]
 }

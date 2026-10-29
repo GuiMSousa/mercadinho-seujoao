@@ -1,0 +1,9 @@
+:root{
+--space-0:0;--space-1:2px;--space-2:4px;--space-3:6px;--space-4:8px;--space-5:10px;--space-6:12px;--space-7:16px;--space-8:20px;--space-9:24px;--space-10:32px;--space-11:40px;--space-12:48px;--space-13:64px;
+/* Control heights */
+--control-sm:32px;--control-md:40px;--control-lg:48px;
+--control-counter:60px; /* minimum for main buttons on Vendas, Caixa, Entrada */
+--control-counter-lg:72px;
+/* Layout */
+--sidebar-w:248px;--topbar-h:64px;--page-pad:24px;--card-pad:20px;--gutter:16px;
+}

@@ -23,10 +23,11 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 - Log estruturado no servidor; apresentação sem acesso direto a dados.
 - Com Drizzle, guardas de `update`/`delete` sem `where` e revisão de queries e migrations.
 - Validação de entrada e ambiente, erros sem segredos e testes de fronteira relevantes.
+- Aderência ao design system ([DESIGN.md](../DESIGN.md)): o ESLint barra hex, funções de cor, `px`, valores arbitrários em utilitários de cor, tipo, espaço e raio, `fontFamily`, o import do pacote `cn` puro e imports de `design-system/references`.
 
 ## Estratégia de testes
 
-- **Hoje existem:** 34 testes em 12 arquivos, todos sem banco (mocks de `pg`, `server-only` e, nas rotas, do service).
+- **Hoje existem:** 45 testes em 16 arquivos, todos sem banco (mocks de `pg`, `server-only` e, nas rotas, do service).
   - Fronteiras: ambiente (inclui `SESSION_SECRET` com 32+ caracteres sem ecoar o valor), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -35,6 +36,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
     - rate limit com janela e limite de memória;
     - proxy;
     - rotas de login, logout e `admin/users`.
+  - Design system: contrato `DESIGN.md` ↔ `design-system/tokens.css` (todo token documentado, com o mesmo valor nos dois temas, e `globals.css` sem cor crua nem px), `cn` com as escalas do DS, centavos em pt-BR e teclado numérico.
   - Os dois critérios do produto têm testes próprios:
     - `CASHIER` bloqueado em rotas `ADMIN`: `src/proxy.test.ts` e `src/app/api/admin/users/route.test.ts`;
     - 429 no 11º login: `src/app/api/auth/login/route.test.ts`.
@@ -45,13 +47,14 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 - **`test:e2e`:** entra com o primeiro fluxo de tela (E2E em navegador). Não existe agora e não é simulado.
 - **Capacidades adotadas e evidência atual** (detalhes em [setup.md](setup.md)):
 
-  | Capacidade   | Evidência atual                                                                                |
-  | ------------ | ---------------------------------------------------------------------------------------------- |
-  | Runtime Next | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente |
-  | Bundle       | `next analyze` suportado; nenhuma auditoria feita                                              |
-  | SQL          | Migration `0000` gerada, revisada e aplicada no PostgreSQL local                               |
-  | CI           | Configurado, sem execução remota                                                               |
-  | Segurança    | Prompt registrado abaixo, nenhuma revisão feita                                                |
+  | Capacidade    | Evidência atual                                                                                                                                                                                     |
+  | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                      |
+  | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                   |
+  | SQL           | Migration `0000` gerada, revisada e aplicada no PostgreSQL local                                                                                                                                    |
+  | CI            | Configurado, sem execução remota                                                                                                                                                                    |
+  | Segurança     | Prompt registrado abaixo, nenhuma revisão feita                                                                                                                                                     |
+  | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404 |
 
 ## Harness (método nativo inspirado no Harness2)
 

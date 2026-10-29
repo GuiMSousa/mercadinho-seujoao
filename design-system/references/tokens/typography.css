@@ -1,0 +1,18 @@
+:root{
+--font-sans:"Hanken Grotesk","Neue Montreal",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+--font-num:var(--font-sans); /* always with font-variant-numeric:tabular-nums */
+--weight-regular:400;--weight-medium:500;--weight-semibold:600;--weight-bold:700;
+/* Scale (px) */
+--text-display:40px;--lh-display:48px;
+--text-h1:32px;--lh-h1:40px;
+--text-h2:24px;--lh-h2:32px;
+--text-h3:18px;--lh-h3:24px;
+--text-body-lg:16px;--lh-body-lg:24px;
+--text-body-md:14px;--lh-body-md:20px;
+--text-body-sm:13px;--lh-body-sm:18px;
+--text-caption:12px;--lh-caption:16px;
+/* Counter (Vendas, Caixa, Entrada): >=16pt */
+--text-counter:22px;--lh-counter:28px;
+--text-counter-total:56px;--lh-counter-total:60px;
+--tracking-tight:-0.02em;--tracking-display:-0.03em;--tracking-normal:0;
+}

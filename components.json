@@ -14,8 +14,8 @@
   "rtl": false,
   "aliases": {
     "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
+    "utils": "@ds/lib/cn",
+    "ui": "@ds/components",
     "lib": "@/lib",
     "hooks": "@/hooks"
   },

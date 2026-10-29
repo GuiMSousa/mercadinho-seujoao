@@ -4,7 +4,7 @@ import defaultConfig from "./eslint.config.mjs";
 const config = [
   ...defaultConfig,
   {
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}", "design-system/**/*.{ts,tsx}"],
     languageOptions: {
       parserOptions: {
         projectService: true,

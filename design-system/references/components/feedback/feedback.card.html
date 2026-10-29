@@ -1,0 +1,22 @@
+<!-- @dsCard group="Components" viewport="700x360" name="Feedback" subtitle="Dialog, Toast, Tooltip" -->
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{background:var(--bg-app);padding:20px}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.col{display:flex;flex-direction:column;gap:16px}.lbl{font-size:11px;color:var(--text-soft);width:72px;flex-shrink:0}</style></head>
+<body><div id="root"></div><script type="text/babel">
+const NS=window.MktControlDesignSystem_295891;
+const {Toast,Tooltip,IconButton,Button,Input}=NS;
+function App(){return <div style={{display:'flex',gap:20}}>
+<div style={{width:340,background:'var(--surface-card)',borderRadius:'var(--radius-dialog)',boxShadow:'var(--shadow-xl)',border:'1px solid var(--border-soft)'}}>
+<div style={{padding:'20px 20px 0',display:'flex',justifyContent:'space-between'}}><div><div style={{fontSize:18,fontWeight:500,color:'var(--text-strong)'}}>Registrar sangria</div><div style={{color:'var(--text-sub)',marginTop:4}}>Retirada de dinheiro da gaveta.</div></div><IconButton icon="cancel-01" label="Fechar" variant="ghost" size="sm"/></div>
+<div style={{padding:20}}><Input label="Valor" prefix="R$" numeric defaultValue="200,00"/></div>
+<div style={{display:'flex',gap:8,justifyContent:'flex-end',padding:'14px 20px',borderTop:'1px solid var(--border-soft)'}}><Button variant="secondary">Cancelar</Button><Button variant="brand">Confirmar</Button></div></div>
+<div className="col" style={{flex:1}}>
+<Toast tone="success" title="Venda finalizada" message="Troco: R$ 7,50"/>
+<Toast tone="danger" title="Nenhum caixa aberto" message="Abra o caixa para registrar vendas."/>
+<div style={{paddingTop:30}}><span style={{position:'relative',display:'inline-flex'}}><IconButton icon="view-off" label="Ocultar valores" variant="ghost"/><span style={{position:'absolute',bottom:'calc(100% + 6px)',left:'50%',transform:'translateX(-50%)',whiteSpace:'nowrap',padding:'6px 8px',borderRadius:8,background:'var(--surface-inverse)',color:'#fff',fontSize:12,fontWeight:500}}>Ocultar valores</span></span></div>
+</div></div>}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>

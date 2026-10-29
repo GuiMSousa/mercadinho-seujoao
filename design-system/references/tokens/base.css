@@ -1,0 +1,6 @@
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font-sans);font-size:var(--text-body-md);line-height:var(--lh-body-md);color:var(--text-body);background:var(--bg-app);-webkit-font-smoothing:antialiased}
+a{color:var(--text-link);text-decoration:none}a:hover{color:var(--blue-700);text-decoration:underline}
+:focus-visible{outline:2px solid var(--border-focus);outline-offset:2px}
+.num,.tabular{font-variant-numeric:tabular-nums}

@@ -1,18 +1,74 @@
+"use client";
+
 import * as React from "react";
 import { Input as InputPrimitive } from "@base-ui/react/input";
-import { cn } from "cn";
+import { cn } from "@ds/lib/cn";
+import {
+  Field,
+  controlBox,
+  controlSizes,
+  fieldMessageId,
+  type ControlSize,
+} from "./field";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+type InputProps = Omit<React.ComponentProps<"input">, "size" | "prefix"> & {
+  label?: React.ReactNode;
+  hint?: React.ReactNode;
+  error?: React.ReactNode;
+  /** Inline text before the value, such as "R$". */
+  prefix?: React.ReactNode;
+  /** Inline text after the value, such as "un" or "kg". */
+  suffix?: React.ReactNode;
+  size?: ControlSize;
+  /** Right-aligned tabular figures for amounts and quantities. */
+  numeric?: boolean;
+};
+
+function Input({
+  label,
+  hint,
+  error,
+  prefix,
+  suffix,
+  size = "md",
+  numeric = false,
+  className,
+  id,
+  ...props
+}: InputProps) {
+  const fallbackId = React.useId();
+  const inputId = id ?? fallbackId;
   return (
-    <InputPrimitive
-      type={type}
-      data-slot="input"
-      className={cn(
-        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-        className,
-      )}
-      {...props}
-    />
+    <Field
+      id={inputId}
+      label={label}
+      hint={hint}
+      error={error}
+      className={className}
+    >
+      <div
+        data-invalid={error ? "" : undefined}
+        className={cn(
+          controlBox,
+          controlSizes[size],
+          "flex items-center gap-2",
+        )}
+      >
+        {prefix && <span className="text-sub tabular-nums">{prefix}</span>}
+        <InputPrimitive
+          id={inputId}
+          data-slot="input"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={fieldMessageId(inputId, hint, error)}
+          className={cn(
+            "h-full w-full min-w-0 bg-transparent outline-hidden placeholder:text-soft disabled:cursor-not-allowed",
+            numeric && "text-right tabular-nums",
+          )}
+          {...props}
+        />
+        {suffix && <span className="text-body-md text-sub">{suffix}</span>}
+      </div>
+    </Field>
   );
 }
 

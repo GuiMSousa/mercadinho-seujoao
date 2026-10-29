@@ -1,6 +1,12 @@
 import type { Session } from "./session";
 
-const PUBLIC_PATHS = new Set(["/", "/login", "/api/auth/login"]);
+// /design-system is a static component gallery with sample data only.
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/login",
+  "/design-system",
+  "/api/auth/login",
+]);
 const ADMIN_PREFIXES = ["/admin", "/api/admin"];
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 

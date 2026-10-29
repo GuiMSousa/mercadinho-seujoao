@@ -13,7 +13,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Produto e stack
 
 - Escopo, regras de negócio e pendências: [PRODUCT.md](PRODUCT.md). Ele prevalece em decisões de produto.
-- Stack: Next.js 16.4 (App Router, Turbopack), React 19.3, TypeScript 5.9 estrito, Tailwind 4, shadcn/ui (`base-nova`, Base UI) com Lucide, Drizzle ORM 0.45 com PostgreSQL 18 (`pg`), Zod 4, Pino 10, Vitest 5, Prettier 3. Node.js 24 LTS (`.nvmrc`) e npm 11 com `package-lock.json`.
+- Stack: Next.js 16.4 (App Router, Turbopack), React 19.3, TypeScript 5.9 estrito, Tailwind 4, shadcn/ui (`base-nova`, Base UI) com Lucide e design system próprio em `design-system/`, Drizzle ORM 0.45 com PostgreSQL 18 (`pg`), Zod 4, Pino 10, Vitest 5, Prettier 3. Node.js 24 LTS (`.nvmrc`) e npm 11 com `package-lock.json`.
 - Setup, versões e evidências: [docs/setup.md](docs/setup.md).
 
 ## Comandos canônicos
@@ -64,7 +64,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Autenticação: toda rota de API começa com `guard(request)` (`src/app/api/_lib/guard.ts`), a mesma regra do `src/proxy.ts` (`accessDenial` em `src/domains/auth/access.ts`). Não confie só no proxy. Caminhos novos exigem sessão por padrão; exclusivos de `ADMIN` ficam em `/admin` ou `/api/admin`. Mutações autenticadas exigem o cabeçalho `x-csrf-token` igual ao cookie `mkt_csrf`.
 - Toda rota nova de API entra no contrato (`src/contracts`) e no `openapi.json`; o `spec:check` falha se faltar.
 - Consulte fontes oficiais atuais e canais estáveis antes de mudar stack ou APIs. Registre fonte, motivo e resultado em `docs/setup.md`.
-- Responsabilidades dos documentos: `PRODUCT.md` é o escopo; `docs/architecture.md`, estrutura e decisões; `docs/design.md`, interface; `docs/onboarding.md`, preparação; `docs/quality.md`, verificações. Atualize o documento responsável junto com a mudança.
+- Responsabilidades dos documentos: `PRODUCT.md` é o escopo; `docs/architecture.md`, estrutura e decisões; `DESIGN.md`, contrato visual, interface e tokens; `docs/onboarding.md`, preparação; `docs/quality.md`, verificações. Atualize o documento responsável junto com a mudança.
+
+## Interface e design system
+
+- [DESIGN.md](DESIGN.md) é o contrato visual e a fonte da verdade dos tokens. Leia-o antes de mexer em UI. `design-system/tokens.test.ts` falha se `DESIGN.md` e `design-system/tokens.css` divergirem: token novo ou alterado muda os dois no mesmo commit.
+- Componentes vêm de `@ds/components/*` (`design-system/components`): `Button`, `IconButton`, `Input`, `Select`, `Checkbox`, `Badge`, `Money`, `Card`, `Table`, `Dialog`, `Keypad`. Reuse-os antes de criar outro; o passo a passo para criar um novo está no `DESIGN.md`. Exemplos vivos na rota `/design-system`.
+- Estilo só por tokens: cores semânticas (`bg-surface-card`, `text-strong`, `text-sub`, `bg-brand`, `*-fg`/`*-bg` de status), tipos `text-body-lg`/`text-body-md`/`text-h1`…, raios `rounded-control`/`rounded-card`, alturas `h-control-*`, sombras `shadow-(--shadow-sm)`. Sem hex, `rgb()`, `px`, rampas ou valores arbitrários em utilitários de cor, tipo, espaço e raio; o ESLint bloqueia.
+- `cn` vem de `@ds/lib/cn`, nunca do pacote `cn`. Valores em dinheiro aparecem com `Money` (centavos inteiros).
+- `design-system/references/` é a exportação original do Claude Design: especificação estática, nunca importada.
 
 ## Contexto e memória
 
@@ -96,7 +104,7 @@ Instaladas em `.agents/skills` (Codex) e `.claude/skills` (Claude Code), registr
 - `supabase-postgres-best-practices`: antes de trabalho de schema, SQL, migrations, segurança ou desempenho no PostgreSQL. Não adota Supabase.
 - `gh-fix-ci` (só Codex): investigar falhas de GitHub Actions com acesso autorizado; siga a aprovação de correção da skill.
 - `differential-review`: revisão de diffs sensíveis à segurança, com intervalo definido e relatório privado.
-- `shadcn`: inspecione `components.json`, tokens e componentes antes de alterar a UI. Adicione só os componentes necessários.
+- `shadcn`: inspecione `components.json`, `DESIGN.md` e `design-system/` antes de alterar a UI. Adicione só os componentes necessários e adapte-os aos tokens.
 
 Instalar uma skill não executa suas ações e não autoriza animações, cache, deploy ou mudança de arquitetura.
 

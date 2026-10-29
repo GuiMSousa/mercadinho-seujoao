@@ -1,0 +1,58 @@
+:root{
+/* Brand — from the reference style guide */
+--blue-50:#EBF1FF;--blue-100:#D5E2FF;--blue-200:#C0D5FF;--blue-400:#6895FF;--blue-500:#335BFF;--blue-600:#2547D0;--blue-700:#1F3BAD;--blue-950:#122368;
+--red-50:#FFEBEC;--red-100:#FFD5D8;--red-500:#FB3748;--red-600:#E93544;--red-700:#C0293B;
+--orange-50:#FFF1EB;--orange-100:#FFE3D5;--orange-500:#FA7319;--orange-600:#E16614;--orange-700:#B64F0A;
+--green-50:#E0FAEC;--green-100:#D0FBE9;--green-500:#1FC16B;--green-600:#1DAF61;--green-700:#178C4E;
+--yellow-50:#FFF8E5;--yellow-500:#F6B51E;--yellow-700:#A87A00;
+/* Neutrals */
+--neutral-0:#FFFFFF;--neutral-50:#F5F7FA;--neutral-100:#F2F5F8;--neutral-200:#E1E4EA;--neutral-300:#CACFD8;--neutral-400:#99A0AE;--neutral-500:#717784;--neutral-600:#525866;--neutral-700:#2B303B;--neutral-800:#222530;--neutral-900:#181B25;--neutral-950:#0E121B;
+
+/* Semantic — surfaces */
+--bg-app:var(--neutral-50);
+--surface-card:var(--neutral-0);
+--surface-sunken:var(--neutral-100);
+--surface-hover:var(--neutral-50);
+--surface-inverse:var(--neutral-950);
+--surface-overlay:rgba(14,18,27,.48);
+/* Semantic — text */
+--text-strong:var(--neutral-950);
+--text-body:var(--neutral-700);
+--text-sub:var(--neutral-500);
+--text-soft:var(--neutral-400);
+--text-disabled:var(--neutral-300);
+--text-inverse:var(--neutral-0);
+--text-link:var(--blue-500);
+/* Semantic — borders */
+--border-soft:var(--neutral-100);
+--border-default:var(--neutral-200);
+--border-strong:var(--neutral-300);
+--border-focus:var(--blue-500);
+/* Semantic — actions */
+--action-primary:var(--neutral-950);--action-primary-hover:var(--neutral-800);
+--action-brand:var(--blue-500);--action-brand-hover:var(--blue-600);
+--action-danger:var(--red-500);--action-danger-hover:var(--red-600);
+/* Semantic — status (fg / bg) */
+--success-fg:var(--green-700);--success-bg:var(--green-50);--success-solid:var(--green-500);
+--danger-fg:var(--red-700);--danger-bg:var(--red-50);--danger-solid:var(--red-500);
+--warning-fg:var(--orange-700);--warning-bg:var(--orange-50);--warning-solid:var(--orange-500);
+--info-fg:var(--blue-700);--info-bg:var(--blue-50);--info-solid:var(--blue-500);
+--neutral-fg:var(--neutral-600);--neutral-bg:var(--neutral-100);
+/* Semantic — controls & selection */
+--text-on-color:#FFFFFF;
+--control-soft:var(--neutral-200);--control-soft-hover:var(--neutral-300);
+--control-pressed:var(--neutral-100);
+--switch-off:var(--neutral-300);
+--selected-bg:var(--blue-50);--selected-fg:var(--blue-700);--selected-border:var(--blue-200);
+--focus-halo:var(--blue-100);--focus-halo-danger:var(--red-100);
+--danger-soft-hover:var(--red-100);
+--count-bg:var(--neutral-200);
+/* Semantic — inverse surfaces (toast, tooltip, bottom nav) */
+--inverse-text-sub:var(--neutral-400);
+--bottom-nav-bg:var(--neutral-900);--bottom-nav-fg:var(--neutral-400);
+/* Charts */
+--chart-primary:var(--blue-500);--chart-primary-muted:var(--blue-200);--chart-secondary:var(--neutral-200);--chart-secondary-legend:var(--neutral-300);
+/* Domain — money in / out, expiry */
+--money-in:var(--blue-500);--money-out:var(--red-500);--money-margin:var(--green-500);
+--expiry-ok:var(--green-500);--expiry-soon:var(--orange-500);--expiry-expired:var(--red-500);
+}

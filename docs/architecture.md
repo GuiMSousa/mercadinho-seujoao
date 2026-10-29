@@ -2,33 +2,39 @@
 
 ## Stack real
 
-| Área             | Escolha                                                                       | Versão                                |
-| ---------------- | ----------------------------------------------------------------------------- | ------------------------------------- |
-| Runtime          | Node.js LTS (`.nvmrc`, `engines`, Docker `node:24-alpine`, CI)                | 24.x (local 24.22.1)                  |
-| Gerenciador      | npm com `package-lock.json` (`packageManager: npm@11.19.1`)                   | 11.19.1                               |
-| Framework        | Next.js App Router, Turbopack, saída `standalone`                             | 16.4.3                                |
-| UI               | React, Tailwind CSS (`@tailwindcss/turbopack`), shadcn/ui `base-nova`, Lucide | 19.3.1 / 4.3.3 / CLI 4.23.0 / 1.62.0  |
-| Linguagem        | TypeScript estrito                                                            | 5.9.3                                 |
-| Dados            | Drizzle ORM + `pg`; drizzle-kit                                               | 0.45.4 / 8.23.1 / 0.31.11             |
-| Banco            | PostgreSQL em Docker Compose                                                  | 18 (`postgres:18-alpine`, local 18.6) |
-| Validação e logs | Zod, Pino                                                                     | 4.6.7 / 10.4.0                        |
-| Testes           | Vitest (Node)                                                                 | 5.0.5                                 |
+| Área             | Escolha                                                                                                                                                    | Versão                                              |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Runtime          | Node.js LTS (`.nvmrc`, `engines`, Docker `node:24-alpine`, CI)                                                                                             | 24.x (local 24.22.1)                                |
+| Gerenciador      | npm com `package-lock.json` (`packageManager: npm@11.19.1`)                                                                                                | 11.19.1                                             |
+| Framework        | Next.js App Router, Turbopack, saída `standalone`                                                                                                          | 16.4.3                                              |
+| UI               | React, Tailwind CSS (`@tailwindcss/turbopack`), shadcn/ui `base-nova` sobre Base UI, Lucide; design system em `design-system/` ([DESIGN.md](../DESIGN.md)) | 19.3.1 / 4.3.3 / CLI 4.23.0, Base UI 1.9.0 / 1.62.0 |
+| Linguagem        | TypeScript estrito                                                                                                                                         | 5.9.3                                               |
+| Dados            | Drizzle ORM + `pg`; drizzle-kit                                                                                                                            | 0.45.4 / 8.23.1 / 0.31.11                           |
+| Banco            | PostgreSQL em Docker Compose                                                                                                                               | 18 (`postgres:18-alpine`, local 18.6)               |
+| Validação e logs | Zod, Pino                                                                                                                                                  | 4.6.7 / 10.4.0                                      |
+| Testes           | Vitest (Node)                                                                                                                                              | 5.0.5                                               |
 
 As versões exatas estão no lockfile. As razões de cada escolha estão em [setup.md](setup.md).
 
 ## Mapa do código
 
 ```text
+design-system/                # biblioteca de UI; contrato em DESIGN.md
+├── tokens.css, tokens.test.ts # tokens (importados por src/app/globals.css) e teste do contrato
+├── fonts.ts, assets/fonts/   # Hanken Grotesk via next/font/local
+├── lib/                      # cn ciente das escalas, centavos, teclado numérico
+├── components/               # Button, Input, Select, Checkbox, Badge, Money, Card, Table, Dialog, Keypad
+└── references/               # exportação do Claude Design (estática; ignorada por lint/TS/Tailwind)
 src/
 ├── proxy.ts                  # gate otimista (Next 16 "proxy", ex-middleware): mesma regra das rotas
 ├── app/
 │   ├── layout.tsx, page.tsx  # layout pt-BR e página inicial
 │   ├── login/                # tela de login (form cliente → POST /api/auth/login)
+│   ├── design-system/        # vitrine pública: componentes, estados e temas (dados fictícios)
 │   └── api/
 │       ├── _lib/guard.ts     # adaptador HTTP: lê a sessão, aplica accessDenial, define/limpa cookies
 │       ├── auth/login, auth/logout
 │       └── admin/users       # exclusiva de ADMIN
-├── components/ui/            # shadcn: button, input, label (texto 16 px)
 ├── contracts/
 │   ├── auth.ts               # schemas Zod da API + nomes de cookie/cabeçalho
 │   ├── openapi.ts            # monta o OpenAPI 3.1 a partir dos schemas
@@ -123,6 +129,10 @@ Carregamento:
 | PostgreSQL também em dev (sem SQLite)                              | Mesmo motor em dev e produção; transações e tipos iguais                                                             | SQLite local                             | Nunca para dados; talvez para um modo demo                        |
 | Cliente de banco em `src/infrastructure/db` (não `src/db`)         | Requisito "integrações em src/infrastructure"                                                                        | Layout padrão do toolkit                 | —                                                                 |
 | Pacote `cn` (shadcn) no lugar de clsx + tailwind-merge             | O registry atual do shadcn gera `import { cn } from "cn"`; evita duas implementações                                 | clsx + tailwind-merge do template        | O pacote `cn` deixar de ser mantido                               |
+| `cn` configurado em `@ds/lib/cn` (`createCn` com as escalas do DS) | Sem a configuração, `cn("text-body-lg text-strong")` descarta o tamanho, lido como cor                               | Manter nomes padrão do Tailwind          | O `cn` passar a ler o tema do CSS                                 |
+| Design system em `design-system/` (alias `@ds/*`), fora de `src/`  | Pedido explícito; agrupa tokens, componentes e referências e mantém `src/` para o app                                | `src/components/ui` do shadcn            | —                                                                 |
+| Tokens com paletas e escalas padrão do Tailwind zeradas            | Classe fora do sistema não gera CSS; o ESLint barra hex, px e valores arbitrários                                    | Somar tokens às escalas padrão           | —                                                                 |
+| Lucide no lugar do HugeIcons da referência                         | Já instalado; evita uma segunda biblioteca de ícones                                                                 | Vendorizar os 77 SVGs do HugeIcons       | Faltar um ícone essencial no Lucide                               |
 | ESLint 9.39 (não 10)                                               | `eslint-plugin-react`, `-import` e `-jsx-a11y` declaram peer só até ESLint 9                                         | ESLint 10.13                             | Os plugins do `eslint-config-next` declararem ESLint 10           |
 | TypeScript 5.9 (não 7.0)                                           | `typescript-eslint` 8.72 exige TS < 6.1                                                                              | TS 7 nativo                              | `typescript-eslint` suportar TS 7                                 |
 | `output: "standalone"` + usuário `node`                            | Imagem enxuta, sem root, sem segredos                                                                                | `next start` com `node_modules` completo | —                                                                 |

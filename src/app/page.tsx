@@ -38,20 +38,20 @@ export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-4 py-12 sm:px-8 sm:py-16">
       <header className="flex flex-col gap-4">
-        <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <p className="flex items-center gap-2 text-body-md font-medium text-sub">
           <Store aria-hidden="true" className="size-5" />
           Mkt Control
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+        <h1 className="text-h1 font-medium tracking-tight text-balance text-strong sm:text-display sm:tracking-display">
           Controle de vendas e estoque para o pequeno comércio
         </h1>
-        <p className="max-w-2xl text-lg text-muted-foreground">
+        <p className="max-w-2xl text-h3 font-normal text-sub">
           A base técnica está pronta. As funcionalidades do balcão serão
           entregues uma por vez.
         </p>
         <Link
           href="/login"
-          className="w-fit font-medium text-primary underline underline-offset-4"
+          className="w-fit font-medium text-link underline underline-offset-4"
         >
           Entrar no sistema
         </Link>
@@ -61,22 +61,22 @@ export default function Home() {
         aria-labelledby="pillars-heading"
         className="flex flex-col gap-4"
       >
-        <h2 id="pillars-heading" className="text-xl font-semibold">
+        <h2 id="pillars-heading" className="text-h2 font-medium text-strong">
           O que o sistema vai resolver
         </h2>
         <ul className="grid gap-4 sm:grid-cols-2">
           {pillars.map(({ icon: Icon, title, description }) => (
             <li
               key={title}
-              className="flex gap-4 rounded-xl border bg-card p-5 text-card-foreground"
+              className="flex gap-4 rounded-card border border-border-soft bg-surface-card p-5 shadow-(--shadow-sm)"
             >
               <Icon
                 aria-hidden="true"
-                className="mt-0.5 size-6 shrink-0 text-primary"
+                className="mt-0.5 size-6 shrink-0 text-brand"
               />
               <div className="flex flex-col gap-1">
-                <h3 className="font-medium">{title}</h3>
-                <p className="text-muted-foreground">{description}</p>
+                <h3 className="font-medium text-strong">{title}</h3>
+                <p className="text-sub">{description}</p>
               </div>
             </li>
           ))}

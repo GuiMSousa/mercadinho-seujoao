@@ -2,9 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@ds/components/button";
+import { Input } from "@ds/components/input";
 
 export function LoginForm() {
   const router = useRouter();
@@ -42,38 +41,40 @@ export function LoginForm() {
   }
 
   return (
+    // method/action matter only if JS has not hydrated: credentials then go in a POST body,
+    // never in the URL (a bare <form> would GET /login?username=...&password=...).
     <form
+      method="post"
+      action="/api/auth/login"
       onSubmit={(event) => void submit(event)}
       className="flex flex-col gap-4"
       aria-describedby={error ? "login-error" : undefined}
     >
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="username">Usuário</Label>
-        <Input
-          id="username"
-          name="username"
-          autoComplete="username"
-          required
-          maxLength={64}
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Senha</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          maxLength={256}
-        />
-      </div>
+      <Input
+        id="username"
+        name="username"
+        label="Usuário"
+        size="lg"
+        autoComplete="username"
+        required
+        maxLength={64}
+      />
+      <Input
+        id="password"
+        name="password"
+        type="password"
+        label="Senha"
+        size="lg"
+        autoComplete="current-password"
+        required
+        maxLength={256}
+      />
       {error && (
-        <p id="login-error" role="alert" className="text-destructive">
+        <p id="login-error" role="alert" className="text-danger-fg">
           {error}
         </p>
       )}
-      <Button type="submit" disabled={pending} className="h-12">
+      <Button type="submit" size="lg" loading={pending}>
         {pending ? "Entrando…" : "Entrar"}
       </Button>
     </form>

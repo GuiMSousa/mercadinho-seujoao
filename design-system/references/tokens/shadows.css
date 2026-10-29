@@ -1,0 +1,10 @@
+:root{
+--shadow-xs:0 1px 2px rgba(10,13,20,.03);
+--shadow-sm:0 1px 2px rgba(10,13,20,.04),0 1px 3px rgba(10,13,20,.04);
+--shadow-md:0 4px 12px -2px rgba(14,18,27,.06),0 2px 4px rgba(14,18,27,.03);
+--shadow-lg:0 16px 32px -12px rgba(14,18,27,.14);
+--shadow-xl:0 24px 48px -16px rgba(14,18,27,.22);
+--shadow-btn-dark:inset 0 1px 0 rgba(255,255,255,.12),0 1px 2px rgba(14,18,27,.24);
+--shadow-btn-brand:inset 0 1px 0 rgba(255,255,255,.16),0 1px 2px rgba(37,71,208,.32);
+--focus-ring:0 0 0 2px var(--neutral-0),0 0 0 4px var(--blue-500);
+}
