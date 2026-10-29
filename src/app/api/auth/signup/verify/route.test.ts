@@ -3,6 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import {
   CSRF_COOKIE,
   SESSION_COOKIE,
+  SIGNUP_COOKIE,
   loginResponseSchema,
 } from "@/contracts/auth";
 import { ServiceError } from "@/domains/auth/errors";
@@ -51,6 +52,7 @@ const post = (
         "content-type": "application/json",
         "x-forwarded-for": ip,
         "user-agent": "UA",
+        cookie: `${SIGNUP_COOKIE}=nonce-1`,
       },
       body: JSON.stringify(body),
     }),
@@ -59,7 +61,11 @@ const post = (
 it("creates the account, opens a session and returns the user with the CSRF token", async () => {
   const response = await post("198.51.100.1");
   expect(response.status).toBe(200);
-  expect(completeSignup).toHaveBeenCalledWith("ana@loja.com", "123456");
+  expect(completeSignup).toHaveBeenCalledWith(
+    "ana@loja.com",
+    "123456",
+    "nonce-1",
+  );
   expect(createSession).toHaveBeenCalledWith({
     userId: USER.id,
     remember: false,
@@ -75,6 +81,12 @@ it("creates the account, opens a session and returns the user with the CSRF toke
     httpOnly: true,
   });
   expect(response.cookies.get(CSRF_COOKIE)?.value).toBe("csrf");
+  // The signup is done: the browser drops its proof.
+  expect(response.cookies.get(SIGNUP_COOKIE)).toMatchObject({
+    value: "",
+    maxAge: 0,
+    path: "/api/auth/signup",
+  });
 });
 
 it("replaces a session the request already carries", async () => {

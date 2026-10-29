@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { expect, it, vi } from "vitest";
 import { CSRF_COOKIE, SESSION_COOKIE } from "@/contracts/auth";
 import { readSession } from "@/domains/auth/sessions";
-import { proxy } from "./proxy";
+import { config, proxy } from "./proxy";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/domains/auth/sessions", async (importOriginal) => ({
@@ -114,4 +114,13 @@ it("re-issues both cookies for 30 days when a remembered session was renewed", a
 it("leaves the cookies alone when the session was not renewed", async () => {
   const response = await request("/vendas", "CASHIER");
   expect(response.cookies.getAll()).toEqual([]);
+});
+
+it("runs on pages and API routes but skips build assets and files with an extension", () => {
+  // Next compiles the matcher as a path pattern; anchoring the same string as a RegExp is equivalent here.
+  const matcher = new RegExp(`^${config.matcher[0]}$`);
+  for (const path of ["/", "/painel", "/api/admin/users", "/login", "/vendas"])
+    expect(matcher.test(path), path).toBe(true);
+  for (const path of ["/favicon.ico", "/_next/static/x.js", "/_next/image"])
+    expect(matcher.test(path), path).toBe(false);
 });

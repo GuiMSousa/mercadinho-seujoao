@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { expect, it, vi } from "vitest";
+import { SIGNUP_COOKIE } from "@/contracts/auth";
 import { ServiceError } from "@/domains/auth/errors";
 import { resendSignupCode } from "@/domains/auth/signup";
 import { POST } from "./route";
@@ -11,11 +12,19 @@ vi.mock("@/domains/auth/sessions", async (importOriginal) => ({
   readSession: vi.fn().mockResolvedValue(null),
 }));
 
-const post = (ip: string, body: unknown = { email: " Ana@Loja.com " }) =>
+const post = (
+  ip: string,
+  body: unknown = { email: " Ana@Loja.com " },
+  cookie = `${SIGNUP_COOKIE}=nonce-1`,
+) =>
   POST(
     new NextRequest("http://localhost:3000/api/auth/signup/resend", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-forwarded-for": ip },
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": ip,
+        cookie,
+      },
       body: JSON.stringify(body),
     }),
   );
@@ -23,7 +32,9 @@ const post = (ip: string, body: unknown = { email: " Ana@Loja.com " }) =>
 it("resends to the normalized e-mail with 202", async () => {
   vi.mocked(resendSignupCode).mockResolvedValue(undefined);
   expect((await post("198.51.100.1")).status).toBe(202);
-  expect(resendSignupCode).toHaveBeenCalledWith("ana@loja.com");
+  expect(resendSignupCode).toHaveBeenCalledWith("ana@loja.com", "nonce-1");
+  await post("198.51.100.11", undefined, "");
+  expect(resendSignupCode).toHaveBeenLastCalledWith("ana@loja.com", undefined);
 });
 
 it("validates the e-mail and reports the cooldown with Retry-After", async () => {

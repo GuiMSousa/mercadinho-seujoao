@@ -141,12 +141,12 @@
 - Modify: `src/domains/auth/service.ts`, `src/domains/auth/repository.ts`, `src/contracts/auth.ts`, `src/contracts/openapi.ts`
 - Create routes: `src/app/api/setup/route.ts`, `src/app/api/auth/signup/route.ts`, `signup/verify/route.ts`, `signup/resend/route.ts`, `password-reset/route.ts`, `password-reset/confirm/route.ts`
 - Modify routes: `src/app/api/auth/login/route.ts`, `src/app/api/auth/logout/route.ts`
-- Test: `route.test.ts` ao lado de cada rota; `src/domains/auth/signup.db.test.ts`; `src/domains/store/document.test.ts`
+- Test: `route.test.ts` ao lado de cada rota; `src/domains/auth/signup.db.test.ts`; `src/lib/document.test.ts`
 
 **Interfaces:**
 
 - Contratos (`src/contracts/auth.ts`): `emailSchema` (trim, lowercase, `z.email()`, máx. 254, mensagem `"Informe um e-mail válido."`); `loginRequestSchema { email, password (1–256), remember: boolean default false }`; `signupRequestSchema { name (2+ palavras: "Informe nome e sobrenome."), email, password: passwordRuleSchema, storeName (1–80: "Informe o nome da loja."), document (só dígitos após limpar, 11 ou 14: "CNPJ ou CPF incompleto."), phone (opcional, até 20), kind (enum dos 6 tipos), terms: literal true ("Aceite os termos para continuar.") }`; `codeSchema` (`/^\d{6}$/`, "Digite os 6 números do código."); `signupVerifySchema { email, code }`; `passwordResetSchema { email }`; `passwordResetConfirmSchema { email, code, password }`; `authUserSchema { id, name, email, role }`; `loginResponseSchema { user: authUserSchema, csrfToken }`; `formErrorSchema { error, fields?: Record<string,string> }`; `setupResponseSchema { hasStore: boolean }`.
-- `src/domains/store/document.ts`: `onlyDigits(v)`, `formatDocument(v)` (máscara CPF `000.000.000-00` / CNPJ `00.000.000/0000-00`, igual à do design).
+- `src/lib/document.ts`: `onlyDigits(v)`, `formatDocument(v)` (máscara CPF `000.000.000-00` / CNPJ `00.000.000/0000-00`, igual à do design).
 - `authenticate(email, password)` → `{ ok: true, user } | { ok: false, reason: 'invalid' | 'inactive' | 'not_admin' | 'no_password' }` (mantém o hash fictício para e-mail desconhecido). Mensagens 401/403 da spec; `no_password` (convidado sem senha) usa a mesma mensagem de credenciais inválidas.
 - `startSignup(input)`, `resendSignupCode(email)`, `completeSignup(email, code, meta)` → cria loja + ADMIN numa transação e retorna `AuthUser`; 409 `"Este e-mail já tem conta. Entre ou recupere a senha."` e 409 `"A loja já foi criada. Entre com sua conta."` quando há loja.
 - `requestPasswordReset(email)` (silencioso para e-mail inexistente ou inativo), `confirmPasswordReset(email, code, password)` → troca senha, consome o código, `revokeAllSessions`.

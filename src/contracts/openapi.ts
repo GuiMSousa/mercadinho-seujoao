@@ -3,6 +3,7 @@ import { activityPageSchema } from "./activity";
 import {
   CSRF_HEADER,
   SESSION_COOKIE,
+  SIGNUP_COOKIE,
   errorResponseSchema,
   formErrorSchema,
   loginRequestSchema,
@@ -130,7 +131,9 @@ export function buildOpenApiDocument() {
             "Só enquanto não há loja. Grava o pedido e envia um código de 6 dígitos (10 min, 5 tentativas). Novo pedido para o mesmo e-mail só após 60 s. Limite de 10 por IP a cada 15 minutos.",
           requestBody: body("SignupRequest"),
           responses: {
-            "202": { description: "Código enviado." },
+            "202": {
+              description: `Código enviado; define o cookie ${SIGNUP_COOKIE} (HTTP-only, Path=/api/auth/signup, 10 min) que prova que este navegador iniciou o cadastro.`,
+            },
             "400": error("Corpo inválido."),
             "403": error("Origem diferente do servidor."),
             "409": formError(
@@ -145,8 +148,7 @@ export function buildOpenApiDocument() {
         post: {
           summary:
             "Confirma o código, cria a loja e o administrador e abre a sessão",
-          description:
-            "Limite de 10 por IP a cada 15 minutos. Cinco códigos errados bloqueiam o código.",
+          description: `Limite de 10 por IP a cada 15 minutos. Cinco códigos errados bloqueiam o código. Exige o cookie ${SIGNUP_COOKIE} do cadastro; ele é removido ao concluir.`,
           requestBody: body("SignupVerifyRequest"),
           responses: {
             "200": {
@@ -155,7 +157,9 @@ export function buildOpenApiDocument() {
             },
             "400": error("Corpo inválido."),
             "403": error("Origem diferente do servidor."),
-            "409": formError("A loja já foi criada, ou o e-mail já tem conta."),
+            "409": formError(
+              "A loja já foi criada, o e-mail já tem conta, ou o cadastro expirou/foi substituído (cookie ausente ou diferente).",
+            ),
             "422": formError(
               "Código incorreto, expirado ou campos inválidos (fields).",
             ),
@@ -166,14 +170,16 @@ export function buildOpenApiDocument() {
       "/api/auth/signup/resend": {
         post: {
           summary: "Reenvia o código do cadastro",
-          description: "No máximo um código por minuto para o mesmo e-mail.",
+          description: `No máximo um código por minuto para o mesmo e-mail. Exige o cookie ${SIGNUP_COOKIE} do cadastro.`,
           requestBody: body("SignupResendRequest"),
           responses: {
             "202": { description: "Código enviado." },
             "400": error("Corpo inválido."),
             "403": error("Origem diferente do servidor."),
             "404": error("Não há cadastro em andamento para o e-mail."),
-            "409": formError("A loja já foi criada, ou o e-mail já tem conta."),
+            "409": formError(
+              "A loja já foi criada, o e-mail já tem conta, ou o cadastro expirou/foi substituído (cookie ausente ou diferente).",
+            ),
             "422": formError("E-mail inválido (fields)."),
             "429": tooMany("Limite excedido ou novo código antes de 60 s."),
           },

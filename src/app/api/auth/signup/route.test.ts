@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { beforeEach, expect, it, vi } from "vitest";
-import { formErrorSchema } from "@/contracts/auth";
+import { SIGNUP_COOKIE, formErrorSchema } from "@/contracts/auth";
 import { ServiceError } from "@/domains/auth/errors";
 import { startSignup } from "@/domains/auth/signup";
 import { POST } from "./route";
@@ -23,7 +23,7 @@ const valid = {
 };
 
 beforeEach(() => {
-  vi.mocked(startSignup).mockResolvedValue(undefined);
+  vi.mocked(startSignup).mockResolvedValue("nonce-1");
 });
 
 // Each test uses its own IP because the limiter keeps state for the whole process.
@@ -50,6 +50,39 @@ it("accepts a valid request with 202 and hands the normalized input to the servi
       terms: true,
     }),
   );
+});
+
+it("binds the pending signup to this browser with an HTTP-only cookie scoped to the signup routes", async () => {
+  const response = await post("198.51.100.8");
+  expect(response.cookies.get(SIGNUP_COOKIE)).toMatchObject({
+    value: "nonce-1",
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/api/auth/signup",
+    maxAge: 600,
+    secure: false,
+  });
+  const tunnel = await POST(
+    new NextRequest("http://localhost:3000/api/auth/signup", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "198.51.100.9",
+        "x-forwarded-proto": "https",
+      },
+      body: JSON.stringify(valid),
+    }),
+  );
+  expect(tunnel.cookies.get(SIGNUP_COOKIE)?.secure).toBe(true);
+});
+
+it("sets no cookie when the signup is refused", async () => {
+  vi.mocked(startSignup).mockImplementationOnce(async () => {
+    throw new ServiceError(409, "A loja já foi criada. Entre com sua conta.");
+  });
+  expect(
+    (await post("198.51.100.10")).cookies.get(SIGNUP_COOKIE),
+  ).toBeUndefined();
 });
 
 it("answers 422 with a message per invalid field", async () => {

@@ -1,11 +1,15 @@
 import { z } from "zod";
-import { onlyDigits } from "@/domains/store/document";
+import { onlyDigits } from "@/lib/document";
 import { userRole } from "@/infrastructure/db/schema";
 
 export const SESSION_COOKIE = "mkt_session";
 // Readable by the page so it can echo the token in CSRF_HEADER on mutations.
 export const CSRF_COOKIE = "mkt_csrf";
 export const CSRF_HEADER = "x-csrf-token";
+// Binds a pending signup to the browser that started it (HTTP-only, only under /api/auth/signup).
+export const SIGNUP_COOKIE = "mkt_signup";
+export const SIGNUP_COOKIE_PATH = "/api/auth/signup";
+export const SIGNUP_COOKIE_MAX_AGE_SECONDS = 600;
 
 const PASSWORD_MESSAGE = "Use 8 caracteres ou mais, com letras e números.";
 

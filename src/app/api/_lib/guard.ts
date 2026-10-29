@@ -1,5 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { CSRF_COOKIE, CSRF_HEADER, SESSION_COOKIE } from "@/contracts/auth";
+import {
+  CSRF_COOKIE,
+  CSRF_HEADER,
+  SESSION_COOKIE,
+  SIGNUP_COOKIE,
+  SIGNUP_COOKIE_MAX_AGE_SECONDS,
+  SIGNUP_COOKIE_PATH,
+} from "@/contracts/auth";
 import { accessDenial } from "@/domains/auth/access";
 import { hashToken, readSession } from "@/domains/auth/sessions";
 
@@ -35,6 +42,11 @@ export async function guard(request: NextRequest) {
   return { session, denial };
 }
 
+// Secure only over HTTPS: on plain-HTTP LAN access the browser would drop a Secure cookie.
+const isSecure = (request: NextRequest) =>
+  request.nextUrl.protocol === "https:" ||
+  request.headers.get("x-forwarded-proto") === "https";
+
 export function setSessionCookies(
   request: NextRequest,
   response: NextResponse,
@@ -44,13 +56,9 @@ export function setSessionCookies(
     maxAgeSeconds,
   }: { token: string; csrfToken: string; maxAgeSeconds: number | null },
 ) {
-  // Secure only over HTTPS: on plain-HTTP LAN access the browser would drop a Secure cookie.
-  const secure =
-    request.nextUrl.protocol === "https:" ||
-    request.headers.get("x-forwarded-proto") === "https";
   const options = {
     sameSite: "lax",
-    secure,
+    secure: isSecure(request),
     path: "/",
     // No maxAge: a browser-session cookie that ends when the browser closes.
     ...(maxAgeSeconds === null ? {} : { maxAge: maxAgeSeconds }),
@@ -62,4 +70,30 @@ export function setSessionCookies(
 export function clearSessionCookies(response: NextResponse) {
   response.cookies.delete(SESSION_COOKIE);
   response.cookies.delete(CSRF_COOKIE);
+}
+
+const signupCookieOptions = {
+  httpOnly: true,
+  sameSite: "lax",
+  path: SIGNUP_COOKIE_PATH,
+} as const;
+
+/** Proof that this browser started the pending signup; see startSignup. */
+export function setSignupCookie(
+  request: NextRequest,
+  response: NextResponse,
+  nonce: string,
+) {
+  response.cookies.set(SIGNUP_COOKIE, nonce, {
+    ...signupCookieOptions,
+    secure: isSecure(request),
+    maxAge: SIGNUP_COOKIE_MAX_AGE_SECONDS,
+  });
+}
+
+export function clearSignupCookie(response: NextResponse) {
+  response.cookies.set(SIGNUP_COOKIE, "", {
+    ...signupCookieOptions,
+    maxAge: 0,
+  });
 }

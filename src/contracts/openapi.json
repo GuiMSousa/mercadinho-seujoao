@@ -515,7 +515,7 @@
         },
         "responses": {
           "202": {
-            "description": "Código enviado."
+            "description": "Código enviado; define o cookie mkt_signup (HTTP-only, Path=/api/auth/signup, 10 min) que prova que este navegador iniciou o cadastro."
           },
           "400": {
             "description": "Corpo inválido.",
@@ -581,7 +581,7 @@
     "/api/auth/signup/verify": {
       "post": {
         "summary": "Confirma o código, cria a loja e o administrador e abre a sessão",
-        "description": "Limite de 10 por IP a cada 15 minutos. Cinco códigos errados bloqueiam o código.",
+        "description": "Limite de 10 por IP a cada 15 minutos. Cinco códigos errados bloqueiam o código. Exige o cookie mkt_signup do cadastro; ele é removido ao concluir.",
         "requestBody": {
           "required": true,
           "content": {
@@ -624,7 +624,7 @@
             }
           },
           "409": {
-            "description": "A loja já foi criada, ou o e-mail já tem conta.",
+            "description": "A loja já foi criada, o e-mail já tem conta, ou o cadastro expirou/foi substituído (cookie ausente ou diferente).",
             "content": {
               "application/json": {
                 "schema": {
@@ -667,7 +667,7 @@
     "/api/auth/signup/resend": {
       "post": {
         "summary": "Reenvia o código do cadastro",
-        "description": "No máximo um código por minuto para o mesmo e-mail.",
+        "description": "No máximo um código por minuto para o mesmo e-mail. Exige o cookie mkt_signup do cadastro.",
         "requestBody": {
           "required": true,
           "content": {
@@ -713,7 +713,7 @@
             }
           },
           "409": {
-            "description": "A loja já foi criada, ou o e-mail já tem conta.",
+            "description": "A loja já foi criada, o e-mail já tem conta, ou o cadastro expirou/foi substituído (cookie ausente ou diferente).",
             "content": {
               "application/json": {
                 "schema": {

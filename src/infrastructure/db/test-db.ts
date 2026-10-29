@@ -32,3 +32,24 @@ export async function withTestDb(fn: (db: TestDb) => Promise<void>) {
     await pool.end();
   }
 }
+
+/**
+ * Runs `fn` against DATABASE_URL_TEST on a pool, committing what it writes. Only for tests that
+ * need several connections at once (a transaction has one, and parallel queries on it are deprecated
+ * in pg); `fn` must delete every row it creates.
+ */
+export async function withTestPool(
+  fn: (db: NodePgDatabase<typeof schema>) => Promise<void>,
+) {
+  const url = parseEnv(
+    "DATABASE_URL_TEST",
+    process.env.DATABASE_URL_TEST,
+    databaseUrlSchema,
+  );
+  const pool = new Pool({ connectionString: url, max: 8 });
+  try {
+    await fn(drizzle({ client: pool, schema }));
+  } finally {
+    await pool.end();
+  }
+}

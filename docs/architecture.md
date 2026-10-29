@@ -55,7 +55,7 @@ src/
 │   ├── verification-repository.ts # único acesso a `verification_codes`
 │   └── repository.ts         # único acesso a `users`
 ├── domains/store/            # `stores`: existência e criação da loja com o primeiro ADMIN (transação)
-├── lib/                      # env (Zod, server-only), logger Pino, `cn`
+├── lib/                      # env (Zod, server-only), logger Pino, `cn`, `document.ts` (máscara e dígitos de CPF/CNPJ)
 └── infrastructure/db/
     ├── index.ts              # único ponto de conexão: pool limitado (max 5), lazy
     └── schema/               # users.ts (enum user_role + tabela users)
@@ -95,7 +95,7 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 - Métodos que alteram estado exigem `x-csrf-token` cujo SHA-256 seja igual a `sessions.csrfHash` e mesma origem.
 - O proxy redireciona páginas sem sessão para `/login`; em `/`, `ADMIN` vai para `/painel` e sem sessão vai para `/login`.
 
-**Códigos por e-mail** (cadastro e recuperação): 6 dígitos, hash scrypt, 10 min, 5 tentativas, novo código invalida o anterior, 1 pedido por minuto. A tentativa é gasta num `UPDATE ... attempts + 1` condicional antes de comparar o hash, então palpites paralelos não passam de 5. A recuperação responde 202 igual para qualquer e-mail, envia o código fora do caminho da resposta e usa uma única mensagem para todo erro de código. O cadastro cria loja e ADMIN numa transação; a segunda loja falha em `stores_singleton` e vira 409.
+**Códigos por e-mail** (cadastro e recuperação): 6 dígitos, hash scrypt, 10 min, 5 tentativas, novo código invalida o anterior, 1 pedido por minuto. A tentativa é gasta num `UPDATE ... attempts + 1` condicional antes de comparar o hash, então palpites paralelos não passam de 5. A recuperação responde 202 igual para qualquer e-mail, envia o código fora do caminho da resposta e usa uma única mensagem para todo erro de código. O pedido de cadastro fica preso ao navegador que o iniciou: o payload guarda o SHA-256 de um nonce entregue no cookie HTTP-only `mkt_signup` (`Path=/api/auth/signup`, 10 min); `verify` e `resend` exigem o cookie (409 "Seu cadastro expirou. Comece de novo."), então ninguém substitui o pedido de outra pessoa. O código novo só invalida o anterior depois que o e-mail é enviado. O cadastro cria loja e ADMIN numa transação; a segunda loja falha em `stores_singleton` e vira 409.
 
 Pastas novas só nascem com código real.
 

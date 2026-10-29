@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lt, ne, sql } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
 import {
   verificationCodes,
@@ -23,33 +23,39 @@ export async function latestCode(purpose: VerificationPurpose, email: string) {
   return row;
 }
 
-/** Invalidates the open codes of this e-mail and purpose, then stores the new one. */
-export function replaceCode(values: {
+/** Stores a new code; older open ones stay valid until `supersedeCodes` runs, after the mail is out. */
+export async function insertCode(values: {
   purpose: VerificationPurpose;
   email: string;
   codeHash: string;
   expiresAt: Date;
   payload: unknown;
 }) {
-  return getDb().transaction(async (tx) => {
-    const now = new Date();
-    await tx
-      .update(verificationCodes)
-      .set({ consumedAt: now })
-      .where(
-        and(
-          eq(verificationCodes.purpose, values.purpose),
-          eq(verificationCodes.email, values.email),
-          isNull(verificationCodes.consumedAt),
-        ),
-      );
-    // Explicit JS time (ms precision): now() is constant inside a transaction, which would tie "latest".
-    const [row] = await tx
-      .insert(verificationCodes)
-      .values({ ...values, createdAt: now })
-      .returning({ id: verificationCodes.id });
-    return row.id;
-  });
+  // Explicit JS time (ms precision): now() is constant inside a transaction, which would tie "latest".
+  const [row] = await getDb()
+    .insert(verificationCodes)
+    .values({ ...values, createdAt: new Date() })
+    .returning({ id: verificationCodes.id });
+  return row.id;
+}
+
+/** Invalidates (keeps, as consumed) the other open codes of this e-mail and purpose. */
+export function supersedeCodes(
+  purpose: VerificationPurpose,
+  email: string,
+  keepId: string,
+) {
+  return getDb()
+    .update(verificationCodes)
+    .set({ consumedAt: new Date() })
+    .where(
+      and(
+        eq(verificationCodes.purpose, purpose),
+        eq(verificationCodes.email, email),
+        isNull(verificationCodes.consumedAt),
+        ne(verificationCodes.id, keepId),
+      ),
+    );
 }
 
 export function deleteCode(id: string) {

@@ -16,7 +16,8 @@ import {
   claimAttempt,
   deleteCode,
   latestCode,
-  replaceCode,
+  insertCode,
+  supersedeCodes,
 } from "./verification-repository";
 
 export type CodeFailure =
@@ -27,14 +28,17 @@ export type CodeClaim =
 
 let unknownCodeHash: Promise<string> | undefined;
 
-/** Stores a new code (invalidating the previous one of this e-mail and purpose) and returns it in clear for the mail. */
+/**
+ * Stores a new code and returns it in clear for the mail. The previous code stays valid until the
+ * caller delivers this one and calls `supersedeCodes`, so a failed delivery loses nothing.
+ */
 export async function issueCode(
   purpose: VerificationPurpose,
   email: string,
   options: { payload?: unknown; ttlMs?: number } = {},
 ) {
   const code = generateCode();
-  const id = await replaceCode({
+  const id = await insertCode({
     purpose,
     email,
     codeHash: await hashCode(code),
@@ -44,7 +48,7 @@ export async function issueCode(
   return { id, code };
 }
 
-/** Issues a code and mails it; a failed delivery drops the code so the person can ask again at once. */
+/** Issues a code and mails it, then invalidates the previous ones; a failed delivery drops the new code and keeps the old. */
 export async function deliverCode(
   purpose: VerificationPurpose,
   email: string,
@@ -59,6 +63,7 @@ export async function deliverCode(
     await deleteCode(id);
     throw error;
   }
+  await supersedeCodes(purpose, email, id);
 }
 
 /** Refuses with 429 when the last code for this e-mail and purpose is under a minute old. */
@@ -89,13 +94,11 @@ export async function claimCode(
   now = new Date(),
 ): Promise<CodeClaim> {
   const row = await latestCode(purpose, email);
-  if (!row) {
-    // Same hashing cost as a real check, so response time does not reveal which e-mails have a code.
+  const claimed = row && (await claimAttempt(row.id, now, MAX_ATTEMPTS));
+  if (!row || !claimed) {
+    // Every path costs one scrypt, so response time reveals neither which e-mails have a code nor its state.
     await verifyCode(code, await (unknownCodeHash ??= hashCode(randomUUID())));
-    return { ok: false, reason: "invalid" };
-  }
-  const claimed = await claimAttempt(row.id, now, MAX_ATTEMPTS);
-  if (!claimed) {
+    if (!row) return { ok: false, reason: "invalid" };
     return {
       ok: false,
       reason: row.consumedAt
