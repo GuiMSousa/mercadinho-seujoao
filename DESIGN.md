@@ -56,14 +56,15 @@ Contrato visual do Mkt Control e **fonte da verdade dos tokens**. `design-system
 
 ## Temas
 
-- **Claro** é o padrão. **Escuro** se aplica com `data-theme="dark"` em `<html>`, ou numa subárvore. A variante `dark:` do Tailwind está ligada a esse atributo.
+- **Escolha do usuário:** o cookie `mkt_theme` (`light` ou `dark`, HTTP-only, 1 ano) é gravado por `POST /api/theme`. O layout raiz lê o cookie e escreve `data-theme` em `<html>`. O atributo também pode ser aplicado numa subárvore.
+- **Sistema:** sem cookie (opção "Sistema" apaga o cookie), o app segue `prefers-color-scheme`. O bloco `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { ... } }` de `tokens.css` repete as declarações de `[data-theme="dark"]`; `tokens.test.ts` garante que os dois são iguais.
+- A variante `dark:` do Tailwind cobre `[data-theme="dark"]` e o escuro do sistema sem `[data-theme="light"]`.
 - Só os aliases semânticos mudam entre temas; as rampas são iguais nos dois.
 - Componentes usam apenas tokens semânticos, nunca rampas.
   - Texto sobre azul ou vermelho sólido: `text-on-color`.
   - Texto sobre `bg-primary`: `text-primary-foreground`.
   - No escuro, o botão `primary` inverte para branco com texto escuro, e o `brand` continua azul.
-- **Hoje** o app fica sempre no claro, e a vitrine `/design-system` alterna os dois temas.
-- **Seletor de tema:** fica para quando existir a topbar. A referência pede para seguir `prefers-color-scheme` no primeiro acesso, depois persistir a escolha, com os rótulos "Modo escuro" / "Modo claro".
+- **Seletor de tema:** `ThemeControl` (`src/app/_components/theme-control.tsx`). A variante `icon` (topbar e tela de login) alterna entre claro e escuro com os rótulos "Modo escuro" / "Modo claro"; a variante `tabs` (Configurações) oferece Claro, Escuro e Sistema. Ambas fazem `POST /api/theme` e `router.refresh()`. A vitrine `/design-system` alterna `data-theme` direto no `<html>` e restaura a escolha salva ao sair.
 
 ## Ícones e marca
 

@@ -29,6 +29,7 @@ import {
   tooMany,
 } from "./openapi-helpers";
 import { storeResponseSchema, updateStoreSchema } from "./store";
+import { THEME_COOKIE, themeSchema } from "./theme";
 import {
   inviteUserSchema,
   updateUserSchema,
@@ -72,6 +73,7 @@ export function buildOpenApiDocument() {
         UsersList: jsonSchema(usersListResponseSchema),
         InviteUserRequest: jsonSchema(inviteUserSchema, "input"),
         UpdateUserRequest: jsonSchema(updateUserSchema, "input"),
+        ThemeRequest: jsonSchema(themeSchema, "input"),
         ActivityPage: jsonSchema(activityPageSchema),
         Error: jsonSchema(errorResponseSchema),
         FormError: jsonSchema(formErrorSchema),
@@ -85,6 +87,18 @@ export function buildOpenApiDocument() {
             'Público. As telas usam para oferecer ou esconder "Criar conta da loja".',
           responses: {
             "200": { description: "Estado.", content: json("SetupResponse") },
+            "403": error("Origem diferente do servidor."),
+          },
+        },
+      },
+      "/api/theme": {
+        post: {
+          summary: "Guarda a escolha de tema (claro, escuro ou sistema)",
+          description: `Público. Define o cookie ${THEME_COOKIE} (HTTP-only, 1 ano) que o servidor aplica em <html data-theme>; "system" apaga o cookie e o app volta a seguir o sistema.`,
+          requestBody: body("ThemeRequest"),
+          responses: {
+            "204": { description: "Escolha gravada (ou apagada)." },
+            "400": error("Corpo inválido."),
             "403": error("Origem diferente do servidor."),
           },
         },

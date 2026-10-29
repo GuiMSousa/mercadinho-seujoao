@@ -43,7 +43,7 @@ export async function guard(request: NextRequest) {
 }
 
 // Secure only over HTTPS: on plain-HTTP LAN access the browser would drop a Secure cookie.
-const isSecure = (request: NextRequest) =>
+export const isSecure = (request: NextRequest) =>
   request.nextUrl.protocol === "https:" ||
   request.headers.get("x-forwarded-proto") === "https";
 

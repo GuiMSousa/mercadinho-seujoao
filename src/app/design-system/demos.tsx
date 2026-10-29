@@ -12,15 +12,16 @@ import { Money } from "@ds/components/money";
 import { Table, type TableColumn } from "@ds/components/table";
 import { keypadCents } from "@ds/lib/keypad";
 
-/** Sets data-theme on <html> so portaled layers (dialogs) switch too; restores light on leave. */
+/** Sets data-theme on <html> so portaled layers (dialogs) switch too; restores the saved theme on leave. */
 export function ThemeSwitch() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === "dark") root.dataset.theme = "dark";
-    else delete root.dataset.theme;
+    const saved = root.dataset.theme;
+    root.dataset.theme = theme;
     return () => {
-      delete root.dataset.theme;
+      if (saved) root.dataset.theme = saved;
+      else delete root.dataset.theme;
     };
   }, [theme]);
   return (

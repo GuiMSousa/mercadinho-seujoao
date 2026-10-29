@@ -4,8 +4,20 @@
  * same value, and design-system/tokens.test.ts fails when they drift.
  */
 
-/* Dark theme is opt-in per subtree: <html data-theme="dark">. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* Dark applies with <html data-theme="dark"> (saved choice, or a subtree), or by OS preference unless data-theme="light". */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(
+      :root:not([data-theme="light"]),
+      :root:not([data-theme="light"]) *
+    ) {
+      @slot;
+    }
+  }
+}
 
 :root {
   /* Ramps: identical in both themes. Components never use them directly. */
@@ -163,6 +175,60 @@
   --shadow-xl: 0 24px 48px -16px rgba(0, 0, 0, 0.7);
   --shadow-btn-dark:
     inset 0 -1px 0 rgba(14, 18, 27, 0.12), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* No saved choice: follow the OS. An explicit data-theme="light" opts out. Keep in sync with the block above (tokens.test.ts checks). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg-app: #0a0d14;
+    --surface-card: var(--neutral-900);
+    --surface-sunken: #1f232d;
+    --surface-hover: var(--neutral-800);
+    --surface-overlay: rgba(0, 0, 0, 0.64);
+    --text-strong: #f5f7fa;
+    --text-body: var(--neutral-300);
+    --text-sub: var(--neutral-400);
+    --text-soft: var(--neutral-500);
+    --text-disabled: var(--neutral-600);
+    --text-inverse: var(--neutral-950);
+    --text-link: var(--blue-400);
+    --border-soft: #22262f;
+    --border-default: var(--neutral-700);
+    --border-strong: var(--neutral-600);
+    --border-focus: var(--blue-400);
+    --action-primary: var(--neutral-0);
+    --action-primary-hover: var(--neutral-200);
+    --action-brand-hover: var(--blue-400);
+    --success-fg: #5ee09a;
+    --success-bg: rgba(31, 193, 107, 0.16);
+    --danger-fg: #ff8a94;
+    --danger-bg: rgba(251, 55, 72, 0.16);
+    --warning-fg: #ffb27a;
+    --warning-bg: rgba(250, 115, 25, 0.16);
+    --info-fg: #9db8ff;
+    --info-bg: rgba(51, 91, 255, 0.2);
+    --neutral-fg: var(--neutral-300);
+    --neutral-bg: var(--neutral-700);
+    --control-soft: var(--neutral-700);
+    --control-soft-hover: var(--neutral-600);
+    --control-pressed: var(--neutral-700);
+    --selected-bg: rgba(51, 91, 255, 0.18);
+    --selected-fg: #9db8ff;
+    --selected-border: rgba(104, 149, 255, 0.45);
+    --focus-halo: rgba(51, 91, 255, 0.35);
+    --focus-halo-danger: rgba(251, 55, 72, 0.35);
+    --danger-soft-hover: rgba(251, 55, 72, 0.26);
+    --money-in: var(--blue-400);
+    --money-out: #ff6b78;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 16px 32px -12px rgba(0, 0, 0, 0.6);
+    --shadow-xl: 0 24px 48px -16px rgba(0, 0, 0, 0.7);
+    --shadow-btn-dark:
+      inset 0 -1px 0 rgba(14, 18, 27, 0.12), 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
 }
 
 /* Tailwind utilities over the semantic aliases. Resetting each namespace keeps the default

@@ -9,6 +9,11 @@ const normalize = (value: string) =>
 
 const css = read("./tokens.css").replace(/\/\*[\s\S]*?\*\//g, "");
 const darkBlock = /\[data-theme="dark"\]\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+// The same declarations for "no saved theme, OS prefers dark"; not part of the light map.
+const systemDark =
+  /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme="light"\]\)\s*\{([^}]*)\}\s*\}/.exec(
+    css,
+  );
 
 function declarations(source: string) {
   return new Map(
@@ -18,7 +23,9 @@ function declarations(source: string) {
   );
 }
 
-const light = declarations(css.replace(darkBlock, ""));
+const light = declarations(
+  css.replace(systemDark?.[0] ?? "", "").replace(darkBlock, ""),
+);
 const dark = declarations(darkBlock);
 
 // Rows look like | `--token` | `value` | ... ; tables whose header has "Escuro" carry the
@@ -47,6 +54,12 @@ it("declares every token documented in DESIGN.md with the same value", () => {
       token.dark === "—" ? undefined : normalize(token.dark),
     );
   }
+});
+
+it("the system-dark block mirrors [data-theme=dark]", () => {
+  expect(systemDark, "system-dark block").not.toBeNull();
+  expect(declarations(systemDark?.[1] ?? "")).toEqual(dark);
+  expect(dark.size).toBeGreaterThan(0);
 });
 
 it("documents every token declared in tokens.css", () => {

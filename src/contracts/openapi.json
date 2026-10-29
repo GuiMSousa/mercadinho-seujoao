@@ -554,6 +554,22 @@
           }
         }
       },
+      "ThemeRequest": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "light",
+              "dark",
+              "system"
+            ]
+          }
+        },
+        "required": [
+          "theme"
+        ]
+      },
       "ActivityPage": {
         "type": "object",
         "properties": {
@@ -652,6 +668,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SetupResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origem diferente do servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/theme": {
+      "post": {
+        "summary": "Guarda a escolha de tema (claro, escuro ou sistema)",
+        "description": "Público. Define o cookie mkt_theme (HTTP-only, 1 ano) que o servidor aplica em <html data-theme>; \"system\" apaga o cookie e o app volta a seguir o sistema.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThemeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Escolha gravada (ou apagada)."
+          },
+          "400": {
+            "description": "Corpo inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
