@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { activityPageSchema } from "./activity";
 import {
   CSRF_HEADER,
   SESSION_COOKIE,
@@ -42,6 +43,7 @@ export function buildOpenApiDocument() {
         LoginRequest: jsonSchema(loginRequestSchema, "input"),
         LoginResponse: jsonSchema(loginResponseSchema),
         UsersList: jsonSchema(usersListResponseSchema),
+        ActivityPage: jsonSchema(activityPageSchema),
         Error: jsonSchema(errorResponseSchema),
       },
     },
@@ -90,6 +92,29 @@ export function buildOpenApiDocument() {
           security: [{ session: [] }],
           responses: {
             "200": { description: "Usuários.", content: json("UsersList") },
+            "401": error("Sem sessão."),
+            "403": error("Perfil sem permissão (CASHIER)."),
+          },
+        },
+      },
+      "/api/admin/activity": {
+        get: {
+          summary:
+            "Registro de atividade, do mais recente ao mais antigo (somente ADMIN)",
+          description:
+            "50 itens por página. Envie nextCursor, sem alterá-lo, em ?cursor= para a página seguinte.",
+          security: [{ session: [] }],
+          parameters: [
+            {
+              name: "cursor",
+              in: "query",
+              required: false,
+              schema: { type: "string" },
+            },
+          ],
+          responses: {
+            "200": { description: "Página.", content: json("ActivityPage") },
+            "400": error("Cursor inválido."),
             "401": error("Sem sessão."),
             "403": error("Perfil sem permissão (CASHIER)."),
           },
