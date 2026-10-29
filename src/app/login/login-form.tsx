@@ -3,12 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@ds/components/button";
+import { Checkbox } from "@ds/components/checkbox";
 import { Input } from "@ds/components/input";
 
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [remember, setRemember] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,6 +24,7 @@ export function LoginForm() {
         body: JSON.stringify({
           email: form.get("email"),
           password: form.get("password"),
+          remember,
         }),
       });
       if (response.ok) {
@@ -69,6 +72,11 @@ export function LoginForm() {
         autoComplete="current-password"
         required
         maxLength={256}
+      />
+      <Checkbox
+        label="Manter conectado"
+        checked={remember}
+        onCheckedChange={setRemember}
       />
       {error && (
         <p id="login-error" role="alert" className="text-danger-fg">

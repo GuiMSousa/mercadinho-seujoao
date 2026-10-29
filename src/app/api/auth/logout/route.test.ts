@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
 import { expect, it, vi } from "vitest";
-import { CSRF_HEADER, SESSION_COOKIE } from "@/contracts/auth";
+import { CSRF_COOKIE, CSRF_HEADER, SESSION_COOKIE } from "@/contracts/auth";
+import { logActivity } from "@/domains/activity/service";
 import { hashToken, readSession, revokeSession } from "@/domains/auth/sessions";
 import { POST } from "./route";
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/domains/activity/service", () => ({ logActivity: vi.fn() }));
 vi.mock("@/domains/auth/sessions", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/domains/auth/sessions")>()),
   readSession: vi.fn(),
@@ -38,13 +40,26 @@ function logout(csrfHeader?: string, withSession = true) {
 it("refuses logout without the matching anti-CSRF header and keeps the session", async () => {
   expect((await logout()).status).toBe(403);
   expect((await logout("forged")).status).toBe(403);
-  expect((await logout("expected-token", false)).status).toBe(401);
   expect(revokeSession).not.toHaveBeenCalled();
 });
 
-it("revokes the session and clears the cookies with the matching header", async () => {
+it("revokes the session, clears the cookies and logs the logout with the matching header", async () => {
   const response = await logout("expected-token");
   expect(response.status).toBe(204);
   expect(revokeSession).toHaveBeenCalledWith("hashed-session-id");
   expect(response.cookies.get(SESSION_COOKIE)?.value).toBe("");
+  expect(response.cookies.get(CSRF_COOKIE)?.value).toBe("");
+  expect(logActivity).toHaveBeenCalledWith({
+    user: { id: authSession.user.id, name: "Maria" },
+    action: "Logout",
+  });
+});
+
+it("answers 401 and still clears the cookies when the session is missing or stale", async () => {
+  const response = await logout("expected-token", false);
+  expect(response.status).toBe(401);
+  expect(response.cookies.get(SESSION_COOKIE)?.value).toBe("");
+  expect(response.cookies.get(CSRF_COOKIE)?.value).toBe("");
+  expect(revokeSession).not.toHaveBeenCalled();
+  expect(logActivity).not.toHaveBeenCalled();
 });

@@ -29,10 +29,16 @@ export function createRateLimiter({
   };
 }
 
-export const loginRateLimiter = createRateLimiter({
-  limit: 10,
-  windowMs: 15 * 60 * 1000,
-});
+// One limiter per action, so a burst on one (say, signup) does not lock the others for the same IP.
+const perAction = () =>
+  createRateLimiter({ limit: 10, windowMs: 15 * 60 * 1000 });
+
+export const loginRateLimiter = perAction();
+export const signupRateLimiter = perAction();
+export const resendRateLimiter = perAction();
+export const verifyRateLimiter = perAction();
+export const resetRateLimiter = perAction();
+export const resetConfirmRateLimiter = perAction();
 
 /**
  * shortcut: the IP comes from headers. Cloudflare sets cf-connecting-ip; Next.js only fills

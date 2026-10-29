@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { onlyDigits } from "@/domains/store/document";
 import { userRole } from "@/infrastructure/db/schema";
 
 export const SESSION_COOKIE = "mkt_session";
@@ -16,13 +17,76 @@ export const passwordRuleSchema = z
   .regex(/\p{L}/u, PASSWORD_MESSAGE)
   .regex(/\d/, PASSWORD_MESSAGE);
 
+const CODE_MESSAGE = "Digite os 6 números do código.";
+const EMAIL_MESSAGE = "Informe um e-mail válido.";
+
+/** Trim + lowercase keeps the unique index on users.email case-insensitive in practice. */
+export const emailSchema = z
+  .string(EMAIL_MESSAGE)
+  .trim()
+  .toLowerCase()
+  .max(254, EMAIL_MESSAGE)
+  .pipe(z.email(EMAIL_MESSAGE));
+
 export const loginRequestSchema = z.object({
-  email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
+  email: emailSchema,
   // Upper bound caps the cost of hashing attacker-supplied input.
   password: z.string().min(1).max(256),
+  remember: z.boolean().default(false),
 });
 
-export const userSummarySchema = z.object({
+export const STORE_KINDS = [
+  "Mercadinho",
+  "Padaria",
+  "Açougue",
+  "Hortifrúti",
+  "Loja de conveniência",
+  "Outro",
+] as const;
+
+export const signupRequestSchema = z.object({
+  name: z
+    .string("Informe nome e sobrenome.")
+    .trim()
+    .max(120, "Informe nome e sobrenome.")
+    .refine((v) => v.split(/\s+/).length >= 2, "Informe nome e sobrenome."),
+  email: emailSchema,
+  password: passwordRuleSchema,
+  storeName: z
+    .string("Informe o nome da loja.")
+    .trim()
+    .min(1, "Informe o nome da loja.")
+    .max(80, "Informe o nome da loja."),
+  document: z
+    .string("CNPJ ou CPF incompleto.")
+    .refine(
+      (v) => [11, 14].includes(onlyDigits(v).length),
+      "CNPJ ou CPF incompleto.",
+    )
+    .transform(onlyDigits),
+  phone: z.string().trim().max(20).optional(),
+  kind: z.enum(STORE_KINDS, "Escolha o tipo da loja."),
+  terms: z.literal(true, "Aceite os termos para continuar."),
+});
+
+export const codeSchema = z.string(CODE_MESSAGE).regex(/^\d{6}$/, CODE_MESSAGE);
+
+export const signupVerifySchema = z.object({
+  email: emailSchema,
+  code: codeSchema,
+});
+
+export const signupResendSchema = z.object({ email: emailSchema });
+
+export const passwordResetSchema = z.object({ email: emailSchema });
+
+export const passwordResetConfirmSchema = z.object({
+  email: emailSchema,
+  code: codeSchema,
+  password: passwordRuleSchema,
+});
+
+export const authUserSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   email: z.string(),
@@ -30,14 +94,22 @@ export const userSummarySchema = z.object({
 });
 
 export const loginResponseSchema = z.object({
-  user: userSummarySchema,
+  user: authUserSchema,
   csrfToken: z.string(),
 });
 
+export const setupResponseSchema = z.object({ hasStore: z.boolean() });
+
 export const usersListResponseSchema = z.object({
-  users: z.array(userSummarySchema),
+  users: z.array(authUserSchema),
 });
 
 export const errorResponseSchema = z.object({ error: z.string() });
 
-export type UserSummary = z.infer<typeof userSummarySchema>;
+/** Form errors: `fields` maps a field name to its message. */
+export const formErrorSchema = errorResponseSchema.extend({
+  fields: z.record(z.string(), z.string()).optional(),
+});
+
+export type AuthUser = z.infer<typeof authUserSchema>;
+export type SignupRequest = z.output<typeof signupRequestSchema>;

@@ -5,13 +5,13 @@ import nextEnv from "@next/env";
 
 nextEnv.loadEnvConfig(process.cwd());
 // Imported after the env is loaded: the logger and the pool read it on import/first use.
-const { loginRequestSchema } = await import("../src/contracts/auth");
+const { emailSchema } = await import("../src/contracts/auth");
 const { hashPassword } = await import("../src/domains/auth/password");
 const { insertUser } = await import("../src/domains/auth/repository");
 const { closeDatabase } = await import("../src/infrastructure/db");
 
 const [rawEmail, rawName, role] = process.argv.slice(2);
-const email = loginRequestSchema.shape.email.safeParse(rawEmail);
+const email = emailSchema.safeParse(rawEmail);
 const name = rawName?.trim();
 if (!email.success || !name || (role !== "ADMIN" && role !== "CASHIER")) {
   console.error(

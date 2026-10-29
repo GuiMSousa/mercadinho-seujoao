@@ -157,6 +157,24 @@ it("touches lastUsedAt only after a minute, and slides expiry only with remember
   );
 });
 
+it("reports renewed only when a remembered session had its expiry pushed out", async () => {
+  found({ lastUsedAt: minutesAgo(2), remember: true });
+  await expect(readSession("token", NOW)).resolves.toMatchObject({
+    renewed: true,
+  });
+  // Touched less than a minute ago: nothing was written, so the cookie is not re-issued.
+  found({ lastUsedAt: minutesAgo(0.5), remember: true });
+  await expect(readSession("token", NOW)).resolves.not.toHaveProperty(
+    "renewed",
+    true,
+  );
+  found({ lastUsedAt: minutesAgo(2), remember: false });
+  await expect(readSession("token", NOW)).resolves.not.toHaveProperty(
+    "renewed",
+    true,
+  );
+});
+
 it("revokes one session, the others of a user, or all of them", async () => {
   await revokeSession("id1");
   expect(repository.deleteSession).toHaveBeenCalledWith("id1");

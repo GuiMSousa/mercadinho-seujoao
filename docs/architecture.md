@@ -33,7 +33,11 @@ src/
 │   ├── design-system/        # vitrine pública: componentes, estados e temas (dados fictícios)
 │   └── api/
 │       ├── _lib/guard.ts     # adaptador HTTP: lê a sessão, aplica accessDenial, define/limpa cookies
+│       ├── _lib/public.ts    # rotas públicas: guard + limite por IP + validação (422 com `fields`) + sessão
+│       ├── setup             # GET público: `{ hasStore }`
 │       ├── auth/login, auth/logout
+│       ├── auth/signup, signup/verify, signup/resend
+│       ├── auth/password-reset, password-reset/confirm
 │       └── admin/users       # exclusiva de ADMIN
 ├── contracts/
 │   ├── auth.ts               # schemas Zod da API + nomes de cookie/cabeçalho
@@ -46,7 +50,11 @@ src/
 │   ├── password.ts           # hash scrypt (node:crypto)
 │   ├── login-rate-limit.ts   # janela deslizante em memória + IP do cliente
 │   ├── service.ts            # authenticate (tempo constante para usuário inexistente)
+│   ├── signup.ts, password-reset.ts # cadastro da loja e recuperação de senha (códigos por e-mail)
+│   ├── verification.ts       # emitir, reenviar e conferir códigos (tentativa gasta em SQL antes do hash)
+│   ├── verification-repository.ts # único acesso a `verification_codes`
 │   └── repository.ts         # único acesso a `users`
+├── domains/store/            # `stores`: existência e criação da loja com o primeiro ADMIN (transação)
 ├── lib/                      # env (Zod, server-only), logger Pino, `cn`
 └── infrastructure/db/
     ├── index.ts              # único ponto de conexão: pool limitado (max 5), lazy
@@ -71,13 +79,13 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 - **`src/contracts`:** schemas Zod da API e o OpenAPI gerado deles.
 - **Rotas:** começam com `guard(request)` e só depois validam a entrada, chamam o service e devolvem DTOs parseados pelo contrato.
 
-**Autenticação** (`/api/auth/login`):
+**Autenticação** (`/api/auth/login`; cadastro e recuperação seguem os passos 1, 2 e 3, cada ação com seu próprio limitador):
 
 1. **Origem:** requisição de outra origem → 403.
 2. **Limite por IP:** 10 tentativas a cada 15 minutos; a 11ª → 429 com `Retry-After`.
-3. **Entrada:** validada com Zod; usuário convertido para minúsculas.
-4. **Senha:** conferida com scrypt, também quando o usuário não existe (não revela quais usuários existem).
-5. **Sessão:** token aleatório de 32 bytes no cookie `mkt_session` (HTTP-only, `SameSite=Lax`, `Secure` sob HTTPS); o banco guarda só o SHA-256 em `sessions.id`. Sem "manter conectado" o cookie é de navegador e a sessão dura 12 h; com ele, 30 dias deslizantes. A inatividade segue `stores.sessionIdle` (padrão 8 h) e usuário inativo perde a sessão.
+3. **Entrada:** validada com Zod; e-mail com trim e minúsculas.
+4. **Senha:** conferida com scrypt, também quando o usuário não existe (não revela quais usuários existem). Só depois da senha certa aparecem "acesso desativado" (403) e "painel exclusivo para administradores" (403, `CASHIER`).
+5. **Sessão:** token aleatório de 32 bytes no cookie `mkt_session` (HTTP-only, `SameSite=Lax`, `Secure` sob HTTPS); o banco guarda só o SHA-256 em `sessions.id`. Sem "manter conectado" o cookie é de navegador e a sessão dura 12 h; com ele, 30 dias deslizantes (o proxy renova os cookies com `Max-Age` de 30 dias quando a sessão desliza). Um login com sessão já aberta encerra a anterior. A inatividade segue `stores.sessionIdle` (padrão 8 h) e usuário inativo perde a sessão.
 6. **CSRF:** token aleatório por sessão, guardado como SHA-256 em `sessions.csrfHash`, enviado no cookie legível `mkt_csrf` e na resposta.
 
 **Acesso** (`accessDenial`, usado pelo proxy e por cada rota):
@@ -86,6 +94,8 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 - `/painel`, `/api/admin`, `/api/account` e `/api/store` exigem `ADMIN`.
 - Métodos que alteram estado exigem `x-csrf-token` cujo SHA-256 seja igual a `sessions.csrfHash` e mesma origem.
 - O proxy redireciona páginas sem sessão para `/login`; em `/`, `ADMIN` vai para `/painel` e sem sessão vai para `/login`.
+
+**Códigos por e-mail** (cadastro e recuperação): 6 dígitos, hash scrypt, 10 min, 5 tentativas, novo código invalida o anterior, 1 pedido por minuto. A tentativa é gasta num `UPDATE ... attempts + 1` condicional antes de comparar o hash, então palpites paralelos não passam de 5. A recuperação responde 202 igual para qualquer e-mail, envia o código fora do caminho da resposta e usa uma única mensagem para todo erro de código. O cadastro cria loja e ADMIN numa transação; a segunda loja falha em `stores_singleton` e vira 409.
 
 Pastas novas só nascem com código real.
 

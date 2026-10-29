@@ -6,6 +6,8 @@ import * as repository from "./sessions-repository";
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const REMEMBER_MS = 30 * 24 * HOUR_MS;
+/** Max-Age of the cookies of a remembered session. */
+export const REMEMBER_MAX_AGE_SECONDS = REMEMBER_MS / 1000;
 const SHIFT_MS = 12 * HOUR_MS;
 // Throttles the write that records activity.
 const TOUCH_AFTER_MS = MINUTE_MS;
@@ -23,6 +25,8 @@ export type AuthSession = {
   user: { id: string; name: string; email: string; role: Role };
   csrfHash: string;
   remember: boolean;
+  // True when this read pushed a remembered session's expiry out, so the cookies must slide too.
+  renewed?: true;
 };
 
 export const hashToken = (token: string) =>
@@ -52,7 +56,7 @@ export async function createSession(input: {
     token,
     csrfToken,
     // Null means a browser-session cookie.
-    maxAgeSeconds: input.remember ? REMEMBER_MS / 1000 : null,
+    maxAgeSeconds: input.remember ? REMEMBER_MAX_AGE_SECONDS : null,
   };
 }
 
@@ -74,6 +78,7 @@ export async function readSession(
   }
   if (!row.userActive) return null;
 
+  const renewed = row.remember && sinceUse >= TOUCH_AFTER_MS;
   if (sinceUse >= TOUCH_AFTER_MS) {
     await repository.updateSession(
       id,
@@ -96,6 +101,7 @@ export async function readSession(
     // A session without a CSRF hash can never pass the CSRF check.
     csrfHash: row.csrfHash ?? "",
     remember: row.remember,
+    ...(renewed && { renewed }),
   };
 }
 

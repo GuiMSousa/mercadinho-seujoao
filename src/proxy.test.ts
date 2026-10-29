@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { expect, it, vi } from "vitest";
-import { SESSION_COOKIE } from "@/contracts/auth";
+import { CSRF_COOKIE, SESSION_COOKIE } from "@/contracts/auth";
 import { readSession } from "@/domains/auth/sessions";
 import { proxy } from "./proxy";
 
@@ -75,4 +75,43 @@ it("sends anonymous visitors to the login page and anonymous API calls a 401", a
     expect((await request(pathname)).headers.get("x-middleware-next")).toBe(
       "1",
     );
+});
+
+it("re-issues both cookies for 30 days when a remembered session was renewed", async () => {
+  const headers = new Headers({
+    cookie: `${SESSION_COOKIE}=token; ${CSRF_COOKIE}=csrf-token`,
+  });
+  vi.mocked(readSession).mockResolvedValue({
+    id: "hashed-id",
+    user: {
+      id: "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3b",
+      name: "Ana",
+      email: "ana@example.com",
+      role: "CASHIER",
+    },
+    csrfHash: "hash",
+    remember: true,
+    renewed: true,
+  });
+  const response = await proxy(
+    new NextRequest("http://localhost:3000/vendas", { headers }),
+  );
+  expect(response.headers.get("x-middleware-next")).toBe("1");
+  expect(response.cookies.get(SESSION_COOKIE)).toMatchObject({
+    value: "token",
+    maxAge: 2_592_000,
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+  });
+  expect(response.cookies.get(CSRF_COOKIE)).toMatchObject({
+    value: "csrf-token",
+    maxAge: 2_592_000,
+    httpOnly: false,
+  });
+});
+
+it("leaves the cookies alone when the session was not renewed", async () => {
+  const response = await request("/vendas", "CASHIER");
+  expect(response.cookies.getAll()).toEqual([]);
 });
