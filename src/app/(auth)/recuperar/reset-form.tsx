@@ -5,16 +5,20 @@ import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@ds/components/button";
 import { Input } from "@ds/components/input";
+import { useToast } from "@ds/components/toast";
+import { codeSchema, emailSchema, passwordRuleSchema } from "@/contracts/auth";
 import {
   RESEND_SECONDS,
   postJson,
   useCountdown,
   useFocusOnError,
+  useFocusOnStep,
   type FormErrors,
 } from "../auth-client";
+import { CodeInput } from "../code-input";
 import { FormAlert } from "../form-alert";
 import { PasswordField } from "../password-field";
-import { isEmail } from "./reset-start";
+import { fieldError, fieldErrors } from "../validate";
 
 const titles = ["Recuperar senha", "Defina uma nova senha", "Senha redefinida"];
 const labels = ["Enviar código", "Redefinir senha"];
@@ -26,6 +30,7 @@ export function ResetForm({
   initialEmail?: string;
   initialStep?: 1 | 2;
 }) {
+  const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [step, setStep] = useState<1 | 2 | 3>(initialStep);
   const [email, setEmail] = useState(initialEmail);
@@ -35,12 +40,13 @@ export function ResetForm({
   const [pending, setPending] = useState(false);
   const [resending, setResending] = useState(false);
   const countdown = useCountdown(RESEND_SECONDS);
+  const heading = useFocusOnStep(step);
   useFocusOnError(formRef, errors);
 
   // The invite code is still valid: asking for a new one here would replace it.
   function haveCode() {
-    if (!isEmail(email))
-      return setErrors({ fields: { email: "Informe um e-mail válido." } });
+    const invalid = fieldError(emailSchema, email);
+    if (invalid) return setErrors({ fields: { email: invalid } });
     setErrors(null);
     setStep(2);
   }
@@ -52,23 +58,23 @@ export function ResetForm({
     setResending(false);
     if (!result.ok) return setErrors(result.errors);
     countdown.restart();
+    toast({
+      title: "Código reenviado",
+      message: "Confira também a caixa de spam.",
+      tone: "info",
+    });
   }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (step === 3) return;
-    const fields: Record<string, string> = {};
-    if (!/^\S+@\S+\.\S+$/.test(email.trim()))
-      fields.email = "Informe um e-mail válido.";
-    if (step === 2) {
-      if (!/^\d{6}$/.test(code)) fields.code = "Digite os 6 números do código.";
-      if (
-        password.length < 8 ||
-        !/\p{L}/u.test(password) ||
-        !/\d/.test(password)
-      )
-        fields.password = "Use 8 caracteres ou mais, com letras e números.";
-    }
+    const fields = fieldErrors({
+      email: [emailSchema, email],
+      ...(step === 2 && {
+        code: [codeSchema, code],
+        password: [passwordRuleSchema, password],
+      }),
+    });
     if (Object.keys(fields).length) return setErrors({ fields });
     setPending(true);
     setErrors(null);
@@ -82,6 +88,7 @@ export function ResetForm({
           });
     setPending(false);
     if (!result.ok) return setErrors(result.errors);
+    if (step === 1) countdown.restart();
     setStep((step + 1) as 2 | 3);
   }
 
@@ -104,7 +111,11 @@ export function ResetForm({
         </span>
       )}
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-h2 font-medium tracking-tight text-strong">
+        <h1
+          ref={heading}
+          tabIndex={-1}
+          className="text-h2 font-medium tracking-tight text-strong"
+        >
           {titles[step - 1]}
         </h1>
         <p className="text-pretty text-sub">{subtitle}</p>
@@ -124,18 +135,9 @@ export function ResetForm({
       )}
       {step === 2 && (
         <div className="flex flex-col gap-4">
-          <Input
-            name="code"
-            label="Código de verificação"
-            size="lg"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={6}
-            placeholder="000000"
-            className="[&_input]:text-counter [&_input]:tabular-nums"
-            style={{ letterSpacing: "0.5em" }}
+          <CodeInput
             value={code}
-            onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))}
+            onValueChange={setCode}
             error={errors?.fields.code}
           />
           <PasswordField
@@ -189,6 +191,7 @@ export function ResetForm({
             size="sm"
             loading={resending}
             disabled={countdown.left > 0}
+            focusableWhenDisabled
             onClick={() => void resend()}
           >
             {countdown.left > 0

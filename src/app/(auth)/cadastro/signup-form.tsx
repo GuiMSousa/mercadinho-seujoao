@@ -7,12 +7,12 @@ import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@ds/components/button";
 import { useToast } from "@ds/components/toast";
 import { cn } from "@ds/lib/cn";
-import { onlyDigits } from "@/lib/document";
 import {
   postJson,
   RESEND_SECONDS,
   useCountdown,
   useFocusOnError,
+  useFocusOnStep,
   type FormErrors,
 } from "../auth-client";
 import { FormAlert } from "../form-alert";
@@ -21,8 +21,13 @@ import {
   CodeStep,
   initialValues,
   StoreStep,
-  type SignupValues,
 } from "./signup-steps";
+import {
+  signupPayload,
+  validateAccount,
+  validateCode,
+  validateStore,
+} from "./signup-validation";
 
 const titles = ["Crie sua conta", "Dados da loja", "Confirme seu e-mail"];
 const submitLabels = ["Continuar", "Enviar código", "Criar conta"];
@@ -34,31 +39,6 @@ const STEP_OF_FIELD: Record<string, 1 | 2 | 3> = {
   code: 3,
 };
 
-function validateAccount(v: SignupValues) {
-  const fields: Record<string, string> = {};
-  if (v.name.trim().split(/\s+/).length < 2)
-    fields.name = "Informe nome e sobrenome.";
-  if (!/^\S+@\S+\.\S+$/.test(v.email.trim()))
-    fields.email = "Informe um e-mail válido.";
-  if (
-    v.password.length < 8 ||
-    !/\p{L}/u.test(v.password) ||
-    !/\d/.test(v.password)
-  )
-    fields.password = "Use 8 caracteres ou mais, com letras e números.";
-  if (v.confirm !== v.password) fields.confirm = "As senhas não conferem.";
-  return fields;
-}
-
-function validateStore(v: SignupValues) {
-  const fields: Record<string, string> = {};
-  if (!v.storeName.trim()) fields.storeName = "Informe o nome da loja.";
-  if (![11, 14].includes(onlyDigits(v.document).length))
-    fields.document = "CNPJ ou CPF incompleto.";
-  if (!v.terms) fields.terms = "Aceite os termos para continuar.";
-  return fields;
-}
-
 export function SignupForm() {
   const router = useRouter();
   const { toast } = useToast();
@@ -69,7 +49,10 @@ export function SignupForm() {
   const [pending, setPending] = useState(false);
   const [resending, setResending] = useState(false);
   const countdown = useCountdown(RESEND_SECONDS);
+  const heading = useFocusOnStep(step);
   useFocusOnError(formRef, errors);
+  // Payload of the last accepted POST /signup: going back and forward unchanged must not repeat it.
+  const sentPayload = useRef<string | null>(null);
 
   const set: React.ComponentProps<typeof AccountStep>["set"] = (key, value) =>
     setValues((current) => ({ ...current, [key]: value }));
@@ -95,23 +78,20 @@ export function SignupForm() {
     if (step === 2) {
       const fields = validateStore(values);
       if (Object.keys(fields).length) return setErrors({ fields });
+      if (sentPayload.current === JSON.stringify(signupPayload(values))) {
+        setErrors(null);
+        return setStep(3);
+      }
     }
-    if (step === 3 && !/^\d{6}$/.test(values.code))
-      return setErrors({ fields: { code: "Digite os 6 números do código." } });
+    if (step === 3) {
+      const code = validateCode(values.code);
+      if (code) return setErrors({ fields: { code } });
+    }
     setPending(true);
     setErrors(null);
     const result =
       step === 2
-        ? await postJson("/api/auth/signup", {
-            name: values.name,
-            email: values.email,
-            password: values.password,
-            storeName: values.storeName,
-            document: values.document,
-            phone: values.phone.trim() || undefined,
-            kind: values.kind,
-            terms: values.terms,
-          })
+        ? await postJson("/api/auth/signup", signupPayload(values))
         : await postJson("/api/auth/signup/verify", {
             email: values.email,
             code: values.code,
@@ -121,6 +101,7 @@ export function SignupForm() {
       return setPending(false);
     }
     if (step === 2) {
+      sentPayload.current = JSON.stringify(signupPayload(values));
       countdown.restart();
       setStep(3);
       return setPending(false);
@@ -172,7 +153,11 @@ export function SignupForm() {
           ))}
         </div>
         <span className="text-caption text-sub">Etapa {step} de 3</span>
-        <h1 className="text-h2 font-medium tracking-tight text-strong">
+        <h1
+          ref={heading}
+          tabIndex={-1}
+          className="text-h2 font-medium tracking-tight text-strong"
+        >
           {titles[step - 1]}
         </h1>
         <p className="text-pretty text-sub">{subtitle}</p>

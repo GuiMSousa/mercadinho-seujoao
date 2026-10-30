@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 export type FormErrors = { error?: string; fields: Record<string, string> };
 
@@ -32,7 +32,11 @@ export async function requestJson<T = unknown>(
     return {
       ok: false,
       status: 0,
-      errors: { error: "Sem conexão com o servidor.", fields: {} },
+      errors: {
+        error:
+          "Sem conexão com o servidor. Verifique a internet e tente novamente.",
+        fields: {},
+      },
     };
   }
 }
@@ -57,6 +61,22 @@ export function useFocusOnError(
       form.current?.querySelector<HTMLElement>('[role="alert"]');
     target?.focus();
   }, [form, errors]);
+}
+
+/**
+ * Returns a ref for the step heading (give it tabIndex={-1}); focus moves there when `step` changes,
+ * so keyboard and screen reader users land on the new step instead of a vanished control.
+ * Call it before useFocusOnError so an error on the new step still wins the focus.
+ */
+export function useFocusOnStep(step: number) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  const shown = useRef(step);
+  useEffect(() => {
+    if (shown.current === step) return; // first mount (and the dev double-effect): keep the page's focus
+    shown.current = step;
+    heading.current?.focus();
+  }, [step]);
+  return heading;
 }
 
 export const RESEND_SECONDS = 60;

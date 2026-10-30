@@ -6,6 +6,7 @@ import { Input } from "@ds/components/input";
 import { Select } from "@ds/components/select";
 import { STORE_KINDS } from "@/contracts/auth";
 import { formatDocument } from "@/lib/document";
+import { CodeInput } from "../code-input";
 import { PasswordField } from "../password-field";
 import { PasswordStrength } from "../password-strength";
 
@@ -100,6 +101,7 @@ export function StoreStep({ values, set, errors }: StepProps) {
         name="storeName"
         label="Nome da loja"
         size="lg"
+        autoComplete="organization"
         placeholder="Mercadinho Bom Preço"
         maxLength={80}
         value={values.storeName}
@@ -173,18 +175,9 @@ export function CodeStep({
 }) {
   return (
     <>
-      <Input
-        name="code"
-        label="Código de verificação"
-        size="lg"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        maxLength={6}
-        placeholder="000000"
-        className="[&_input]:text-counter [&_input]:tabular-nums"
-        style={{ letterSpacing: "0.5em" }}
+      <CodeInput
         value={values.code}
-        onChange={(event) => set("code", event.target.value.replace(/\D/g, ""))}
+        onValueChange={(code) => set("code", code)}
         error={errors.code}
       />
       <div className="flex flex-wrap items-center gap-2 text-body-md text-sub">
@@ -195,6 +188,7 @@ export function CodeStep({
           size="sm"
           loading={resending}
           disabled={secondsLeft > 0}
+          focusableWhenDisabled
           onClick={onResend}
         >
           {secondsLeft > 0

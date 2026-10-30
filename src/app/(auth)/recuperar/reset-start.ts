@@ -1,8 +1,5 @@
 const EMAIL = /^\S+@\S+\.\S+$/;
 
-/** Same shape check for the "have a code" shortcut and the submit, so they cannot drift apart. */
-export const isEmail = (value: string) => EMAIL.test(value.trim());
-
 type Param = string | string[] | undefined;
 const first = (value: Param) => (Array.isArray(value) ? value[0] : value);
 
