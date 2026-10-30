@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-10-29): 191 testes em 49 arquivos sem banco (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 55 testes em 9 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`, cada teste em transação com rollback).
+- **Hoje existem** (2026-10-30): 200 testes em 52 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 67 testes em 12 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 3 testes de concorrência fazem commit com e-mails únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -58,38 +58,27 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Roteiro E2E no navegador
 
-Executado em 2026-10-29 com o Playwright (MCP), contra `npm run dev -- -p 3100` num banco vazio `mkt_control_e2e` (preparação em [onboarding.md](onboarding.md#banco-do-teste-em-navegador)). Os códigos foram lidos do log do servidor (`mail (dev)`). Nenhum bug foi encontrado. Ainda não há `test:e2e` automatizado: o roteiro é manual e deve ser repetido quando o fluxo de telas mudar.
+Executado em 2026-10-30 com o Playwright (MCP), contra `npm run dev -- -p 3100` num banco vazio `mkt_control_e2e` com as migrations `0000` a `0002` (preparação em [onboarding.md](onboarding.md#banco-do-teste-em-navegador)). Os códigos foram lidos do log do servidor (`mail (dev)`). Nenhum bug bloqueante foi encontrado. Ainda não há `test:e2e` automatizado: o roteiro é manual e deve ser repetido quando o fluxo de telas mudar.
 
-| #   | Passo                                                                                                                          | Resultado | Evidência                                                                                                       |
-| --- | ------------------------------------------------------------------------------------------------------------------------------ | --------- | --------------------------------------------------------------------------------------------------------------- |
-| 1   | Banco limpo: `/` leva a `/login`, com "Criar conta da loja" e os botões de demonstração (dev)                                  | Passou    | Redirecionou para `/login`; botão presente                                                                      |
-| 2   | Cadastro em 3 etapas; e-mail digitado com espaços e maiúsculas (`" Ana@Teste.com "`) vira `ana@teste.com`                      | Passou    | Código `402618` lido do log; Equipe mostra `ana@teste.com`                                                      |
-| 3   | Código errado: erro no campo (`aria-invalid`), com a mensagem "Código incorreto..."; código certo cria a loja e abre `/painel` | Passou    | 422 e depois 200; `/painel` com "Boa noite, Ana" e a loja no menu                                               |
-| 4   | Convite de usuário (CASHIER) em Usuários; e-mail repetido é recusado no campo                                                  | Passou    | "Este e-mail já tem conta." com `aria-invalid`; convite com código no log                                       |
-| 5   | Convidado define a senha em `/recuperar` com o código do convite                                                               | Passou    | "Senha redefinida"                                                                                              |
-| 6   | Login do convidado CASHIER é recusado com a mensagem                                                                           | Passou    | 403, sem `Set-Cookie`; "Este painel é exclusivo para administradores. Operadores usam o PDV."                   |
-| 7   | Troca de senha: senha atual errada dá erro no campo; a certa troca e encerra as outras sessões                                 | Passou    | "Senha atual incorreta."; depois outros dois contextos voltaram a `/login`; login com a senha nova funcionou    |
-| 8   | "Encerrar outras sessões" derruba a segunda aba                                                                                | Passou    | Segundo contexto logado, clique na primeira; a próxima navegação do segundo foi para `/login`; a primeira ficou |
-| 9   | Tema escuro persiste ao recarregar; "Sistema" remove o atributo                                                                | Passou    | `<html data-theme="dark">` renderizado no servidor; com "Sistema", sem `data-theme`                             |
-| 10  | Logout volta a `/login`, e "Criar conta da loja" não aparece mais                                                              | Passou    | `/login` sem o botão (já existe loja)                                                                           |
+| #   | Passo                                                                                                                                  | Resultado | Evidência                                                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Banco limpo: `/` leva a `/login`, com "Criar conta da loja" e os botões de demonstração (dev)                                          | Passou    | Redirecionou para `/login`; botões presentes                                                                                                        |
+| 2   | Cadastro em 3 etapas; o foco vai para o `h1` de cada etapa; e-mail com espaços e maiúsculas vira `ana@teste.com`                       | Passou    | Foco em `H1:Dados da loja` e `H1:Confirme seu e-mail`; botão "Reenviar código em 60 s"; o e-mail foi enviado a `ana@teste.com`                      |
+| 3   | Código errado: erro no campo (`aria-invalid`); código certo cria a loja e abre `/painel` com a saudação                                | Passou    | "Código incorreto. Confira os números e tente novamente."; depois `/painel` com "Bom dia, Ana" e a loja no menu                                     |
+| 4   | Convite de CASHIER em Usuários; e-mail repetido é recusado no campo                                                                    | Passou    | "Este e-mail já tem conta." com `aria-invalid`; convite com código no log e linha "Convite pendente"                                                |
+| 5   | Link do convite `/recuperar?email=…&etapa=codigo` abre direto na etapa do código; o convidado define a senha (código aceito após 60 s) | Passou    | `h1` "Defina uma nova senha"; senha definida (o login seguinte deu 403, não 401)                                                                    |
+| 6   | Login do CASHIER convidado é recusado com a mensagem de exclusividade                                                                  | Passou    | 403, sem `Set-Cookie`; "Este painel é exclusivo para administradores. Operadores usam o PDV."                                                       |
+| 7   | "Já tenho um código" em `/recuperar` vai para a etapa do código                                                                        | Passou    | `h1` "Defina uma nova senha", foco no `h1`, texto citando `ana@teste.com`                                                                           |
+| 8   | Salvar a loja sem mudar nada                                                                                                           | Passou    | Aviso "Nenhuma alteração para salvar" (sem ponto final)                                                                                             |
+| 9   | Troca de senha com confirmação: divergência dá erro no campo; igual troca e mostra o aviso                                             | Passou    | "As senhas não conferem." com `aria-invalid`; aviso "Senha alterada"                                                                                |
+| 10  | "Encerrar outras sessões" derruba o segundo contexto e mantém o primeiro                                                               | Passou    | Segundo contexto logado; após o clique, sua próxima navegação foi para `/login`; o primeiro recarregou `/painel/configuracoes`                      |
+| 11  | Tema: setas selecionam; escuro persiste ao recarregar; "Sistema" limpa; cliques rápidos terminam no último                             | Passou    | `ArrowRight` em "Claro" deu `data-theme="dark"`, mantido após recarregar; "Sistema" removeu o atributo; Escuro e depois Claro terminou em `light`   |
+| 12  | Aviso de erro (`danger`) é assertivo e tem botão de fechar                                                                             | Passou    | Com `/api/theme` bloqueado: `role="alertdialog"`, espelho `role=alert` do Base UI, botão "Fechar" remove o aviso; sem fechar, some sozinho em ~10 s |
+| 13  | Gaveta em 390 px: sem rolagem horizontal, foco entra na gaveta, Tab fica dentro, Esc fecha e devolve o foco                            | Passou    | Barra lateral oculta, `scrollWidth <= clientWidth`; foco em "Fechar menu"; Tab percorreu os links; após Esc o foco voltou para "Abrir menu"         |
+| 14  | Sair volta a `/login`, e "Criar conta da loja" não aparece mais; `/painel` sem sessão leva a `/login`                                  | Passou    | `/login` sem o botão (já existe loja); redirecionamento do guarda                                                                                   |
+| 15  | "Sair" com a sessão já apagada no banco leva a `/login`                                                                                | Passou    | `DELETE FROM sessions` no banco do E2E; o clique recebeu 401 de `/api/auth/logout` e a página foi para `/login`                                     |
 
-Verificações adicionais, de revisões anteriores:
-
-| Verificação                                                  | Resultado | Evidência                                                                                                                      |
-| ------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Tabs com teclado em Usuários e no tema de Configurações      | Passou    | Setas movem o foco entre as abas; Enter/Espaço ativam (ativação manual). A aba ativa muda o `aria-selected` e a URL (`aba`)    |
-| Toast aparece, some sozinho e tem o botão "Fechar"           | Passou    | "Convite enviado" visível ao enviar; nenhum aviso 3 s depois; botão com nome acessível "Fechar"                                |
-| Termos do cadastro: enviar sem aceitar                       | Passou    | Foco no checkbox, `aria-invalid="true"`, "Aceite os termos para continuar."                                                    |
-| Campo do código com espaçamento de letras                    | Passou    | `letter-spacing: 11px` com fonte de 22 px                                                                                      |
-| Erro de campo vindo do servidor no `Input` do DS             | Passou    | `aria-invalid="true"` no e-mail do convite, na senha atual e no código                                                         |
-| Mobile (390x844): "Abrir menu" abre o drawer e prende o foco | Passou    | Foco inicial em "Fechar menu"; 13 `Tab`/`Shift+Tab` ficaram dentro do drawer (um passo passa pelo marcador de foco do Base UI) |
-| "Fechar menu" não cobre a marca                              | Passou    | Botão em x 204-236, y 12-44; marca em x 63-127, y 63-79                                                                        |
-| Voltar a 1000 px fecha o drawer                              | Passou    | O diálogo sai do DOM após a animação; a sidebar fixa aparece e "Abrir menu" fica oculto                                        |
-| O ícone do tema não troca após a hidratação                  | Passou    | HTML do servidor já traz `data-theme="dark"` e `aria-label="Modo claro"`                                                       |
-| "Manter conectado" marcado: cookie de 30 dias                | Passou    | `Set-Cookie: mkt_session=...; Max-Age=2592000; HttpOnly; SameSite=lax`                                                         |
-| Sem "Manter conectado": cookie de navegador                  | Passou    | `Set-Cookie: mkt_session=...; Path=/; HttpOnly; SameSite=lax`, sem `Max-Age` nem `Expires`                                     |
-
-Observações: o texto "Digite o código... enviado para Ana@Teste.com" mostra o e-mail como digitado (só com trim); a conta usa minúsculas.
+Observação: na etapa 3 do cadastro, o texto "enviado para …" mostra o e-mail como digitado (`Ana@Teste.com`), enquanto o envio e a conta usam a forma normalizada.
 
 ## Harness (método nativo inspirado no Harness2)
 
