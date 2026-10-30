@@ -5,7 +5,10 @@ import { logActivity } from "@/domains/activity/service";
 import { INVITE_TTL_MS } from "@/domains/auth/codes";
 import { ServiceError } from "@/domains/auth/errors";
 import { hashPassword, verifyPassword } from "@/domains/auth/password";
-import { findUserByEmail } from "@/domains/auth/repository";
+import {
+  changePasswordAndRevoke,
+  findUserByEmail,
+} from "@/domains/auth/repository";
 import {
   revokeAllSessions,
   revokeOtherSessions,
@@ -20,7 +23,6 @@ import {
   findUserById,
   insertUser,
   listUsers as selectUsers,
-  setPassword,
   updateUserChecked,
 } from "./repository";
 
@@ -138,8 +140,12 @@ export async function changePassword(
     throw new ServiceError(422, WRONG_PASSWORD, {
       fields: { current: WRONG_PASSWORD },
     });
-  await setPassword(user.id, await hashPassword(next));
-  await revokeOtherSessions(user.id, session.id);
+  await changePasswordAndRevoke({
+    userId: user.id,
+    email: session.user.email,
+    keepSessionId: session.id,
+    passwordHash: await hashPassword(next),
+  });
   await logActivity({
     user: session.user,
     action: "Senha alterada",

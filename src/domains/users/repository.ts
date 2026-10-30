@@ -41,13 +41,6 @@ export function deleteUser(id: string) {
   return getDb().delete(users).where(eq(users.id, id));
 }
 
-export function setPassword(id: string, passwordHash: string) {
-  return getDb()
-    .update(users)
-    .set({ passwordHash, passwordChangedAt: new Date() })
-    .where(eq(users.id, id));
-}
-
 /**
  * Applies `patch` after `check` accepts it, in one transaction. The target and every active ADMIN
  * are locked first (FOR UPDATE, in id order), so two requests that would each leave the other

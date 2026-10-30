@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
 import { sessions, users, verificationCodes } from "@/infrastructure/db/schema";
 
@@ -58,5 +58,43 @@ export function resetPassword(input: {
       .where(eq(users.id, input.userId));
     await tx.delete(sessions).where(eq(sessions.userId, input.userId));
     return true;
+  });
+}
+
+/**
+ * Sets a new password chosen while signed in, ends every other session of the user and consumes
+ * the open reset codes of the e-mail (an older code must not reset the new password), all in one
+ * transaction: no state where the password changed but the old sessions or codes still work.
+ */
+export function changePasswordAndRevoke(input: {
+  userId: string;
+  email: string;
+  keepSessionId: string;
+  passwordHash: string;
+}) {
+  return getDb().transaction(async (tx) => {
+    const now = new Date();
+    await tx
+      .update(users)
+      .set({ passwordHash: input.passwordHash, passwordChangedAt: now })
+      .where(eq(users.id, input.userId));
+    await tx
+      .delete(sessions)
+      .where(
+        and(
+          eq(sessions.userId, input.userId),
+          ne(sessions.id, input.keepSessionId),
+        ),
+      );
+    await tx
+      .update(verificationCodes)
+      .set({ consumedAt: now, payload: null })
+      .where(
+        and(
+          eq(verificationCodes.purpose, "password_reset"),
+          eq(verificationCodes.email, input.email),
+          isNull(verificationCodes.consumedAt),
+        ),
+      );
   });
 }
