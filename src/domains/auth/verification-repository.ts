@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, gt, isNull, lt, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
 import {
   verificationCodes,
@@ -23,6 +23,26 @@ export async function latestCode(purpose: VerificationPurpose, email: string) {
   return row;
 }
 
+/** Creation times of the codes issued for this e-mail and purpose since `since`, oldest first. */
+export async function codeTimesSince(
+  purpose: VerificationPurpose,
+  email: string,
+  since: Date,
+) {
+  const rows = await getDb()
+    .select({ createdAt: verificationCodes.createdAt })
+    .from(verificationCodes)
+    .where(
+      and(
+        eq(verificationCodes.purpose, purpose),
+        eq(verificationCodes.email, email),
+        gt(verificationCodes.createdAt, since),
+      ),
+    )
+    .orderBy(asc(verificationCodes.createdAt));
+  return rows.map((row) => row.createdAt);
+}
+
 /** Stores a new code; older open ones stay valid until `supersedeCodes` runs, after the mail is out. */
 export async function insertCode(values: {
   purpose: VerificationPurpose;
@@ -39,7 +59,11 @@ export async function insertCode(values: {
   return row.id;
 }
 
-/** Invalidates (keeps, as consumed) the other open codes of this e-mail and purpose. */
+/**
+ * Invalidates (keeps, as consumed) the open codes of this e-mail and purpose created before `keepId`
+ * (ties broken by id), and drops their payload. Only older codes, so of two concurrent deliveries
+ * the newest always survives. Row comparison against the kept row keeps it one statement.
+ */
 export function supersedeCodes(
   purpose: VerificationPurpose,
   email: string,
@@ -47,13 +71,13 @@ export function supersedeCodes(
 ) {
   return getDb()
     .update(verificationCodes)
-    .set({ consumedAt: new Date() })
+    .set({ consumedAt: new Date(), payload: null })
     .where(
       and(
         eq(verificationCodes.purpose, purpose),
         eq(verificationCodes.email, email),
         isNull(verificationCodes.consumedAt),
-        ne(verificationCodes.id, keepId),
+        sql`(${verificationCodes.createdAt}, ${verificationCodes.id}) < (select ${verificationCodes.createdAt}, ${verificationCodes.id} from ${verificationCodes} where ${verificationCodes.id} = ${keepId})`,
       ),
     );
 }

@@ -18,6 +18,7 @@ import {
 import { ServiceError } from "./errors";
 import {
   claimAttempt,
+  codeTimesSince,
   deleteCode,
   latestCode,
   insertCode,
@@ -78,13 +79,34 @@ export async function deliverCode(
   await supersedeCodes(purpose, email, id);
 }
 
-/** Refuses with 429 when the last code for this e-mail and purpose is under a minute old. */
+/** Codes per e-mail and purpose in 24 h: more would give a guesser fresh attempts at 5 per code. */
+export const DAILY_CODE_CAP = 10;
+const DAY_MS = 24 * 3_600_000;
+
+/**
+ * Refuses with 429 when the last code for this e-mail and purpose is under a minute old, or when
+ * DAILY_CODE_CAP codes were issued in the last 24 h. Invites an ADMIN creates skip this check (they
+ * call `deliverCode` directly): the actor is authenticated and each needs a new account.
+ */
 export async function assertCooldown(
   purpose: VerificationPurpose,
   email: string,
   now = new Date(),
 ) {
-  const last = await latestCode(purpose, email);
+  const [last, recent] = await Promise.all([
+    latestCode(purpose, email),
+    codeTimesSince(purpose, email, new Date(now.getTime() - DAY_MS)),
+  ]);
+  if (recent.length >= DAILY_CODE_CAP)
+    throw new ServiceError(
+      429,
+      "Muitos códigos pedidos para este e-mail hoje. Tente novamente mais tarde.",
+      {
+        retryAfterSeconds: Math.ceil(
+          (recent[0].getTime() + DAY_MS - now.getTime()) / 1000,
+        ),
+      },
+    );
   const waitMs = last
     ? last.createdAt.getTime() + RESEND_INTERVAL_MS - now.getTime()
     : 0;

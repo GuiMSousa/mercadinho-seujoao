@@ -74,7 +74,8 @@ export function createStoreWithAdmin(input: {
     const now = new Date();
     const consumed = await tx
       .update(verificationCodes)
-      .set({ consumedAt: now })
+      // The payload holds the password hash and nonce hash; drop them once used.
+      .set({ consumedAt: now, payload: null })
       .where(
         and(
           eq(verificationCodes.id, input.codeId),

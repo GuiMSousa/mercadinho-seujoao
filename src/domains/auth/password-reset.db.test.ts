@@ -158,3 +158,22 @@ it("an invite code older than the resend interval still works when no new reset 
       verifyPassword("nova12345", after.passwordHash!),
     ).resolves.toBe(true);
   }));
+
+it("stays silent and sends nothing once 10 codes were issued in 24 h", () =>
+  inTest(async (db) => {
+    await newUser(db);
+    await db.insert(verificationCodes).values(
+      Array.from({ length: 10 }, () => ({
+        purpose: "password_reset" as const,
+        email: "ana@loja.com",
+        codeHash: "h",
+        expiresAt: new Date(Date.now() + 60_000),
+        createdAt: new Date(Date.now() - 3_600_000),
+      })),
+    );
+    await expect(requestPasswordReset("ana@loja.com")).resolves.toBeUndefined();
+    // Delivery is detached; give it time to (not) run.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(send).not.toHaveBeenCalled();
+    expect(await db.select().from(verificationCodes)).toHaveLength(10);
+  }));
