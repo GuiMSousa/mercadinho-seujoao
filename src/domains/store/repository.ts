@@ -36,6 +36,21 @@ export async function updateStoreRow(values: {
   return row;
 }
 
+/** Used by the dev seed only. Returns false when the installation already has its store. */
+export async function insertStoreIfMissing(values: {
+  name: string;
+  document: string;
+  phone: string;
+  kind: string;
+}) {
+  const rows = await getDb()
+    .insert(stores)
+    .values(values)
+    .onConflictDoNothing({ target: stores.singleton })
+    .returning({ id: stores.id });
+  return rows.length > 0;
+}
+
 export async function storeExists() {
   const [row] = await getDb().select({ id: stores.id }).from(stores).limit(1);
   return row !== undefined;
