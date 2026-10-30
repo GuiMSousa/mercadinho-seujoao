@@ -146,7 +146,8 @@ it("an invite code older than the resend interval still works when no new reset 
     const code = sentCode();
     await db
       .update(verificationCodes)
-      .set({ createdAt: new Date(Date.now() - 5 * 60_000) });
+      .set({ createdAt: new Date(Date.now() - 5 * 60_000) })
+      .where(eq(verificationCodes.email, "ana@loja.com"));
 
     await confirmPasswordReset("ana@loja.com", code, "nova12345");
     const [after] = await db

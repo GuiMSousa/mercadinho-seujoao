@@ -26,7 +26,7 @@ Abra `http://localhost:3000/login`. Há três caminhos para o primeiro acesso:
 
 - **Demonstração (só em desenvolvimento):** `npm run db:seed` cria a loja "Mercadinho Bom Preço" e três usuários, todos com a senha `mkt12345`: `ana@bompreco.com.br` (`ADMIN`), `carlos@bompreco.com.br` e `juliana@bompreco.com.br` (`CASHIER`). O seed recusa `NODE_ENV=production`, é idempotente e nunca sobrescreve uma loja nem a senha de um usuário que já exista (ele lista o que ignorou). Os botões "Administrador" e "Operador de caixa" da tela de login só aparecem em desenvolvimento. O painel é exclusivo de `ADMIN`: o login de `CASHIER` é recusado.
 - **Instalação real:** com o banco vazio, `/` leva a `/login`, onde "Criar conta da loja" abre o cadastro em 3 etapas (dados da conta, dados da loja, código de 6 dígitos por e-mail). Quem cria a loja vira `ADMIN`; depois disso o botão some. Os demais usuários entram por convite em Usuários.
-- **Linha de comando:** `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` cria um usuário com senha aleatória, exibida uma única vez; guarde-a em local seguro. E-mails repetidos são recusados.
+- **Linha de comando:** `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` cria um usuário com senha aleatória, exibida uma única vez; guarde-a em local seguro. E-mails repetidos são recusados. Use-o só para usuários extras: ele não cria a loja, e sem loja a página Configurações apenas orienta a cadastrá-la. Para o primeiro usuário, prefira "Criar conta da loja" (instalação real) ou `npm run db:seed` (desenvolvimento).
 
 No `.env.local` (ignorado pelo Git), defina:
 
@@ -56,7 +56,7 @@ O npm 11 bloqueia install scripts não aprovados (`allowScripts`). Os avisos sob
 
   Nunca use produção como ambiente de teste.
 
-- **A migration `0001` apaga todos os usuários** (`DELETE FROM "users"`), porque o `username` antigo não vira e-mail. Em desenvolvimento, recrie-os com `npm run user:create -- <email> "<Nome completo>" ADMIN`. Não aplique a `0001` num banco cujos usuários precisem ser mantidos.
+- **A migration `0001` apaga todos os usuários** (`DELETE FROM "users"`), porque o `username` antigo não vira e-mail. Em desenvolvimento, recrie-os com `npm run db:seed` (cria a loja e os usuários de demonstração) ou, se a loja já existe, com `npm run user:create -- <email> "<Nome completo>" ADMIN`. Não aplique a `0001` num banco cujos usuários precisem ser mantidos.
 
 ### Banco de testes
 

@@ -27,6 +27,8 @@ export async function apiFetch<T = unknown>(
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!result.ok && result.status === 401) window.location.assign("/login");
+  // A full load drops the router cache of the ended session.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  if (!result.ok && result.status === 401) window.location.href = "/login";
   return result;
 }

@@ -17,10 +17,11 @@ export function resetCodeMail(code: string): MailContent {
 export function inviteMail(input: {
   name: string;
   storeName: string;
+  email: string;
   code: string;
 }): MailContent {
   return {
     subject: "Você foi convidado para o Mkt Control",
-    text: `Olá, ${input.name}!\n\nVocê foi convidado para acessar o Mkt Control da loja ${input.storeName}.\n\nPara criar sua senha, abra a página /recuperar do sistema, informe seu e-mail e o código ${input.code}.\n\nO código expira em 48 horas.`,
+    text: `Olá, ${input.name}!\n\nVocê foi convidado para acessar o Mkt Control da loja ${input.storeName}.\n\nPara criar sua senha, abra a página /recuperar?email=${encodeURIComponent(input.email)}&etapa=codigo do sistema, informe o código ${input.code} e escolha a senha. Não peça um novo código nessa página: ele substituiria este.\n\nO código expira em 48 horas.`,
   };
 }

@@ -1,15 +1,15 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { apiFetch } from "./api";
 
-const assign = vi.fn();
+const location = { href: "/painel" };
 vi.stubGlobal("document", { cookie: "mkt_csrf=tok%20en" });
-vi.stubGlobal("window", { location: { assign } });
+vi.stubGlobal("window", { location });
 
 afterEach(() => {
-  assign.mockReset();
+  location.href = "/painel";
   vi.unstubAllGlobals();
   vi.stubGlobal("document", { cookie: "mkt_csrf=tok%20en" });
-  vi.stubGlobal("window", { location: { assign } });
+  vi.stubGlobal("window", { location });
 });
 
 const respond = (status: number, body: unknown) =>
@@ -27,18 +27,18 @@ it("sends the CSRF header and JSON body, and keeps the page on success", async (
     "content-type": "application/json",
     "x-csrf-token": "tok en",
   });
-  expect(assign).not.toHaveBeenCalled();
+  expect(location.href).toBe("/painel");
 });
 
 it("sends the person to the login on 401 and still returns the failure", async () => {
   respond(401, { error: "Faça login para continuar." });
   const result = await apiFetch("/api/x", { method: "POST" });
-  expect(assign).toHaveBeenCalledWith("/login");
+  expect(location.href).toBe("/login");
   expect(result).toMatchObject({ ok: false, status: 401 });
 });
 
 it("does not redirect on other failures", async () => {
   respond(409, { error: "Conflito." });
   await apiFetch("/api/x", { method: "POST" });
-  expect(assign).not.toHaveBeenCalled();
+  expect(location.href).toBe("/painel");
 });

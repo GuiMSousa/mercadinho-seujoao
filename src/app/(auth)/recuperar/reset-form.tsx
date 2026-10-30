@@ -5,22 +5,53 @@ import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@ds/components/button";
 import { Input } from "@ds/components/input";
-import { postJson, useFocusOnError, type FormErrors } from "../auth-client";
+import {
+  RESEND_SECONDS,
+  postJson,
+  useCountdown,
+  useFocusOnError,
+  type FormErrors,
+} from "../auth-client";
 import { FormAlert } from "../form-alert";
 import { PasswordField } from "../password-field";
 
 const titles = ["Recuperar senha", "Defina uma nova senha", "Senha redefinida"];
 const labels = ["Enviar código", "Redefinir senha"];
 
-export function ResetForm() {
+export function ResetForm({
+  initialEmail = "",
+  initialStep = 1,
+}: {
+  initialEmail?: string;
+  initialStep?: 1 | 2;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [email, setEmail] = useState("");
+  const [step, setStep] = useState<1 | 2 | 3>(initialStep);
+  const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [pending, setPending] = useState(false);
+  const [resending, setResending] = useState(false);
+  const countdown = useCountdown(RESEND_SECONDS);
   useFocusOnError(formRef, errors);
+
+  // The invite code is still valid: asking for a new one here would replace it.
+  function haveCode() {
+    if (!/^S+@S+.S+$/.test(email.trim()))
+      return setErrors({ fields: { email: "Informe um e-mail válido." } });
+    setErrors(null);
+    setStep(2);
+  }
+
+  async function resend() {
+    setResending(true);
+    setErrors(null);
+    const result = await postJson("/api/auth/password-reset", { email });
+    setResending(false);
+    if (!result.ok) return setErrors(result.errors);
+    countdown.restart();
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -132,6 +163,38 @@ export function ResetForm() {
         <Button type="submit" size="lg" fullWidth loading={pending}>
           {pending ? "Aguarde…" : labels[step - 1]}
         </Button>
+      )}
+      {step === 1 && (
+        <Button type="button" variant="ghost" onClick={haveCode}>
+          Já tenho um código
+        </Button>
+      )}
+      {step === 2 && (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setErrors(null);
+              setStep(1);
+            }}
+          >
+            Voltar
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            loading={resending}
+            disabled={countdown.left > 0}
+            onClick={() => void resend()}
+          >
+            {countdown.left > 0
+              ? `Reenviar código em ${countdown.left} s`
+              : "Reenviar código"}
+          </Button>
+        </div>
       )}
       {step !== 3 && (
         <Link

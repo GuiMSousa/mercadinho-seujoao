@@ -90,13 +90,16 @@ describe("mail templates", () => {
     const mail = inviteMail({
       name: "Ana",
       storeName: "Loja Centro",
+      email: "ana+1@loja.com",
       code: "111222",
     });
     expect(mail.subject).toBe("Você foi convidado para o Mkt Control");
     expect(mail.text).toContain("Ana");
     expect(mail.text).toContain("Loja Centro");
     expect(mail.text).toContain("111222");
-    expect(mail.text).toContain("/recuperar");
+    expect(mail.text).toContain(
+      "/recuperar?email=ana%2B1%40loja.com&etapa=codigo",
+    );
     expect(mail.text).toContain("48 horas");
   });
 });

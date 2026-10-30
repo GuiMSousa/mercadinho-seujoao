@@ -404,3 +404,15 @@ it("does not count a pending ADMIN invite as an active ADMIN", async () => {
     );
   });
 });
+
+it("names the product in the invite mail when no store exists yet", async () => {
+  await inTest(async (db) => {
+    const admin = await newUser(db);
+    await inviteUser(admin, {
+      name: "Caio Caixa",
+      email: "caio@loja.com",
+      role: "CASHIER",
+    });
+    expect(send.mock.calls[0]![0].text).toContain("loja Mkt Control");
+  });
+});

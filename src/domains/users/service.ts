@@ -72,6 +72,7 @@ export async function inviteUser(
       mail: (code) =>
         inviteMail({
           name: input.name,
+          email: input.email,
           storeName: store?.name ?? "Mkt Control",
           code,
         }),
