@@ -72,7 +72,7 @@ Ordem de entrega, uma funcionalidade por vez:
 - **Caixa único:** só um caixa aberto por vez no estabelecimento. Sem caixa ativo, o servidor recusa vendas.
 - **PVPS:** a baixa de estoque é sempre pelo lote que vence primeiro.
 - **Dinheiro:** o total da venda é exatamente a soma dos itens já arredondados ao centavo. O CMV é gravado no momento da venda.
-- **Sessão e segurança:** sessão por cookie com JWT, cabeçalho anti-CSRF e limite de 10 tentativas de login a cada 15 minutos por IP.
+- **Sessão e segurança:** sessão por cookie opaco com registro no banco, cabeçalho anti-CSRF e limite de 10 tentativas de login a cada 15 minutos por IP.
 - **CSP rigorosa:** scripts e estilos só do próprio servidor, sem CDNs externas.
 - **API documentada:** especificação OpenAPI validada por testes de contrato automatizados.
 - **Balcão:** nas telas de Vendas, Caixa e Entrada, botões principais com no mínimo 60 px de altura; operação por toque.
@@ -89,7 +89,10 @@ Ordem de entrega, uma funcionalidade por vez:
 - **Banco:** PostgreSQL local em Docker Compose, com volume persistente.
 - **Hospedagem:** o PC da loja roda o servidor. Clientes locais ou remotos dependem dele ligado.
 - **Túnel e HTTPS:** Cloudflare Tunnels (`cloudflared`) publica o servidor com HTTPS, exigido pela câmera do celular e pela instalação do PWA. Pela rede local em HTTP o sistema funciona no PC, mas sem leitor por câmera no celular. O atalho do PWA precisa de um túnel nomeado com domínio fixo; um túnel rápido gera URL temporária.
-- **E-mail:** Resend, pelo SDK oficial para Node.js/TypeScript, usado no alerta diário de reposição. A chave fica só no servidor (`RESEND_API_KEY`) e entra com essa funcionalidade.
+- **E-mail:** Resend, chamado por `fetch` na API HTTP (sem SDK), usado hoje nos códigos de cadastro, recuperação de senha e convite e, depois, no alerta diário de reposição. A chave (`RESEND_API_KEY`) fica só no servidor. Sem chave e fora de produção, o e-mail só vai para o log.
+- **Uma loja por instalação:** o servidor atende uma única loja, criada no cadastro inicial (`/cadastro`), que só existe enquanto não há loja. Usuários novos entram por convite de um `ADMIN`.
+- **Login por e-mail:** o e-mail identifica o usuário (trim e minúsculas). O painel é exclusivo de `ADMIN`; `CASHIER` é recusado no login do painel e usará o PDV.
+- **Demonstração só em desenvolvimento:** `npm run db:seed` e os botões de login de demonstração não funcionam em produção.
 - **Organização:** features em `src/domains`, integrações em `src/infrastructure`, contratos em `src/contracts`. Rotas finas, serviços independentes do Next.js e acesso a dados por repositories. Detalhes em [docs/architecture.md](docs/architecture.md).
 
 ## Premissas e decisões pendentes
@@ -125,7 +128,7 @@ Ordem de entrega, uma funcionalidade por vez:
 ## Entregue: autenticação
 
 - Tabela `users` (papéis `ADMIN`/`CASHIER`, senha com hash scrypt) na primeira migration.
-- Login por cookie JWT HTTP-only (12 h) com token anti-CSRF exigido em toda requisição autenticada que altera estado, e recusa de requisições de outra origem.
+- Login por cookie HTTP-only com sessão no banco (30 dias deslizantes com "Manter conectado"; senão cookie de navegador e 12 h) com token anti-CSRF exigido em toda requisição autenticada que altera estado, e recusa de requisições de outra origem.
 - Proxy e cada rota aplicam a mesma regra. Qualquer caminho fora de `/`, `/login` e do login exige sessão, e `/admin` e `/api/admin` são exclusivos de `ADMIN`.
 - Limite de 10 logins por IP a cada 15 minutos; a 11ª tentativa recebe 429 com `Retry-After`.
 - Contrato OpenAPI em `src/contracts/openapi.json`, verificado por `npm run spec:check`.

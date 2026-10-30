@@ -23,48 +23,48 @@ design-system/                # biblioteca de UI; contrato em DESIGN.md
 ├── tokens.css, tokens.test.ts # tokens (importados por src/app/globals.css) e teste do contrato
 ├── fonts.ts, assets/fonts/   # Hanken Grotesk via next/font/local
 ├── lib/                      # cn ciente das escalas, centavos, teclado numérico
-├── components/               # Button, Input, Select, Checkbox, Badge, Money, Card, Table, Dialog, Keypad
+├── components/               # Button, Input, Select, Checkbox, Badge, Money, Card, Table, Dialog, Tabs, Toast, Keypad
 └── references/               # exportação do Claude Design (estática; ignorada por lint/TS/Tailwind)
 src/
 ├── proxy.ts                  # gate otimista (Next 16 "proxy", ex-middleware): mesma regra das rotas
 ├── app/
-│   ├── layout.tsx, page.tsx  # layout pt-BR e página inicial
-│   ├── login/                # tela de login (form cliente → POST /api/auth/login)
+│   ├── layout.tsx, page.tsx, theme.ts # layout pt-BR (tema lido do cookie no servidor); `/` decide entre /login e /painel
+│   ├── (auth)/               # telas públicas: login/, cadastro/ (3 etapas), recuperar/ (também define a senha do convite)
+│   ├── painel/               # shell do ADMIN: layout (guarda de perfil), _shell/ (sidebar, topbar, drawer móvel), page.tsx (saudação)
+│   │   ├── usuarios/         # abas Equipe (convites, perfil, desativar) e Registro de atividade
+│   │   └── configuracoes/    # dados da loja, tema, inatividade da sessão, alterar senha, encerrar outras sessões
 │   ├── design-system/        # vitrine pública: componentes, estados e temas (dados fictícios)
 │   └── api/
 │       ├── _lib/guard.ts     # adaptador HTTP: lê a sessão, aplica accessDenial, define/limpa cookies
 │       ├── _lib/public.ts    # rotas públicas: guard + limite por IP + validação (422 com `fields`) + sessão
-│       ├── setup             # GET público: `{ hasStore }`
+│       ├── _lib/admin.ts     # rotas de ADMIN: guard + CSRF + validação
+│       ├── setup, theme      # GET público `{ hasStore }`; POST do cookie de tema
 │       ├── auth/login, auth/logout
 │       ├── auth/signup, signup/verify, signup/resend
 │       ├── auth/password-reset, password-reset/confirm
-│       └── admin/users       # exclusiva de ADMIN
-├── contracts/
-│   ├── auth.ts               # schemas Zod da API + nomes de cookie/cabeçalho
-│   ├── openapi.ts            # monta o OpenAPI 3.1 a partir dos schemas
+│       ├── account, account/password, account/sessions/revoke-others
+│       ├── store             # dados e inatividade da loja (GET/PATCH)
+│       └── admin/users, admin/users/[id], admin/activity
+├── contracts/                # schemas Zod por área (auth, users, store, account, activity, theme) + openapi*.ts
 │   └── openapi.json          # contrato versionado (npm run spec:generate)
-├── domains/auth/
-│   ├── access.ts             # regra única de acesso (público, sessão, ADMIN, CSRF, origem)
-│   ├── sessions.ts           # sessões no banco: criar, ler (expiração, ociosidade), revogar
-│   ├── sessions-repository.ts # único acesso a `sessions` (e leitura de `users`/`stores` para validá-las)
-│   ├── password.ts           # hash scrypt (node:crypto)
-│   ├── login-rate-limit.ts   # janela deslizante em memória + IP do cliente
-│   ├── service.ts            # authenticate (tempo constante para usuário inexistente)
-│   ├── signup.ts, password-reset.ts # cadastro da loja e recuperação de senha (códigos por e-mail)
-│   ├── verification.ts       # emitir, reenviar e conferir códigos (tentativa gasta em SQL antes do hash)
-│   ├── verification-repository.ts # único acesso a `verification_codes`
-│   └── repository.ts         # único acesso a `users`
-├── domains/store/            # `stores`: existência e criação da loja com o primeiro ADMIN (transação)
+├── domains/
+│   ├── auth/                 # access.ts (regra única de acesso), sessions*.ts (sessões no banco), password.ts (scrypt),
+│   │                         # login-rate-limit.ts, service.ts (authenticate), signup.ts, password-reset.ts,
+│   │                         # codes.ts + verification*.ts (códigos por e-mail), repository.ts (único acesso a `users` no login)
+│   ├── store/                # `stores`: uma loja por instalação; criação com o primeiro ADMIN (transação) e configurações
+│   ├── users/                # equipe: listar, convidar, editar, desativar (último ADMIN protegido por transação com lock)
+│   └── activity/             # registro de atividade (quem fez o quê)
 ├── lib/                      # env (Zod, server-only), logger Pino, `cn`, `document.ts` (máscara e dígitos de CPF/CNPJ)
-└── infrastructure/db/
-    ├── index.ts              # único ponto de conexão: pool limitado (max 5), lazy
-    └── schema/               # users.ts (enum user_role + tabela users)
+└── infrastructure/
+    ├── db/                   # index.ts: único ponto de conexão (pool max 5, lazy); schema/ (users, stores, sessions,
+    │                         # verification-codes, activity-log); test-db.ts (transação com rollback nos testes)
+    └── mail/                 # Resend por `fetch`; sem chave e fora de produção, só registra no log ("mail (dev)")
 drizzle/                      # SQL versionado (0000: user_role + users)
-scripts/                      # create-user.mts, generate-openapi.mts, verify-quality-rules.mjs
+scripts/                      # create-user.mts, seed-dev.mts, migrate-test.mjs, generate-openapi.mts, verify-quality-rules.mjs
 eslint-rules/                 # regras locais do toolkit
 ```
 
-Os testes ficam junto do código (`*.test.ts`) e não precisam de banco.
+Os testes ficam junto do código (`*.test.ts`); os `*.db.test.ts` precisam do banco `mkt_control_test`.
 
 ## Limites e fluxo
 
@@ -75,7 +75,7 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 ```
 
 - **`src/domains/<feature>`:** regra de negócio. Os services não importam `next/*`. Só os repositories chamam `getDb()`.
-- **`src/infrastructure`:** integrações. Hoje só o banco; e-mail (Resend) entra com o alerta diário.
+- **`src/infrastructure`:** integrações: o banco e o e-mail (Resend).
 - **`src/contracts`:** schemas Zod da API e o OpenAPI gerado deles.
 - **Rotas:** começam com `guard(request)` e só depois validam a entrada, chamam o service e devolvem DTOs parseados pelo contrato.
 
@@ -97,6 +97,14 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 
 **Códigos por e-mail** (cadastro e recuperação): 6 dígitos, hash scrypt, 10 min, 5 tentativas, novo código invalida o anterior, 1 pedido por minuto. A tentativa é gasta num `UPDATE ... attempts + 1` condicional antes de comparar o hash, então palpites paralelos não passam de 5. A recuperação responde 202 igual para qualquer e-mail, envia o código fora do caminho da resposta e usa uma única mensagem para todo erro de código. O pedido de cadastro fica preso ao navegador que o iniciou: o payload guarda o SHA-256 de um nonce entregue no cookie HTTP-only `mkt_signup` (`Path=/api/auth/signup`, 10 min); `verify` e `resend` exigem o cookie (409 "Seu cadastro expirou. Comece de novo."), então ninguém substitui o pedido de outra pessoa. O código novo só invalida o anterior depois que o e-mail é enviado. O cadastro cria loja e ADMIN numa transação; a segunda loja falha em `stores_singleton` e vira 409.
 
+**Painel** (`/painel`, só `ADMIN`):
+
+- O `layout.tsx` confere sessão e perfil no servidor (o proxy é só o primeiro filtro) e monta sidebar, topbar e, abaixo de 900 px, um drawer com foco preso.
+- As páginas de Usuários e Configurações carregam os dados no servidor e mudam por `fetch` às rotas de `/api/admin`, `/api/account` e `/api/store`, com o token CSRF. Avisos usam o `Toast` do design system.
+- Rebaixar ou desativar o último `ADMIN` ativo, inclusive a si mesmo, responde 409.
+- O tema (claro, escuro, sistema) fica no cookie `mkt_theme`, gravado por `POST /api/theme` e aplicado ao `<html data-theme>` no servidor, sem piscar na hidratação.
+- Alterar a senha encerra as outras sessões do usuário; "Encerrar outras sessões" faz só isso.
+
 Pastas novas só nascem com código real.
 
 Guardas automáticas atuais (ESLint):
@@ -117,12 +125,14 @@ Guardas automáticas atuais (ESLint):
 
 ## Ambiente
 
-| Variável                                                             | Onde                                | Uso                                           |
-| -------------------------------------------------------------------- | ----------------------------------- | --------------------------------------------- |
-| `DATABASE_URL`                                                       | runtime (app, drizzle-kit, scripts) | Conexão PostgreSQL. Não é necessária no build |
-| `DATABASE_URL_UNPOOLED`                                              | migrations (opcional)               | Conexão direta, se o provedor exigir          |
-| `LOG_LEVEL`                                                          | runtime                             | Nível do Pino (padrão `info`)                 |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT` | Docker Compose                      | Credenciais do container local                |
+| Variável                                                             | Onde                                 | Uso                                           |
+| -------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------- |
+| `DATABASE_URL`                                                       | runtime (app, drizzle-kit, scripts)  | Conexão PostgreSQL. Não é necessária no build |
+| `DATABASE_URL_UNPOOLED`                                              | migrations (opcional)                | Conexão direta, se o provedor exigir          |
+| `DATABASE_URL_TEST`                                                  | `npm run test:db`, `db:migrate:test` | Banco `mkt_control_test`, só para testes      |
+| `RESEND_API_KEY`, `MAIL_FROM`                                        | runtime                              | E-mail (obrigatório em produção; em dev, log) |
+| `LOG_LEVEL`                                                          | runtime                              | Nível do Pino (padrão `info`)                 |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT` | Docker Compose                       | Credenciais do container local                |
 
 Carregamento:
 

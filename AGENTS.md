@@ -33,7 +33,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Verificação completa: `npm run check` (não conecta ao banco nem aplica migrations)
 - Contrato OpenAPI: `npm run spec:check` (spec válida, igual ao `openapi.json` versionado e cobrindo toda rota de `src/app/api`); depois de mudar contratos ou rotas, `npm run spec:generate`
 - Criar usuário: `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` (senha aleatória exibida uma vez; precisa do banco migrado)
-- E2E (`test:e2e`): ainda não existe; entra com o primeiro fluxo de tela.
+- Dados de demonstração: `npm run db:seed` (loja e 3 usuários com senha `mkt12345`; recusa `NODE_ENV=production`; idempotente, não sobrescreve nada)
+- Teste de navegador: roteiro manual com Playwright em [docs/quality.md](docs/quality.md), banco `mkt_control_e2e`; `test:e2e` automatizado ainda não existe.
 
 ## Acordos de trabalho
 
@@ -62,7 +63,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Valide entrada e ambiente com Zod. Use o logger Pino só no servidor, sem segredos nem corpos completos. Para console, `quality/no-direct-console` aponta o logger.
 - Dinheiro em centavos inteiros e peso em gramas. O total da venda é a soma dos itens arredondados ao centavo (ver PRODUCT.md).
 - Dados de custo, CMV e margem nunca vão a respostas acessíveis ao perfil `CASHIER`.
-- Autenticação: toda rota de API começa com `guard(request)` (`src/app/api/_lib/guard.ts`), a mesma regra do `src/proxy.ts` (`accessDenial` em `src/domains/auth/access.ts`). Não confie só no proxy. Caminhos novos exigem sessão por padrão; exclusivos de `ADMIN` ficam em `/admin` ou `/api/admin`. Mutações autenticadas exigem o cabeçalho `x-csrf-token` igual ao cookie `mkt_csrf`.
+- Autenticação: login por e-mail e senha (e-mail com trim e minúsculas); sessão em banco (token opaco, só o SHA-256 fica gravado), nunca JWT; o painel (`/painel`, `/api/admin`, `/api/account`, `/api/store`) é exclusivo de `ADMIN`, e `CASHIER` usará o PDV. Há uma loja por instalação (`stores.singleton`). Os botões de login de demonstração existem só em desenvolvimento. Toda rota de API começa com `guard(request)` (`src/app/api/_lib/guard.ts`), a mesma regra do `src/proxy.ts` (`accessDenial` em `src/domains/auth/access.ts`). Não confie só no proxy. Caminhos novos exigem sessão por padrão; exclusivos de `ADMIN` ficam em `/admin` ou `/api/admin`. Mutações autenticadas exigem o cabeçalho `x-csrf-token` igual ao cookie `mkt_csrf`.
 - Toda rota nova de API entra no contrato (`src/contracts`) e no `openapi.json`; o `spec:check` falha se faltar.
 - Consulte fontes oficiais atuais e canais estáveis antes de mudar stack ou APIs. Registre fonte, motivo e resultado em `docs/setup.md`.
 - Responsabilidades dos documentos: `PRODUCT.md` é o escopo; `docs/architecture.md`, estrutura e decisões; `DESIGN.md`, contrato visual, interface e tokens; `docs/onboarding.md`, preparação; `docs/quality.md`, verificações. Atualize o documento responsável junto com a mudança.

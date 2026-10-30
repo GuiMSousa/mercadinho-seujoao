@@ -18,11 +18,22 @@ npm ci
 cp .env.example .env.local
 npm run db:up
 npm run db:migrate
-npm run user:create -- <email> "<Nome completo>" ADMIN
+npm run db:seed   # só desenvolvimento: loja e usuários de demonstração
 npm run dev
 ```
 
-Abra `http://localhost:3000/login` e entre com o e-mail. O `user:create` mostra a senha inicial uma única vez; guarde-a em local seguro. Para operadores, use `CASHIER`. E-mails repetidos são recusados.
+Abra `http://localhost:3000/login`. Há três caminhos para o primeiro acesso:
+
+- **Demonstração (só em desenvolvimento):** `npm run db:seed` cria a loja "Mercadinho Bom Preço" e três usuários, todos com a senha `mkt12345`: `ana@bompreco.com.br` (`ADMIN`), `carlos@bompreco.com.br` e `juliana@bompreco.com.br` (`CASHIER`). O seed recusa `NODE_ENV=production`, é idempotente e nunca sobrescreve uma loja nem a senha de um usuário que já exista (ele lista o que ignorou). Os botões "Administrador" e "Operador de caixa" da tela de login só aparecem em desenvolvimento. O painel é exclusivo de `ADMIN`: o login de `CASHIER` é recusado.
+- **Instalação real:** com o banco vazio, `/` leva a `/login`, onde "Criar conta da loja" abre o cadastro em 3 etapas (dados da conta, dados da loja, código de 6 dígitos por e-mail). Quem cria a loja vira `ADMIN`; depois disso o botão some. Os demais usuários entram por convite em Usuários.
+- **Linha de comando:** `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` cria um usuário com senha aleatória, exibida uma única vez; guarde-a em local seguro. E-mails repetidos são recusados.
+
+### E-mail
+
+Sem `RESEND_API_KEY`, fora de produção, o servidor não envia nada: o texto de cada e-mail (códigos de cadastro, recuperação e convite) aparece no log do `npm run dev` com a mensagem `mail (dev)`. Em produção a chave é obrigatória. Defina no `.env.local`:
+
+- `RESEND_API_KEY`: chave da conta Resend;
+- `MAIL_FROM`: remetente, por exemplo `Mkt Control <no-reply@seudominio.com.br>` (padrão fora de produção: `Mkt Control <no-reply@localhost>`).
 
 No `.env.local` (ignorado pelo Git), defina:
 
@@ -30,6 +41,7 @@ No `.env.local` (ignorado pelo Git), defina:
 - `POSTGRES_PORT` (padrão 5432);
 - `DATABASE_URL=postgresql://<user>:<senha>@localhost:<porta>/<db>`, com os mesmos valores. A senha aparece nos dois lugares, então troque nos dois.
 - `DATABASE_URL_TEST`: mesma conexão, mas com o banco `mkt_control_test` (ver "Banco de testes" abaixo).
+- `RESEND_API_KEY` e `MAIL_FROM`: opcionais em desenvolvimento (ver "E-mail" acima).
 
 Nunca use `NEXT_PUBLIC_*` para segredos.
 
@@ -58,6 +70,10 @@ docker compose --env-file .env.local exec postgres sh -c 'createdb -U "$POSTGRES
 ```
 
 Depois defina `DATABASE_URL_TEST` no `.env.local` (mesmas credenciais, banco `mkt_control_test`) e aplique as migrations nele com `npm run db:migrate:test`. Repita `db:migrate:test` sempre que houver migration nova.
+
+### Banco do teste em navegador
+
+O roteiro E2E de [quality.md](quality.md#roteiro-e2e-no-navegador) roda contra um banco descartável `mkt_control_e2e`, no mesmo servidor, para começar sempre do zero (sem loja e sem usuários). Crie-o uma vez (`createdb`, como acima), aplique as migrations com `DATABASE_URL` e `DATABASE_URL_UNPOOLED` apontando para ele (`npx drizzle-kit migrate`) e suba o app com `DATABASE_URL` apontando para ele: `npm run dev -- -p 3100`. Os códigos são lidos do log do servidor. Depois, rode `npm run db:seed` no banco de desenvolvimento.
 
 ## Verificar
 
