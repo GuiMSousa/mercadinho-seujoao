@@ -13,6 +13,7 @@ const { insertStoreIfMissing } =
   await import("../src/domains/store/repository");
 const { insertUser } = await import("../src/domains/users/repository");
 const { closeDatabase } = await import("../src/infrastructure/db");
+const { getDatabaseUrl } = await import("../src/lib/env");
 
 const PASSWORD = "mkt12345";
 const demoUsers = [
@@ -22,6 +23,9 @@ const demoUsers = [
 ] as const;
 
 try {
+  // Host and database only: the URL carries the password.
+  const { hostname, port, pathname } = new URL(getDatabaseUrl());
+  console.log(`Banco: ${hostname}:${port}${pathname}`);
   const created = await insertStoreIfMissing({
     name: "Mercadinho Bom Preço",
     document: "12345678000190",

@@ -28,22 +28,19 @@ Abra `http://localhost:3000/login`. Há três caminhos para o primeiro acesso:
 - **Instalação real:** com o banco vazio, `/` leva a `/login`, onde "Criar conta da loja" abre o cadastro em 3 etapas (dados da conta, dados da loja, código de 6 dígitos por e-mail). Quem cria a loja vira `ADMIN`; depois disso o botão some. Os demais usuários entram por convite em Usuários.
 - **Linha de comando:** `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` cria um usuário com senha aleatória, exibida uma única vez; guarde-a em local seguro. E-mails repetidos são recusados.
 
-### E-mail
-
-Sem `RESEND_API_KEY`, fora de produção, o servidor não envia nada: o texto de cada e-mail (códigos de cadastro, recuperação e convite) aparece no log do `npm run dev` com a mensagem `mail (dev)`. Em produção a chave é obrigatória. Defina no `.env.local`:
-
-- `RESEND_API_KEY`: chave da conta Resend;
-- `MAIL_FROM`: remetente, por exemplo `Mkt Control <no-reply@seudominio.com.br>` (padrão fora de produção: `Mkt Control <no-reply@localhost>`).
-
 No `.env.local` (ignorado pelo Git), defina:
 
 - `POSTGRES_USER`, `POSTGRES_DB` e `POSTGRES_PASSWORD`, usando uma senha longa e aleatória gerada localmente;
 - `POSTGRES_PORT` (padrão 5432);
 - `DATABASE_URL=postgresql://<user>:<senha>@localhost:<porta>/<db>`, com os mesmos valores. A senha aparece nos dois lugares, então troque nos dois.
 - `DATABASE_URL_TEST`: mesma conexão, mas com o banco `mkt_control_test` (ver "Banco de testes" abaixo).
-- `RESEND_API_KEY` e `MAIL_FROM`: opcionais em desenvolvimento (ver "E-mail" acima).
+- Variáveis de e-mail: opcionais em desenvolvimento (ver "E-mail" abaixo).
 
 Nunca use `NEXT_PUBLIC_*` para segredos.
+
+### E-mail
+
+Sem `RESEND_API_KEY`, fora de produção, o servidor não envia nada: o texto de cada e-mail (códigos de cadastro, recuperação e convite) aparece no log do `npm run dev` com a mensagem `mail (dev)`. Em produção a chave é obrigatória. No `.env.local`, `RESEND_API_KEY` é a chave da conta Resend e `MAIL_FROM` é o remetente, por exemplo `Mkt Control <no-reply@seudominio.com.br>` (padrão fora de produção: `Mkt Control <no-reply@localhost>`).
 
 O npm 11 bloqueia install scripts não aprovados (`allowScripts`). Os avisos sobre `esbuild` e `unrs-resolver` no `npm ci` são esperados: lint, testes, build e drizzle-kit funcionam sem esses scripts. Não aprove scripts sem revisar.
 

@@ -59,7 +59,7 @@ src/
     ├── db/                   # index.ts: único ponto de conexão (pool max 5, lazy); schema/ (users, stores, sessions,
     │                         # verification-codes, activity-log); test-db.ts (transação com rollback nos testes)
     └── mail/                 # Resend por `fetch`; sem chave e fora de produção, só registra no log ("mail (dev)")
-drizzle/                      # SQL versionado (0000: user_role + users)
+drizzle/                      # SQL versionado (0000: user_role + users; 0001_auth_foundation: loja, sessões, códigos, atividade)
 scripts/                      # create-user.mts, seed-dev.mts, migrate-test.mjs, generate-openapi.mts, verify-quality-rules.mjs
 eslint-rules/                 # regras locais do toolkit
 ```

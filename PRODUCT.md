@@ -129,14 +129,15 @@ Ordem de entrega, uma funcionalidade por vez:
 
 - Tabela `users` (papéis `ADMIN`/`CASHIER`, senha com hash scrypt) na primeira migration.
 - Login por cookie HTTP-only com sessão no banco (30 dias deslizantes com "Manter conectado"; senão cookie de navegador e 12 h) com token anti-CSRF exigido em toda requisição autenticada que altera estado, e recusa de requisições de outra origem.
-- Proxy e cada rota aplicam a mesma regra. Qualquer caminho fora de `/`, `/login` e do login exige sessão, e `/admin` e `/api/admin` são exclusivos de `ADMIN`.
+- Proxy e cada rota aplicam a mesma regra. Qualquer caminho fora de `/`, `/login` e do login exige sessão, e `/painel`, `/api/admin`, `/api/account` e `/api/store` são exclusivos de `ADMIN`.
 - Limite de 10 logins por IP a cada 15 minutos; a 11ª tentativa recebe 429 com `Retry-After`.
 - Contrato OpenAPI em `src/contracts/openapi.json`, verificado por `npm run spec:check`.
-- Primeiro usuário criado por `npm run user:create -- <usuario> ADMIN`, com senha aleatória exibida uma vez. A troca de senha e a gestão de usuários pela tela ficam para a gestão de usuários.
+- Primeiro usuário pelo "Criar conta da loja" em `/login` (cadastro em 3 etapas com código por e-mail), ou, em desenvolvimento, por `npm run db:seed`; `npm run user:create -- <email> "<Nome>" <ADMIN|CASHIER>` cria usuários pela linha de comando.
+- Entregues: troca de senha, recuperação de senha por e-mail, "Encerrar outras sessões", convite e gestão da equipe no painel (`/painel/usuarios`), registro de atividade e configurações da loja.
 
 **Critério verificado:**
 
-- Um `CASHIER` autenticado recebe 403 em `/api/admin/users` e `/admin`.
+- Um `CASHIER` tem o login do painel recusado (403) e, mesmo com sessão, recebe 403 em `/painel` e em `/api/admin`, `/api/account` e `/api/store`.
 - O 11º login do mesmo IP recebe 429.
 
 Comprovado por testes automatizados e contra o servidor real (ver docs/setup.md).
