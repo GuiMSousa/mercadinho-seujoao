@@ -6,17 +6,13 @@ export type ApiResult<T> =
   | { ok: true; status: number; data: T }
   | { ok: false; status: number; errors: FormErrors };
 
-/** POSTs JSON and folds every failure (HTTP error, network error) into `{ error, fields }`. */
-export async function postJson<T = unknown>(
+/** Fetches JSON and folds every failure (HTTP error, network error) into `{ error, fields }`. */
+export async function requestJson<T = unknown>(
   url: string,
-  body: unknown,
+  init: RequestInit,
 ): Promise<ApiResult<T>> {
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(url, init);
     const data = (await response.json().catch(() => null)) as unknown;
     if (response.ok)
       return { ok: true, status: response.status, data: data as T };
@@ -40,6 +36,14 @@ export async function postJson<T = unknown>(
     };
   }
 }
+
+/** POSTs a JSON body. */
+export const postJson = <T = unknown>(url: string, body: unknown) =>
+  requestJson<T>(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
 /** After a failed submit, moves focus to the first invalid control, or to the alert. */
 export function useFocusOnError(
