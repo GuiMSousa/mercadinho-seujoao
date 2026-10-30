@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ActivityItem, ActivityPage } from "@/contracts/activity";
 import { Button } from "@ds/components/button";
 import { Card } from "@ds/components/card";
@@ -30,6 +30,14 @@ export function ActivityTable({ initial }: { initial: ActivityPage }) {
   const [items, setItems] = useState(initial.items);
   const [cursor, setCursor] = useState(initial.nextCursor);
   const [loading, setLoading] = useState(false);
+  const card = useRef<HTMLDivElement>(null);
+  const hadMore = useRef(Boolean(initial.nextCursor));
+  // "Carregar mais" vanishes after the last page; keep the keyboard focus inside the list.
+  useEffect(() => {
+    if (hadMore.current && !cursor)
+      card.current?.querySelector<HTMLElement>('[data-slot="table"]')?.focus();
+    hadMore.current = Boolean(cursor);
+  }, [cursor]);
 
   async function loadMore() {
     if (!cursor) return;
@@ -40,7 +48,7 @@ export function ActivityTable({ initial }: { initial: ActivityPage }) {
     setLoading(false);
     if (!result.ok)
       return toast({
-        title: "Não foi possível carregar mais.",
+        title: "Não foi possível carregar mais",
         message: result.errors.error,
         tone: "danger",
       });
@@ -49,26 +57,28 @@ export function ActivityTable({ initial }: { initial: ActivityPage }) {
   }
 
   return (
-    <Card flush>
-      <Table
-        caption="Registro de atividade"
-        columns={columns}
-        rows={items}
-        rowKey={(item) => item.id}
-        dense
-        empty="Nenhuma atividade registrada ainda."
-      />
-      {cursor && (
-        <div className="flex justify-center p-4">
-          <Button
-            variant="secondary"
-            loading={loading}
-            onClick={() => void loadMore()}
-          >
-            Carregar mais
-          </Button>
-        </div>
-      )}
-    </Card>
+    <div ref={card}>
+      <Card flush>
+        <Table
+          caption="Registro de atividade"
+          columns={columns}
+          rows={items}
+          rowKey={(item) => item.id}
+          dense
+          empty="Nenhuma atividade registrada ainda."
+        />
+        {cursor && (
+          <div className="flex justify-center p-4">
+            <Button
+              variant="secondary"
+              loading={loading}
+              onClick={() => void loadMore()}
+            >
+              Carregar mais
+            </Button>
+          </div>
+        )}
+      </Card>
+    </div>
   );
 }

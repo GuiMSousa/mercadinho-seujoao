@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { PasswordField } from "@/app/(auth)/password-field";
 import { FormAlert } from "@/app/(auth)/form-alert";
 import { useFocusOnError, type FormErrors } from "@/app/(auth)/auth-client";
 import { Button } from "@ds/components/button";
 import { Dialog } from "@ds/components/dialog";
-import { Input } from "@ds/components/input";
 import { useToast } from "@ds/components/toast";
 import { apiFetch } from "../_lib/api";
 import { passwordFormErrors } from "./password-form";
@@ -66,20 +66,20 @@ export function PasswordDialog({ onClose }: { onClose: () => void }) {
         onSubmit={(event) => void submit(event)}
         className="flex flex-col gap-4"
       >
-        <Input
+        <PasswordField
+          size="md"
           label="Senha atual"
           name="current"
-          type="password"
           autoComplete="current-password"
           maxLength={256}
           value={current}
           onChange={(event) => setCurrent(event.target.value)}
           error={errors?.fields.current}
         />
-        <Input
+        <PasswordField
+          size="md"
           label="Nova senha"
           name="next"
-          type="password"
           autoComplete="new-password"
           maxLength={256}
           hint="Mínimo de 8 caracteres, com letras e números."
@@ -87,10 +87,10 @@ export function PasswordDialog({ onClose }: { onClose: () => void }) {
           onChange={(event) => setNext(event.target.value)}
           error={errors?.fields.next}
         />
-        <Input
+        <PasswordField
+          size="md"
           label="Confirmar nova senha"
           name="confirm"
-          type="password"
           autoComplete="new-password"
           maxLength={256}
           value={confirm}

@@ -2,7 +2,7 @@
 
 import { LockKeyhole } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ThemeControl } from "@/app/_components/theme-control";
 import { Button } from "@ds/components/button";
 import { Card } from "@ds/components/card";
@@ -40,17 +40,22 @@ export function SecurityCard({
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [ending, setEnding] = useState(false);
 
+  // Only the latest change may toast or revert: a slower, older response must not undo it.
+  const latestChange = useRef(0);
+
   async function changeIdle(value: StoreData["sessionIdle"]) {
+    const request = ++latestChange.current;
     const previous = idle;
     setIdle(value);
     const result = await apiFetch("/api/store", {
       method: "PATCH",
       body: { sessionIdle: value },
     });
+    if (request !== latestChange.current) return;
     if (!result.ok) {
       setIdle(previous);
       return toast({
-        title: "Não foi possível salvar.",
+        title: "Não foi possível salvar",
         message: result.errors.error,
         tone: "danger",
       });
@@ -67,7 +72,7 @@ export function SecurityCard({
     setEnding(false);
     if (!result.ok)
       return toast({
-        title: "Não foi possível encerrar as sessões.",
+        title: "Não foi possível encerrar as sessões",
         message: result.errors.error,
         tone: "danger",
       });
@@ -81,12 +86,7 @@ export function SecurityCard({
   return (
     <Card title="Conta e segurança" subtitle={email}>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <span className="text-body-sm font-medium text-strong">
-            Aparência
-          </span>
-          <ThemeControl variant="tabs" initialTheme={initialTheme} />
-        </div>
+        <ThemeControl variant="radios" initialTheme={initialTheme} />
         <Select
           label="Encerrar sessão por inatividade"
           options={idleOptions}

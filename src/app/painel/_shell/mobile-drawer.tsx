@@ -11,7 +11,12 @@ export function MobileDrawer(props: ShellProps) {
   const [open, setOpen] = useState(false);
   // The desktop sidebar takes over at 900 px, so a drawer left open would be a stray modal.
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 56.25rem)");
+    // Same value as the `shell:` variant: --breakpoint-shell in design-system/tokens.css.
+    const width =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--breakpoint-shell")
+        .trim() || "56.25rem";
+    const media = window.matchMedia(`(min-width: ${width})`);
     const close = () => media.matches && setOpen(false);
     media.addEventListener("change", close);
     return () => media.removeEventListener("change", close);
@@ -22,7 +27,7 @@ export function MobileDrawer(props: ShellProps) {
         variant="ghost"
         icon={Menu}
         label="Abrir menu"
-        className="min-[56.25rem]:hidden"
+        className="shell:hidden"
         onClick={() => setOpen(true)}
       />
       <DialogPrimitive.Portal>

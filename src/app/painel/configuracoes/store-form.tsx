@@ -61,7 +61,8 @@ export function StoreForm({ store }: { store: StoreData }) {
         values[key],
       ]),
     );
-    if (Object.keys(changes).length === 0) return;
+    if (Object.keys(changes).length === 0)
+      return toast({ title: "Nenhuma alteração para salvar.", tone: "info" });
     setPending(true);
     setErrors(null);
     const result = await apiFetch("/api/store", {
@@ -85,6 +86,7 @@ export function StoreForm({ store }: { store: StoreData }) {
         <Input
           label="Nome da loja"
           name="name"
+          autoComplete="organization"
           maxLength={80}
           {...bind("name")}
         />
@@ -112,6 +114,7 @@ export function StoreForm({ store }: { store: StoreData }) {
         <Input
           label="Endereço"
           name="address"
+          autoComplete="street-address"
           maxLength={200}
           {...bind("address")}
         />

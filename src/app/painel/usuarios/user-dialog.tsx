@@ -115,7 +115,7 @@ export function UserDialog({
           autoComplete="off"
           maxLength={254}
           value={email}
-          disabled={Boolean(user)}
+          readOnly={Boolean(user)}
           onChange={(event) => setEmail(event.target.value)}
           error={errors?.fields.email}
         />

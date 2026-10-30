@@ -2,10 +2,11 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { Radio } from "@base-ui/react/radio";
+import { RadioGroup } from "@base-ui/react/radio-group";
+import { useId, useState, useSyncExternalStore } from "react";
 import type { ThemeChoice } from "@/contracts/theme";
 import { IconButton } from "@ds/components/button";
-import { Tabs } from "@ds/components/tabs";
 import { useToast } from "@ds/components/toast";
 
 const DARK_QUERY = "(prefers-color-scheme: dark)";
@@ -51,9 +52,10 @@ export function ThemeControl({
   variant,
   initialTheme,
 }: {
-  variant: "icon" | "tabs";
+  variant: "icon" | "radios";
   initialTheme?: "light" | "dark";
 }) {
+  const labelId = useId();
   const router = useRouter();
   const { toast } = useToast();
   const [pending, setPending] = useState(false);
@@ -79,7 +81,11 @@ export function ThemeControl({
       if (!response.ok) throw new Error(String(response.status));
       router.refresh();
     } catch {
-      toast({ title: "Não foi possível mudar o tema.", tone: "danger" });
+      toast({
+        title: "Não foi possível mudar o tema",
+        message: "Tente novamente.",
+        tone: "danger",
+      });
     } finally {
       setPending(false);
     }
@@ -92,16 +98,32 @@ export function ThemeControl({
         icon={dark ? Sun : Moon}
         label={dark ? "Modo claro" : "Modo escuro"}
         disabled={pending}
+        focusableWhenDisabled
         onClick={() => void choose(dark ? "light" : "dark")}
       />
     );
   }
   return (
-    <Tabs
-      aria-label="Tema"
-      items={options}
-      value={choice}
-      onValueChange={(value) => void choose(value as ThemeChoice)}
-    />
+    <div className="flex flex-col gap-2">
+      <span id={labelId} className="text-body-sm font-medium text-strong">
+        Aparência
+      </span>
+      <RadioGroup
+        aria-labelledby={labelId}
+        value={choice}
+        onValueChange={(value) => void choose(value as ThemeChoice)}
+        className="inline-flex gap-1 self-start rounded-lg bg-surface-sunken p-1"
+      >
+        {options.map((option) => (
+          <Radio.Root
+            key={option.value}
+            value={option.value}
+            className="inline-flex h-control-sm cursor-pointer touch-manipulation items-center justify-center rounded-md px-3.5 text-body-md font-medium whitespace-nowrap text-sub transition-colors duration-(--dur-base) data-checked:bg-primary data-checked:text-inverse data-checked:shadow-(--shadow-btn-dark)"
+          >
+            {option.label}
+          </Radio.Root>
+        ))}
+      </RadioGroup>
+    </div>
   );
 }

@@ -54,12 +54,17 @@ export function UsersView({
           Adicionar usuário
         </Button>
       </div>
-      {tab === "equipe" ? (
-        <TeamTable users={users} onEdit={setDialog} />
-      ) : (
-        // Re-keyed on the newest entry so a refresh after an edit replaces the loaded pages.
-        <ActivityTable key={activity.items[0]?.id} initial={activity} />
-      )}
+      <div
+        role="tabpanel"
+        aria-label={tabs.find((item) => item.value === tab)?.label}
+      >
+        {tab === "equipe" ? (
+          <TeamTable users={users} onEdit={setDialog} />
+        ) : (
+          // Re-keyed on the newest entry so a refresh after an edit replaces the loaded pages.
+          <ActivityTable key={activity.items[0]?.id} initial={activity} />
+        )}
+      </div>
       {dialog !== false && (
         <UserDialog
           key={dialog?.id ?? "new"}

@@ -19,7 +19,7 @@ export function LogoutButton() {
     if (!result.ok && result.status !== 401) {
       setPending(false);
       return toast({
-        title: "Não foi possível sair.",
+        title: "Não foi possível sair",
         message: result.errors.error,
         tone: "danger",
       });
@@ -35,6 +35,7 @@ export function LogoutButton() {
       icon={LogOut}
       label="Sair"
       disabled={pending}
+      focusableWhenDisabled
       onClick={() => void logout()}
     />
   );
