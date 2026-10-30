@@ -34,8 +34,9 @@ export type CodeClaim =
 let unknownCodeHash: Promise<string> | undefined;
 
 /**
- * Stores a new code and returns it in clear for the mail. The previous code stays valid until the
- * caller delivers this one and calls `supersedeCodes`, so a failed delivery loses nothing.
+ * Stores a new code and returns it in clear for the mail. Older rows are marked consumed by
+ * `supersedeCodes` only after the mail is out, so when delivery fails and the caller deletes the
+ * new code, the previous one is the newest again and loses nothing.
  */
 export async function issueCode(
   purpose: VerificationPurpose,
@@ -54,8 +55,10 @@ export async function issueCode(
 }
 
 /**
- * Issues a code and mails it, then invalidates the previous ones; a failed delivery drops the new code
- * and keeps the old. `options` overrides the lifetime and the mail (the invite uses both).
+ * Issues a code and mails it, then marks the older open ones as consumed. `claimCode` looks only at
+ * the newest code, so from the moment the new one is stored the older ones can no longer be used
+ * (even before the mail is out); a failed delivery deletes the new code, which makes the previous
+ * one the newest again. `options` overrides the lifetime and the mail (the invite uses both).
  */
 export async function deliverCode(
   purpose: VerificationPurpose,
