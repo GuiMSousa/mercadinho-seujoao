@@ -28,7 +28,7 @@ export async function logActivity(input: {
     });
   } catch (error) {
     logger.error(
-      { err: error, action: input.action },
+      { err: (error as Error).cause ?? error, action: input.action },
       "Failed to write activity log",
     );
   }

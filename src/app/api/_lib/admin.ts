@@ -3,7 +3,11 @@ import type { z } from "zod";
 import { ServiceError } from "@/domains/auth/errors";
 import type { AuthSession } from "@/domains/auth/sessions";
 import { errorResponse, guard } from "./guard";
-import { serviceErrorResponse, validationResponse } from "./public";
+import {
+  serviceErrorResponse,
+  unexpectedErrorResponse,
+  validationResponse,
+} from "./public";
 
 /**
  * Shared shape of the ADMIN routes: guard (session, role and CSRF), then `run` with the session.
@@ -19,7 +23,7 @@ export async function adminRoute(
     return await run(session);
   } catch (error) {
     if (error instanceof ServiceError) return serviceErrorResponse(error);
-    throw error;
+    return unexpectedErrorResponse(error);
   }
 }
 

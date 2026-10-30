@@ -6,6 +6,7 @@ import { startSignup } from "@/domains/auth/signup";
 import { POST } from "./route";
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn() } }));
 vi.mock("@/domains/auth/signup", () => ({ startSignup: vi.fn() }));
 vi.mock("@/domains/auth/sessions", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/domains/auth/sessions")>()),
@@ -142,11 +143,15 @@ it("passes the field of an e-mail conflict and the Retry-After of a cooldown thr
   expect(cooldown.headers.get("retry-after")).toBe("42");
 });
 
-it("lets unexpected errors surface instead of hiding them", async () => {
+it("answers 500 for unexpected errors instead of rethrowing them", async () => {
   vi.mocked(startSignup).mockImplementation(async () => {
     throw new Error("db down");
   });
-  await expect(post("198.51.100.6")).rejects.toThrow("db down");
+  const response = await post("198.51.100.6");
+  expect(response.status).toBe(500);
+  await expect(response.json()).resolves.toEqual({
+    error: "Erro interno. Tente novamente em instantes.",
+  });
 });
 
 it("refuses the 11th request from one IP and cross-origin posts", async () => {

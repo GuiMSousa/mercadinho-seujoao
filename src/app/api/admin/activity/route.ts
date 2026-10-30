@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { activityPageSchema } from "@/contracts/activity";
 import { InvalidCursorError, listActivity } from "@/domains/activity/service";
 import { errorResponse, guard } from "../../_lib/guard";
+import { unexpectedErrorResponse } from "../../_lib/public";
 
 const PAGE_SIZE = 50;
 
@@ -17,6 +18,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(activityPageSchema.parse(page));
   } catch (error) {
     if (error instanceof InvalidCursorError) return errorResponse(400);
-    throw error;
+    return unexpectedErrorResponse(error);
   }
 }

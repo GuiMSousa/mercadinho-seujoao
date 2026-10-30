@@ -13,6 +13,8 @@ import {
 } from "@/domains/auth/sessions";
 import { errorResponse, guard, setSessionCookies } from "./guard";
 
+import { logger } from "@/lib/logger";
+
 type Limiter = ReturnType<typeof createRateLimiter>;
 
 const DEFAULT_LIMIT_MESSAGE = "Muitas tentativas. Tente novamente mais tarde.";
@@ -21,6 +23,22 @@ export function tooManyResponse(retryAfterSeconds: number, message?: string) {
   return NextResponse.json(
     { error: message ?? DEFAULT_LIMIT_MESSAGE },
     { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } },
+  );
+}
+
+/**
+ * Logs an unexpected failure and answers 500 without rethrowing. Drizzle wraps driver errors in a
+ * DrizzleQueryError whose message lists the query parameters (password hashes among them), so the
+ * log gets `cause` (the pg error), never the wrapper.
+ */
+export function unexpectedErrorResponse(error: unknown) {
+  logger.error(
+    { err: (error as { cause?: unknown }).cause ?? error },
+    "Unhandled error in API route",
+  );
+  return NextResponse.json(
+    { error: "Erro interno. Tente novamente em instantes." },
+    { status: 500 },
   );
 }
 
@@ -90,7 +108,7 @@ export async function publicPost<S extends z.ZodType>(
     return await run(input.data, session);
   } catch (error) {
     if (error instanceof ServiceError) return serviceErrorResponse(error);
-    throw error;
+    return unexpectedErrorResponse(error);
   }
 }
 
