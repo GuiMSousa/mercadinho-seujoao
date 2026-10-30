@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-10-29): 174 testes em 41 arquivos sem banco (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 45 testes em 7 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`, cada teste em transação com rollback).
+- **Hoje existem** (2026-10-29): 191 testes em 49 arquivos sem banco (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 55 testes em 9 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`, cada teste em transação com rollback).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;

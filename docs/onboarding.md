@@ -24,7 +24,7 @@ npm run dev
 
 Abra `http://localhost:3000/login`. Há três caminhos para o primeiro acesso:
 
-- **Demonstração (só em desenvolvimento):** `npm run db:seed` cria a loja "Mercadinho Bom Preço" e três usuários, todos com a senha `mkt12345`: `ana@bompreco.com.br` (`ADMIN`), `carlos@bompreco.com.br` e `juliana@bompreco.com.br` (`CASHIER`). O seed recusa `NODE_ENV=production`, é idempotente e nunca sobrescreve uma loja nem a senha de um usuário que já exista (ele lista o que ignorou). Os botões "Administrador" e "Operador de caixa" da tela de login só aparecem em desenvolvimento. O painel é exclusivo de `ADMIN`: o login de `CASHIER` é recusado.
+- **Demonstração (só em desenvolvimento):** `npm run db:seed` cria a loja "Mercadinho Bom Preço" e três usuários, todos com a senha `mkt12345`: `ana@bompreco.com.br` (`ADMIN`), `carlos@bompreco.com.br` e `juliana@bompreco.com.br` (`CASHIER`). O seed recusa `NODE_ENV=production`, lê só o env de desenvolvimento (nunca `.env.production*`), recusa (código de saída 1) um banco que já tenha uma loja diferente da de demonstração ou algum usuário fora dos três da lista, é idempotente e nunca sobrescreve uma loja nem a senha de um usuário que já exista (ele lista o que ignorou). Os botões "Administrador" e "Operador de caixa" da tela de login só aparecem em desenvolvimento. O painel é exclusivo de `ADMIN`: o login de `CASHIER` é recusado.
 - **Instalação real:** com o banco vazio, `/` leva a `/login`, onde "Criar conta da loja" abre o cadastro em 3 etapas (dados da conta, dados da loja, código de 6 dígitos por e-mail). Quem cria a loja vira `ADMIN`; depois disso o botão some. Os demais usuários entram por convite em Usuários.
 - **Linha de comando:** `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` cria um usuário com senha aleatória, exibida uma única vez; guarde-a em local seguro. E-mails repetidos são recusados. Use-o só para usuários extras: ele não cria a loja, e sem loja a página Configurações apenas orienta a cadastrá-la. Para o primeiro usuário, prefira "Criar conta da loja" (instalação real) ou `npm run db:seed` (desenvolvimento).
 
@@ -43,6 +43,12 @@ Nunca use `NEXT_PUBLIC_*` para segredos.
 Sem `RESEND_API_KEY`, fora de produção, o servidor não envia nada: o texto de cada e-mail (códigos de cadastro, recuperação e convite) aparece no log do `npm run dev` com a mensagem `mail (dev)`. Em produção a chave é obrigatória. No `.env.local`, `RESEND_API_KEY` é a chave da conta Resend e `MAIL_FROM` é o remetente, por exemplo `Mkt Control <no-reply@seudominio.com.br>` (padrão fora de produção: `Mkt Control <no-reply@localhost>`).
 
 O npm 11 bloqueia install scripts não aprovados (`allowScripts`). Os avisos sobre `esbuild` e `unrs-resolver` no `npm ci` são esperados: lint, testes, build e drizzle-kit funcionam sem esses scripts. Não aprove scripts sem revisar.
+
+## Operação
+
+- **Cadastre a loja antes de ligar o túnel:** enquanto não há loja, qualquer pessoa que alcance o servidor pode criar a conta da loja e virar `ADMIN`.
+- **Use a LAN apenas em rede confiável (HTTP):** o acesso pela rede local trafega sem TLS, e os cabeçalhos de IP são controlados pelo cliente; por isso o login também é limitado por conta (20 tentativas a cada 15 minutos).
+- **Limites de código:** no máximo 10 códigos por e-mail e finalidade em 24 h (cadastro e recuperação); convites de um `ADMIN` ficam fora dessa conta.
 
 ## Banco de dados
 
