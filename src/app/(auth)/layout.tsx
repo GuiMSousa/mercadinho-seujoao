@@ -33,15 +33,15 @@ const highlights: { icon: LucideIcon; title: string; text: string }[] = [
 
 export default async function AuthLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="grid flex-1 bg-app min-[56.25rem]:grid-cols-2">
-      <aside className="hidden flex-col justify-between gap-8 border-r border-border bg-surface-card p-10 min-[56.25rem]:flex">
+    <div className="grid flex-1 bg-app shell:grid-cols-2">
+      <aside className="hidden flex-col justify-between gap-8 border-r border-border bg-surface-card p-10 shell:flex">
         <p className="text-h1 font-semibold tracking-display text-strong">
           Mkt Control
         </p>
         <div className="flex max-w-md flex-col gap-7">
-          <h2 className="text-h1 font-medium tracking-tight text-pretty text-strong">
+          <p className="text-h1 font-medium tracking-tight text-pretty text-strong">
             Controle de vendas e estoque para o seu comércio.
-          </h2>
+          </p>
           <ul className="flex flex-col gap-4">
             {highlights.map(({ icon: Icon, title, text }) => (
               <li key={title} className="flex items-start gap-3">
@@ -56,14 +56,14 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
             ))}
           </ul>
         </div>
-        <p className="text-caption text-soft">© 2026 Mkt Control</p>
+        <p className="text-caption text-sub">© 2026 Mkt Control</p>
       </aside>
       <main className="relative flex flex-col items-center justify-center px-4 py-8">
         <div className="absolute top-4 right-4">
           <ThemeControl variant="icon" initialTheme={await getTheme()} />
         </div>
         <div className="flex w-full max-w-md flex-col gap-6">
-          <p className="text-center text-h1 font-semibold tracking-display text-strong min-[56.25rem]:hidden">
+          <p className="text-center text-h1 font-semibold tracking-display text-strong shell:hidden">
             Mkt Control
           </p>
           {children}

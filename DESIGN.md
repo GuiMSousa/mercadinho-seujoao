@@ -52,7 +52,7 @@ Contrato visual do Mkt Control e **fonte da verdade dos tokens**. `design-system
   - campos: borda `focus` mais halo de 3 px (`ring-3 ring-focus-halo`), que vira `focus-halo-danger` quando há erro.
 - **Movimento:** 120–280 ms com `ease-out`, só fades e escala, sem quique. `prefers-reduced-motion` zera animações e transições globalmente.
 - **Transparência:** só no fundo do diálogo (`bg-overlay` com `backdrop-blur-xs`).
-- **Layout:** mobile first, com os breakpoints padrão do Tailwind. A referência define o shell que ainda será construído: sidebar de 248 px, topbar de 64 px, padding de 24 px e, abaixo de 900 px, barra inferior flutuante. Os tokens de layout entram aqui junto com esse shell.
+- **Layout:** mobile first, com os breakpoints padrão do Tailwind mais `shell` (`--breakpoint-shell`, 900 px, variante `shell:`). O shell do painel tem sidebar de 248 px, topbar de 64 px e padding de 24 px. Abaixo de 900 px a sidebar vira uma gaveta lateral modal aberta pelo botão de menu da topbar (não há barra inferior). Use `shell:` em vez de valores arbitrários `min-[…]`.
 
 ## Temas
 
@@ -99,23 +99,23 @@ design-system/
 
 Importe pelo alias `@ds/*`, por exemplo `import { Button } from "@ds/components/button"`. A vitrine fica em `/design-system`: é pública, usa só dados fictícios e mostra os componentes, seus estados e os dois temas.
 
-| Componente   | Arquivo        | API principal                                                                                                        | Estados cobertos                                      |
-| ------------ | -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `Button`     | `button.tsx`   | `variant` primary · brand · secondary · soft · ghost · danger; `size` sm · md · lg · counter; `fullWidth`; `loading` | hover, pressionado, foco, desabilitado, carregando    |
-| `IconButton` | `button.tsx`   | `icon` (Lucide), `label` obrigatório; `variant` secondary · ghost · primary · brand · danger; `size`                 | hover, pressionado, foco, desabilitado                |
-| `Input`      | `input.tsx`    | `label`, `hint`, `error`, `prefix`, `suffix`, `size`, `numeric`                                                      | foco (halo), erro, desabilitado                       |
-| `Select`     | `select.tsx`   | nativo; `label`, `hint`, `error`, `options`, `placeholder`, `size`                                                   | foco, erro, desabilitado                              |
-| `Checkbox`   | `checkbox.tsx` | Base UI; `label`, `checked`/`defaultChecked`, `indeterminate`, `onCheckedChange`                                     | marcado, indeterminado, foco, desabilitado, inválido  |
-| `Badge`      | `badge.tsx`    | `tone` success · danger · warning · info · neutral; `dot`; `size` sm · md                                            | —                                                     |
-| `Money`      | `money.tsx`    | `cents` inteiro; `size` sm · md · lg · xl · display · counter; `tone` in · out · margin; `signed`; `hidden`          | oculto                                                |
-| `Card`       | `card.tsx`     | `title`, `subtitle`, `actions`, `titleAs` h2 · h3, `as`, `flush`                                                     | —                                                     |
-| `Table`      | `table.tsx`    | `caption` obrigatório, `columns` com `render`, `rows`, `rowKey`, `empty`, `dense`, `isSelected`                      | hover, seleção, vazio                                 |
-| `Dialog`     | `dialog.tsx`   | Base UI; `open`, `onOpenChange`, `title`, `description`, `footer`                                                    | abertura/fechamento, foco preso, Esc, retorno do foco |
-| `Tabs`       | `tabs.tsx`     | Base UI; `items` (`value`, `label`, `count?`), `value`, `onValueChange`, `aria-label` obrigatório                    | selecionada, foco, setas e Home/End                   |
-| `Toast`      | `toast.tsx`    | Base UI; `ToastProvider` uma vez no layout; `useToast().toast({ title, message?, tone })`, some em 3,6 s             | quatro tons, fechar, anunciado com `role="status"`    |
-| `Keypad`     | `keypad.tsx`   | `value` (centavos em dígitos), `onChange`, `maxLength`, `label`; converta com `keypadCents()`                        | pressionado, foco                                     |
-| `Label`      | `label.tsx`    | rótulo de formulário                                                                                                 | desabilitado                                          |
-| `Field`      | `field.tsx`    | interno: rótulo, controle e dica/erro compartilhados por `Input` e `Select`                                          | —                                                     |
+| Componente   | Arquivo        | API principal                                                                                                                       | Estados cobertos                                                                                                                                                                |
+| ------------ | -------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Button`     | `button.tsx`   | `variant` primary · brand · secondary · soft · ghost · danger; `size` sm · md · lg · counter; `fullWidth`; `loading`                | hover, pressionado, foco, desabilitado, carregando                                                                                                                              |
+| `IconButton` | `button.tsx`   | `icon` (Lucide), `label` obrigatório; `variant` secondary · ghost · primary · brand · danger; `size`                                | hover, pressionado, foco, desabilitado                                                                                                                                          |
+| `Input`      | `input.tsx`    | `label`, `hint`, `error`, `prefix`, `suffix`, `size`, `numeric`                                                                     | foco (halo), erro, desabilitado                                                                                                                                                 |
+| `Select`     | `select.tsx`   | nativo; `label`, `hint`, `error`, `options`, `placeholder`, `size`                                                                  | foco, erro, desabilitado                                                                                                                                                        |
+| `Checkbox`   | `checkbox.tsx` | Base UI; `label`, `checked`/`defaultChecked`, `indeterminate`, `onCheckedChange`                                                    | marcado, indeterminado, foco, desabilitado, inválido                                                                                                                            |
+| `Badge`      | `badge.tsx`    | `tone` success · danger · warning · info · neutral; `dot`; `size` sm · md                                                           | —                                                                                                                                                                               |
+| `Money`      | `money.tsx`    | `cents` inteiro; `size` sm · md · lg · xl · display · counter; `tone` in · out · margin; `signed`; `hidden`                         | oculto                                                                                                                                                                          |
+| `Card`       | `card.tsx`     | `title`, `subtitle`, `actions`, `titleAs` h2 · h3, `as`, `flush`                                                                    | —                                                                                                                                                                               |
+| `Table`      | `table.tsx`    | `caption` obrigatório, `columns` com `render`, `rows`, `rowKey`, `empty`, `dense`, `isSelected`                                     | hover, seleção, vazio                                                                                                                                                           |
+| `Dialog`     | `dialog.tsx`   | Base UI; `open`, `onOpenChange`, `title`, `description`, `footer`                                                                   | abertura/fechamento, foco preso, Esc, retorno do foco                                                                                                                           |
+| `Tabs`       | `tabs.tsx`     | Base UI; `items` (`value`, `label`, `count?`), `value`, `onValueChange`, `aria-label` obrigatório                                   | selecionada, foco, setas e Home/End                                                                                                                                             |
+| `Toast`      | `toast.tsx`    | Base UI; `ToastProvider` uma vez no layout; `useToast().toast({ title, message?, tone })`; some em 3,6 s, e o tom `danger` fica 8 s | quatro tons, fechar (alvo de 24 px); anunciado pela região viva do Base UI (sem `role="status"`): `danger` tem prioridade alta (`assertive`), os demais são educados (`polite`) |
+| `Keypad`     | `keypad.tsx`   | `value` (centavos em dígitos), `onChange`, `maxLength`, `label`; converta com `keypadCents()`                                       | pressionado, foco                                                                                                                                                               |
+| `Label`      | `label.tsx`    | rótulo de formulário                                                                                                                | desabilitado                                                                                                                                                                    |
+| `Field`      | `field.tsx`    | interno: rótulo, controle e dica/erro compartilhados por `Input` e `Select`                                                         | —                                                                                                                                                                               |
 
 ### Como usar
 
@@ -182,6 +182,7 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 | `--green-50`    | `#e0faec` |
 | `--green-500`   | `#1fc16b` |
 | `--green-700`   | `#178c4e` |
+| `--green-800`   | `#137a43` |
 | `--neutral-0`   | `#ffffff` |
 | `--neutral-50`  | `#f5f7fa` |
 | `--neutral-100` | `#f2f5f8` |
@@ -189,6 +190,7 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 | `--neutral-300` | `#cacfd8` |
 | `--neutral-400` | `#99a0ae` |
 | `--neutral-500` | `#717784` |
+| `--neutral-550` | `#676d7a` |
 | `--neutral-600` | `#525866` |
 | `--neutral-700` | `#2b303b` |
 | `--neutral-800` | `#222530` |
@@ -210,7 +212,7 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 | `--surface-overlay`  | `rgba(14, 18, 27, 0.48)` | `rgba(0, 0, 0, 0.64)` |
 | `--text-strong`      | `var(--neutral-950)`     | `#f5f7fa`             |
 | `--text-body`        | `var(--neutral-700)`     | `var(--neutral-300)`  |
-| `--text-sub`         | `var(--neutral-500)`     | `var(--neutral-400)`  |
+| `--text-sub`         | `var(--neutral-550)`     | `var(--neutral-400)`  |
 | `--text-soft`        | `var(--neutral-400)`     | `var(--neutral-500)`  |
 | `--text-disabled`    | `var(--neutral-300)`     | `var(--neutral-600)`  |
 | `--text-inverse`     | `var(--neutral-0)`       | `var(--neutral-950)`  |
@@ -237,7 +239,7 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 
 | Token             | Claro                | Escuro                     |
 | ----------------- | -------------------- | -------------------------- |
-| `--success-fg`    | `var(--green-700)`   | `#5ee09a`                  |
+| `--success-fg`    | `var(--green-800)`   | `#5ee09a`                  |
 | `--success-bg`    | `var(--green-50)`    | `rgba(31, 193, 107, 0.16)` |
 | `--success-solid` | `var(--green-500)`   | —                          |
 | `--danger-fg`     | `var(--red-700)`     | `#ff8a94`                  |
@@ -373,56 +375,58 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 
 As escalas padrão do Tailwind de texto, peso, tracking, raio, sombra e easing foram removidas (`initial`); valem só estas. O espaçamento mantém o passo de `0.25rem`.
 
-| Token                                  | Valor                                                      | Uso                                        |
-| -------------------------------------- | ---------------------------------------------------------- | ------------------------------------------ |
-| `--font-sans`                          | `var(--font-hanken), ui-sans-serif, system-ui, sans-serif` | `font-sans` (padrão do `body`)             |
-| `--text-display`                       | `2.5rem`                                                   | `text-display` (40/48)                     |
-| `--text-display--line-height`          | `3rem`                                                     |                                            |
-| `--text-h1`                            | `2rem`                                                     | `text-h1` (32/40)                          |
-| `--text-h1--line-height`               | `2.5rem`                                                   |                                            |
-| `--text-h2`                            | `1.5rem`                                                   | `text-h2` (24/32)                          |
-| `--text-h2--line-height`               | `2rem`                                                     |                                            |
-| `--text-h3`                            | `1.125rem`                                                 | `text-h3` (18/24)                          |
-| `--text-h3--line-height`               | `1.5rem`                                                   |                                            |
-| `--text-body-lg`                       | `1rem`                                                     | `text-body-lg` (16/24), base do app        |
-| `--text-body-lg--line-height`          | `1.5rem`                                                   |                                            |
-| `--text-body-md`                       | `0.875rem`                                                 | `text-body-md` (14/20)                     |
-| `--text-body-md--line-height`          | `1.25rem`                                                  |                                            |
-| `--text-body-sm`                       | `0.8125rem`                                                | `text-body-sm` (13/18)                     |
-| `--text-body-sm--line-height`          | `1.125rem`                                                 |                                            |
-| `--text-caption`                       | `0.75rem`                                                  | `text-caption` (12/16)                     |
-| `--text-caption--line-height`          | `1rem`                                                     |                                            |
-| `--text-counter`                       | `1.375rem`                                                 | `text-counter` (22/28), balcão             |
-| `--text-counter--line-height`          | `1.75rem`                                                  |                                            |
-| `--text-counter-total`                 | `3.5rem`                                                   | `text-counter-total` (56/60), total do PDV |
-| `--text-counter-total--line-height`    | `3.75rem`                                                  |                                            |
-| `--text-currency`                      | `0.62em`                                                   | `text-currency`: "R$" do `Money`           |
-| `--font-weight-normal`                 | `400`                                                      | `font-normal`                              |
-| `--font-weight-medium`                 | `500`                                                      | `font-medium`                              |
-| `--font-weight-semibold`               | `600`                                                      | `font-semibold`                            |
-| `--font-weight-bold`                   | `700`                                                      | `font-bold`                                |
-| `--tracking-normal`                    | `0em`                                                      | `tracking-normal`                          |
-| `--tracking-tight`                     | `-0.02em`                                                  | `tracking-tight`                           |
-| `--tracking-display`                   | `-0.03em`                                                  | `tracking-display`                         |
-| `--radius-xs`                          | `0.375rem`                                                 | `rounded-xs` (6)                           |
-| `--radius-sm`                          | `0.5rem`                                                   | `rounded-sm` (8)                           |
-| `--radius-md`                          | `0.625rem`                                                 | `rounded-md` (10)                          |
-| `--radius-lg`                          | `0.75rem`                                                  | `rounded-lg` (12)                          |
-| `--radius-xl`                          | `1rem`                                                     | `rounded-xl` (16)                          |
-| `--radius-2xl`                         | `1.25rem`                                                  | `rounded-2xl` (20)                         |
-| `--radius-3xl`                         | `1.5rem`                                                   | `rounded-3xl` (24)                         |
-| `--radius-control`                     | `0.625rem`                                                 | `rounded-control`: botões e campos         |
-| `--radius-card`                        | `1rem`                                                     | `rounded-card`                             |
-| `--radius-dialog`                      | `1.25rem`                                                  | `rounded-dialog`                           |
-| `--spacing-control-sm`                 | `2rem`                                                     | `h-control-sm` (32)                        |
-| `--spacing-control-md`                 | `2.5rem`                                                   | `h-control-md` (40)                        |
-| `--spacing-control-lg`                 | `3rem`                                                     | `h-control-lg` (48)                        |
-| `--spacing-control-counter`            | `3.75rem`                                                  | `h-control-counter` (60), balcão           |
-| `--spacing-control-counter-lg`         | `4.5rem`                                                   | `h-control-counter-lg` (72), teclas        |
-| `--ease-out`                           | `cubic-bezier(0.2, 0.8, 0.2, 1)`                           | `ease-out`, padrão das transições          |
-| `--ease-in-out`                        | `cubic-bezier(0.4, 0, 0.2, 1)`                             | `ease-in-out`                              |
-| `--default-transition-duration`        | `var(--dur-base)`                                          | duração padrão de `transition-*`           |
-| `--default-transition-timing-function` | `var(--ease-out)`                                          | curva padrão de `transition-*`             |
+| Token                                  | Valor                                                      | Uso                                                       |
+| -------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------- |
+| `--font-sans`                          | `var(--font-hanken), ui-sans-serif, system-ui, sans-serif` | `font-sans` (padrão do `body`)                            |
+| `--text-display`                       | `2.5rem`                                                   | `text-display` (40/48)                                    |
+| `--text-display--line-height`          | `3rem`                                                     |                                                           |
+| `--text-h1`                            | `2rem`                                                     | `text-h1` (32/40)                                         |
+| `--text-h1--line-height`               | `2.5rem`                                                   |                                                           |
+| `--text-h2`                            | `1.5rem`                                                   | `text-h2` (24/32)                                         |
+| `--text-h2--line-height`               | `2rem`                                                     |                                                           |
+| `--text-h3`                            | `1.125rem`                                                 | `text-h3` (18/24)                                         |
+| `--text-h3--line-height`               | `1.5rem`                                                   |                                                           |
+| `--text-body-lg`                       | `1rem`                                                     | `text-body-lg` (16/24), base do app                       |
+| `--text-body-lg--line-height`          | `1.5rem`                                                   |                                                           |
+| `--text-body-md`                       | `0.875rem`                                                 | `text-body-md` (14/20)                                    |
+| `--text-body-md--line-height`          | `1.25rem`                                                  |                                                           |
+| `--text-body-sm`                       | `0.8125rem`                                                | `text-body-sm` (13/18)                                    |
+| `--text-body-sm--line-height`          | `1.125rem`                                                 |                                                           |
+| `--text-caption`                       | `0.75rem`                                                  | `text-caption` (12/16)                                    |
+| `--text-caption--line-height`          | `1rem`                                                     |                                                           |
+| `--text-counter`                       | `1.375rem`                                                 | `text-counter` (22/28), balcão                            |
+| `--text-counter--line-height`          | `1.75rem`                                                  |                                                           |
+| `--text-counter-total`                 | `3.5rem`                                                   | `text-counter-total` (56/60), total do PDV                |
+| `--text-counter-total--line-height`    | `3.75rem`                                                  |                                                           |
+| `--text-currency`                      | `0.62em`                                                   | `text-currency`: "R$" do `Money`                          |
+| `--font-weight-normal`                 | `400`                                                      | `font-normal`                                             |
+| `--font-weight-medium`                 | `500`                                                      | `font-medium`                                             |
+| `--font-weight-semibold`               | `600`                                                      | `font-semibold`                                           |
+| `--font-weight-bold`                   | `700`                                                      | `font-bold`                                               |
+| `--tracking-normal`                    | `0em`                                                      | `tracking-normal`                                         |
+| `--tracking-tight`                     | `-0.02em`                                                  | `tracking-tight`                                          |
+| `--tracking-display`                   | `-0.03em`                                                  | `tracking-display`                                        |
+| `--tracking-code`                      | `0.5em`                                                    | `tracking-code`, campos de código de 6 dígitos            |
+| `--radius-xs`                          | `0.375rem`                                                 | `rounded-xs` (6)                                          |
+| `--radius-sm`                          | `0.5rem`                                                   | `rounded-sm` (8)                                          |
+| `--radius-md`                          | `0.625rem`                                                 | `rounded-md` (10)                                         |
+| `--radius-lg`                          | `0.75rem`                                                  | `rounded-lg` (12)                                         |
+| `--radius-xl`                          | `1rem`                                                     | `rounded-xl` (16)                                         |
+| `--radius-2xl`                         | `1.25rem`                                                  | `rounded-2xl` (20)                                        |
+| `--radius-3xl`                         | `1.5rem`                                                   | `rounded-3xl` (24)                                        |
+| `--radius-control`                     | `0.625rem`                                                 | `rounded-control`: botões e campos                        |
+| `--radius-card`                        | `1rem`                                                     | `rounded-card`                                            |
+| `--radius-dialog`                      | `1.25rem`                                                  | `rounded-dialog`                                          |
+| `--spacing-control-sm`                 | `2rem`                                                     | `h-control-sm` (32)                                       |
+| `--spacing-control-md`                 | `2.5rem`                                                   | `h-control-md` (40)                                       |
+| `--spacing-control-lg`                 | `3rem`                                                     | `h-control-lg` (48)                                       |
+| `--spacing-control-counter`            | `3.75rem`                                                  | `h-control-counter` (60), balcão                          |
+| `--spacing-control-counter-lg`         | `4.5rem`                                                   | `h-control-counter-lg` (72), teclas                       |
+| `--ease-out`                           | `cubic-bezier(0.2, 0.8, 0.2, 1)`                           | `ease-out`, padrão das transições                         |
+| `--ease-in-out`                        | `cubic-bezier(0.4, 0, 0.2, 1)`                             | `ease-in-out`                                             |
+| `--default-transition-duration`        | `var(--dur-base)`                                          | duração padrão de `transition-*`                          |
+| `--default-transition-timing-function` | `var(--ease-out)`                                          | curva padrão de `transition-*`                            |
+| `--breakpoint-shell`                   | `56.25rem`                                                 | variante `shell:` (900 px): sidebar fixa em vez de gaveta |
 
 ## Manutenção
 

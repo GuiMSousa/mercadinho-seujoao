@@ -31,7 +31,7 @@ export function SidebarContent({
           <Store aria-hidden="true" className="size-4.5" />
         </span>
         <span className="flex min-w-0 flex-col">
-          <span className="text-caption text-soft">Mkt Control</span>
+          <span className="text-caption text-sub">Mkt Control</span>
           <span className="truncate text-body-sm font-medium text-strong">
             {storeName}
           </span>
@@ -82,7 +82,7 @@ export function SidebarContent({
 
 export function Sidebar(props: ShellProps) {
   return (
-    <aside className="hidden w-62 shrink-0 border-r border-border bg-surface-card min-[56.25rem]:block">
+    <aside className="hidden w-62 shrink-0 border-r border-border bg-surface-card shell:block">
       <SidebarContent {...props} />
     </aside>
   );

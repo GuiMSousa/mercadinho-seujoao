@@ -39,6 +39,7 @@
   --green-50: #e0faec;
   --green-500: #1fc16b;
   --green-700: #178c4e;
+  --green-800: #137a43;
   --neutral-0: #ffffff;
   --neutral-50: #f5f7fa;
   --neutral-100: #f2f5f8;
@@ -46,6 +47,7 @@
   --neutral-300: #cacfd8;
   --neutral-400: #99a0ae;
   --neutral-500: #717784;
+  --neutral-550: #676d7a;
   --neutral-600: #525866;
   --neutral-700: #2b303b;
   --neutral-800: #222530;
@@ -60,7 +62,7 @@
   --surface-overlay: rgba(14, 18, 27, 0.48);
   --text-strong: var(--neutral-950);
   --text-body: var(--neutral-700);
-  --text-sub: var(--neutral-500);
+  --text-sub: var(--neutral-550);
   --text-soft: var(--neutral-400);
   --text-disabled: var(--neutral-300);
   --text-inverse: var(--neutral-0);
@@ -77,7 +79,7 @@
   --action-brand-hover: var(--blue-600);
   --action-danger: var(--red-500);
   --action-danger-hover: var(--red-600);
-  --success-fg: var(--green-700);
+  --success-fg: var(--green-800);
   --success-bg: var(--green-50);
   --success-solid: var(--green-500);
   --danger-fg: var(--red-700);
@@ -353,6 +355,8 @@
   --tracking-normal: 0em;
   --tracking-tight: -0.02em;
   --tracking-display: -0.03em;
+  /* One-time code fields: wide gaps keep each digit readable. */
+  --tracking-code: 0.5em;
 
   --radius-*: initial;
   --radius-xs: 0.375rem;
@@ -378,4 +382,7 @@
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --default-transition-duration: var(--dur-base);
   --default-transition-timing-function: var(--ease-out);
+
+  /* Width where the sidebar replaces the drawer (900px); gives the shell: variant. */
+  --breakpoint-shell: 56.25rem;
 }
