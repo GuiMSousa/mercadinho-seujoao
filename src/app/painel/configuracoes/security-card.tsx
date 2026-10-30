@@ -31,16 +31,21 @@ export function SecurityCard({
   const router = useRouter();
   const { toast } = useToast();
   const [idle, setIdle] = useState(store.sessionIdle);
+  const [savedIdle, setSavedIdle] = useState(store.sessionIdle);
+  // Follow the saved value when it changes elsewhere (another tab or admin).
+  if (store.sessionIdle !== savedIdle) {
+    setSavedIdle(store.sessionIdle);
+    setIdle(store.sessionIdle);
+  }
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [ending, setEnding] = useState(false);
 
   async function changeIdle(value: StoreData["sessionIdle"]) {
     const previous = idle;
     setIdle(value);
-    // The store endpoint takes the whole record, so the saved values travel with the new idle time.
     const result = await apiFetch("/api/store", {
       method: "PATCH",
-      body: { ...store, sessionIdle: value },
+      body: { sessionIdle: value },
     });
     if (!result.ok) {
       setIdle(previous);

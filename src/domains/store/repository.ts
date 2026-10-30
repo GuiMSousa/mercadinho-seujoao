@@ -22,11 +22,11 @@ export async function findStore() {
 }
 
 export async function updateStoreRow(values: {
-  name: string;
-  document: string;
-  phone: string;
-  address: string;
-  sessionIdle: SessionIdle;
+  name?: string;
+  document?: string;
+  phone?: string;
+  address?: string;
+  sessionIdle?: SessionIdle;
 }) {
   // One row per installation (stores.singleton), so no WHERE is needed.
   const [row] = await getDb()

@@ -69,6 +69,20 @@ it("updates the store with the document reduced to digits", async () => {
   );
 });
 
+it("accepts a partial update with only sessionIdle", async () => {
+  vi.mocked(updateStore).mockResolvedValue({ ...store, sessionIdle: "never" });
+  const response = await patch("ADMIN", { sessionIdle: "never" });
+  expect(response.status).toBe(200);
+  expect(updateStore).toHaveBeenCalledWith(expect.anything(), {
+    sessionIdle: "never",
+  });
+});
+
+it("rejects an empty update", async () => {
+  expect((await patch("ADMIN", {})).status).toBe(422);
+  expect(updateStore).not.toHaveBeenCalled();
+});
+
 it("answers 422 with field messages for invalid data", async () => {
   const response = await patch("ADMIN", {
     ...valid,

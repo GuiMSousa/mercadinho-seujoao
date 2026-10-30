@@ -369,12 +369,10 @@
             "type": "string"
           },
           "phone": {
-            "default": "",
             "type": "string",
             "maxLength": 20
           },
           "address": {
-            "default": "",
             "type": "string",
             "maxLength": 200
           },
@@ -387,12 +385,7 @@
               "never"
             ]
           }
-        },
-        "required": [
-          "name",
-          "document",
-          "sessionIdle"
-        ]
+        }
       },
       "UserRow": {
         "type": "object",

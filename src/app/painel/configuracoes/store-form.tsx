@@ -15,16 +15,32 @@ import { apiFetch } from "../_lib/api";
 
 export type StoreData = z.infer<typeof storeResponseSchema>;
 
+const FIELDS = ["name", "document", "phone", "address"] as const;
+const toValues = (store: StoreData) => ({
+  name: store.name,
+  document: formatDocument(store.document),
+  phone: store.phone,
+  address: store.address,
+});
+
 export function StoreForm({ store }: { store: StoreData }) {
   const router = useRouter();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [values, setValues] = useState({
-    name: store.name,
-    document: formatDocument(store.document),
-    phone: store.phone,
-    address: store.address,
-  });
+  const [values, setValues] = useState(() => toValues(store));
+  const [saved, setSaved] = useState(store);
+  // Resync when the saved store changes (another tab or admin), keeping fields the user is editing.
+  if (store !== saved) {
+    const before = toValues(saved);
+    const after = toValues(store);
+    setSaved(store);
+    setValues((current) => {
+      const next = { ...current };
+      for (const key of FIELDS)
+        if (before[key] !== after[key]) next[key] = after[key];
+      return next;
+    });
+  }
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [pending, setPending] = useState(false);
   useFocusOnError(formRef, errors);
@@ -38,11 +54,19 @@ export function StoreForm({ store }: { store: StoreData }) {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    const base = toValues(store);
+    const changes = Object.fromEntries(
+      FIELDS.filter((key) => values[key] !== base[key]).map((key) => [
+        key,
+        values[key],
+      ]),
+    );
+    if (Object.keys(changes).length === 0) return;
     setPending(true);
     setErrors(null);
     const result = await apiFetch("/api/store", {
       method: "PATCH",
-      body: { ...values, sessionIdle: store.sessionIdle },
+      body: changes,
     });
     setPending(false);
     if (!result.ok) return setErrors(result.errors);

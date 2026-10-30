@@ -360,3 +360,16 @@ it("reads and updates the store, logging the change", async () => {
     ]);
   });
 });
+
+it("updates only the fields sent to the store", async () => {
+  await inTest(async (db) => {
+    const admin = await newUser(db);
+    await newStore(db);
+    await updateStore(admin, { phone: "11999999999" });
+    await updateStore(admin, { sessionIdle: "never" });
+    expect(await getStore()).toMatchObject({
+      phone: "11999999999",
+      sessionIdle: "never",
+    });
+  });
+});
