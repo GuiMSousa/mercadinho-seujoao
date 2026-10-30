@@ -40,6 +40,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Schema drift: the committed migrations must already contain what the schema declares.
+      - run: npx drizzle-kit generate
+      - run: git diff --exit-code -- drizzle
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
