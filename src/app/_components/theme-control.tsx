@@ -4,7 +4,9 @@ import { Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import type { ThemeChoice } from "@/contracts/theme";
-import { Button, IconButton } from "@ds/components/button";
+import { IconButton } from "@ds/components/button";
+import { Tabs } from "@ds/components/tabs";
+import { useToast } from "@ds/components/toast";
 
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 
@@ -41,15 +43,29 @@ const options: { value: ThemeChoice; label: string }[] = [
   { value: "system", label: "Sistema" },
 ];
 
-/** Saves the theme in a cookie (POST /api/theme) and refreshes so the server re-renders <html>. */
-export function ThemeControl({ variant }: { variant: "icon" | "tabs" }) {
+/**
+ * Saves the theme in a cookie (POST /api/theme) and refreshes so the server re-renders <html>.
+ * `initialTheme` (from getTheme() on the server) keeps the first client render equal to the server one.
+ */
+export function ThemeControl({
+  variant,
+  initialTheme,
+}: {
+  variant: "icon" | "tabs";
+  initialTheme?: "light" | "dark";
+}) {
   const router = useRouter();
+  const { toast } = useToast();
   const [pending, setPending] = useState(false);
-  const dark = useSyncExternalStore(subscribe, isDark, () => false);
+  const dark = useSyncExternalStore(
+    subscribe,
+    isDark,
+    () => initialTheme === "dark",
+  );
   const choice = useSyncExternalStore<ThemeChoice>(
     subscribe,
     currentChoice,
-    () => "system",
+    () => initialTheme ?? "system",
   );
 
   async function choose(theme: ThemeChoice) {
@@ -60,7 +76,10 @@ export function ThemeControl({ variant }: { variant: "icon" | "tabs" }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ theme }),
       });
-      if (response.ok) router.refresh();
+      if (!response.ok) throw new Error(String(response.status));
+      router.refresh();
+    } catch {
+      toast({ title: "Não foi possível mudar o tema.", tone: "danger" });
     } finally {
       setPending(false);
     }
@@ -78,23 +97,11 @@ export function ThemeControl({ variant }: { variant: "icon" | "tabs" }) {
     );
   }
   return (
-    <div
-      role="group"
+    <Tabs
       aria-label="Tema"
-      className="inline-flex gap-1 rounded-lg bg-surface-sunken p-1"
-    >
-      {options.map(({ value, label }) => (
-        <Button
-          key={value}
-          size="sm"
-          variant={choice === value ? "secondary" : "ghost"}
-          aria-pressed={choice === value}
-          disabled={pending}
-          onClick={() => void choose(value)}
-        >
-          {label}
-        </Button>
-      ))}
-    </div>
+      items={options}
+      value={choice}
+      onValueChange={(value) => void choose(value as ThemeChoice)}
+    />
   );
 }

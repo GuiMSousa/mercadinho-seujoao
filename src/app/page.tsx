@@ -10,7 +10,6 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { SESSION_COOKIE } from "@/contracts/auth";
 import { readSession } from "@/domains/auth/sessions";
-import { LogoutButton } from "./logout-button";
 
 const pillars: { icon: LucideIcon; title: string; description: string }[] = [
   {
@@ -59,13 +58,10 @@ export default async function Home() {
           entregues uma por vez.
         </p>
         {session ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-strong">
-              Você entrou como <strong>{session.user.name}</strong> (
-              {roleLabel[session.user.role]}).
-            </p>
-            <LogoutButton />
-          </div>
+          <p className="text-strong">
+            Você entrou como <strong>{session.user.name}</strong> (
+            {roleLabel[session.user.role]}).
+          </p>
         ) : (
           <Link
             href="/login"
