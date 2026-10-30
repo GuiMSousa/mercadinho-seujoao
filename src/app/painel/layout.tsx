@@ -1,19 +1,13 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { SESSION_COOKIE } from "@/contracts/auth";
-import { readSession } from "@/domains/auth/sessions";
 import { getStore } from "@/domains/store/service";
 import { getTheme } from "../theme";
+import { requireAdmin } from "./_lib/require-admin";
 import { Sidebar } from "./_shell/sidebar";
 import { Topbar } from "./_shell/topbar";
 
 export default async function PanelLayout({
   children,
 }: LayoutProps<"/painel">) {
-  const session = await readSession(
-    (await cookies()).get(SESSION_COOKIE)?.value,
-  );
-  if (session?.user.role !== "ADMIN") redirect("/login");
+  const session = await requireAdmin();
   const shell = {
     storeName: (await getStore())?.name ?? "Minha loja",
     userName: session.user.name,
