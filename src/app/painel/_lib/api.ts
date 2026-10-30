@@ -9,13 +9,16 @@ function csrfToken() {
   return pair ? decodeURIComponent(pair.slice(prefix.length)) : "";
 }
 
-/** Authenticated call from the panel: echoes the readable CSRF cookie in the header and sends JSON. */
-export function apiFetch<T = unknown>(
+/**
+ * Authenticated call from the panel: echoes the readable CSRF cookie in the header and sends JSON.
+ * A 401 means the session ended, so the person goes back to the login instead of seeing a toast.
+ */
+export async function apiFetch<T = unknown>(
   path: string,
   init: Omit<RequestInit, "body"> & { body?: unknown } = {},
 ) {
   const { body, headers, ...rest } = init;
-  return requestJson<T>(path, {
+  const result = await requestJson<T>(path, {
     ...rest,
     headers: {
       ...(body === undefined ? {} : { "content-type": "application/json" }),
@@ -24,4 +27,6 @@ export function apiFetch<T = unknown>(
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  if (!result.ok && result.status === 401) window.location.assign("/login");
+  return result;
 }

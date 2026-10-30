@@ -21,6 +21,13 @@ function respond(
     if (session.user.role === "ADMIN") return redirectTo("/painel", request);
     return NextResponse.next();
   }
+  // The route answers 401 itself and clears the stale cookies, which the proxy cannot do for it.
+  if (
+    denial === 401 &&
+    request.method === "POST" &&
+    request.nextUrl.pathname === "/api/auth/logout"
+  )
+    return NextResponse.next();
   if (request.nextUrl.pathname.startsWith("/api/"))
     return errorResponse(denial);
   if (denial === 401) return redirectTo("/login", request);

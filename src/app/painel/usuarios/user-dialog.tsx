@@ -13,6 +13,7 @@ import { Select } from "@ds/components/select";
 import { useToast } from "@ds/components/toast";
 import { apiFetch } from "../_lib/api";
 import { ROLE_LABEL } from "./team-table";
+import { userPatch } from "./user-state";
 
 const FORM_ID = "user-form";
 const roleOptions = [
@@ -45,12 +46,15 @@ export function UserDialog({
     if (!name.trim()) fields.name = "Informe o nome.";
     if (!user && !email.trim()) fields.email = "Informe um e-mail válido.";
     if (Object.keys(fields).length) return setErrors({ fields });
+    const patch = user && userPatch(user, { name, role, active });
+    // Nothing changed: the server would refuse an empty edit, so there is nothing to send.
+    if (user && patch && Object.keys(patch).length === 0) return onClose();
     setPending(true);
     setErrors(null);
     const result = user
       ? await apiFetch(`/api/admin/users/${user.id}`, {
           method: "PATCH",
-          body: { name, role, active },
+          body: patch,
         })
       : await apiFetch("/api/admin/users", {
           method: "POST",

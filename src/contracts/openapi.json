@@ -774,6 +774,16 @@
               }
             }
           },
+          "422": {
+            "description": "E-mail inválido (fields).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormError"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Limite de tentativas excedido.",
             "headers": {

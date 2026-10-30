@@ -35,7 +35,10 @@ export const emailSchema = z
 export const loginRequestSchema = z.object({
   email: emailSchema,
   // Upper bound caps the cost of hashing attacker-supplied input.
-  password: z.string().min(1).max(256),
+  password: z
+    .string("Informe sua senha.")
+    .min(1, "Informe sua senha.")
+    .max(256, "Informe sua senha."),
   remember: z.boolean().default(false),
 });
 

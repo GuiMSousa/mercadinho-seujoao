@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { expect, it, vi } from "vitest";
-import { SIGNUP_COOKIE } from "@/contracts/auth";
+import { SIGNUP_COOKIE, SIGNUP_COOKIE_MAX_AGE_SECONDS } from "@/contracts/auth";
 import { ServiceError } from "@/domains/auth/errors";
 import { resendSignupCode } from "@/domains/auth/signup";
 import { POST } from "./route";
@@ -33,8 +33,15 @@ it("resends to the normalized e-mail with 202", async () => {
   vi.mocked(resendSignupCode).mockResolvedValue(undefined);
   expect((await post("198.51.100.1")).status).toBe(202);
   expect(resendSignupCode).toHaveBeenCalledWith("ana@loja.com", "nonce-1");
-  await post("198.51.100.11", undefined, "");
+  const first = await post("198.51.100.12");
+  expect(first.cookies.get(SIGNUP_COOKIE)).toMatchObject({
+    value: "nonce-1",
+    maxAge: SIGNUP_COOKIE_MAX_AGE_SECONDS,
+    httpOnly: true,
+  });
+  const bare = await post("198.51.100.11", undefined, "");
   expect(resendSignupCode).toHaveBeenLastCalledWith("ana@loja.com", undefined);
+  expect(bare.cookies.get(SIGNUP_COOKIE)).toBeUndefined();
 });
 
 it("validates the e-mail and reports the cooldown with Retry-After", async () => {

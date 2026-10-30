@@ -116,6 +116,7 @@ export function buildOpenApiDocument() {
             },
             "400": error("Corpo inválido."),
             "401": error("E-mail ou senha incorretos."),
+            "422": formError("E-mail inválido (fields)."),
             "403": error(
               "Acesso desativado, perfil sem acesso ao painel (CASHIER) ou origem diferente do servidor.",
             ),

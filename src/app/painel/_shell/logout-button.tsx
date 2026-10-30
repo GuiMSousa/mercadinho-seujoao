@@ -15,7 +15,8 @@ export function LogoutButton() {
   async function logout() {
     setPending(true);
     const result = await apiFetch("/api/auth/logout", { method: "POST" });
-    if (!result.ok) {
+    // 401: the session was already gone, which is what logging out wanted.
+    if (!result.ok && result.status !== 401) {
       setPending(false);
       return toast({
         title: "Não foi possível sair.",

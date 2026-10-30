@@ -10,7 +10,11 @@ vi.mock("@/domains/auth/sessions", async (importOriginal) => ({
   readSession: vi.fn(),
 }));
 
-async function request(pathname: string, role?: "ADMIN" | "CASHIER") {
+async function request(
+  pathname: string,
+  role?: "ADMIN" | "CASHIER",
+  method = "GET",
+) {
   const headers = new Headers();
   if (role) {
     vi.mocked(readSession).mockResolvedValue({
@@ -29,7 +33,7 @@ async function request(pathname: string, role?: "ADMIN" | "CASHIER") {
     vi.mocked(readSession).mockResolvedValue(null);
   }
   return proxy(
-    new NextRequest(`http://localhost:3000${pathname}`, { headers }),
+    new NextRequest(`http://localhost:3000${pathname}`, { headers, method }),
   );
 }
 
@@ -75,6 +79,17 @@ it("sends anonymous visitors to the login page and anonymous API calls a 401", a
     expect((await request(pathname)).headers.get("x-middleware-next")).toBe(
       "1",
     );
+});
+
+it("lets an anonymous POST /api/auth/logout reach the route so it can clear stale cookies", async () => {
+  const response = await request("/api/auth/logout", undefined, "POST");
+  expect(response.headers.get("x-middleware-next")).toBe("1");
+  expect((await request("/api/auth/logout", undefined, "GET")).status).toBe(
+    401,
+  );
+  expect(
+    (await request("/api/account/sessions", undefined, "POST")).status,
+  ).toBe(401);
 });
 
 it("re-issues both cookies for 30 days when a remembered session was renewed", async () => {

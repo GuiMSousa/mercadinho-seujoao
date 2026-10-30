@@ -41,7 +41,7 @@ export function serviceErrorResponse(error: ServiceError) {
 /**
  * Shared shape of the public POST routes: guard, per-action rate limit (every attempt counts),
  * body validation, then `run`. A ServiceError becomes a form error with its status.
- * A body that fails the schema is a 422 with `fields`, or a plain 400 when `invalidMessage` is set.
+ * A body that fails the schema is a 422 with `fields`.
  */
 export async function publicPost<S extends z.ZodType>(
   request: NextRequest,
@@ -49,7 +49,6 @@ export async function publicPost<S extends z.ZodType>(
     limiter: Limiter;
     schema: S;
     limitMessage?: string;
-    invalidMessage?: string;
   },
   run: (
     input: z.output<S>,
@@ -78,9 +77,7 @@ export async function publicPost<S extends z.ZodType>(
   if (body === undefined) return errorResponse(400);
   const input = options.schema.safeParse(body);
   if (!input.success) {
-    return options.invalidMessage
-      ? errorResponse(400, options.invalidMessage)
-      : validationResponse(input.error);
+    return validationResponse(input.error);
   }
   try {
     return await run(input.data, session);

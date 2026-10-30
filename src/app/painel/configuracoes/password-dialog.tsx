@@ -8,6 +8,7 @@ import { Dialog } from "@ds/components/dialog";
 import { Input } from "@ds/components/input";
 import { useToast } from "@ds/components/toast";
 import { apiFetch } from "../_lib/api";
+import { passwordFormErrors } from "./password-form";
 
 const FORM_ID = "password-form";
 
@@ -17,15 +18,14 @@ export function PasswordDialog({ onClose }: { onClose: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [pending, setPending] = useState(false);
   useFocusOnError(formRef, errors);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const fields: Record<string, string> = {};
-    if (!current) fields.current = "Informe a senha atual.";
-    if (!next) fields.next = "Use 8 caracteres ou mais, com letras e números.";
+    const fields = passwordFormErrors({ current, next, confirm });
     if (Object.keys(fields).length) return setErrors({ fields });
     setPending(true);
     setErrors(null);
@@ -86,6 +86,16 @@ export function PasswordDialog({ onClose }: { onClose: () => void }) {
           value={next}
           onChange={(event) => setNext(event.target.value)}
           error={errors?.fields.next}
+        />
+        <Input
+          label="Confirmar nova senha"
+          name="confirm"
+          type="password"
+          autoComplete="new-password"
+          maxLength={256}
+          value={confirm}
+          onChange={(event) => setConfirm(event.target.value)}
+          error={errors?.fields.confirm}
         />
         <FormAlert message={errors?.error} />
       </form>

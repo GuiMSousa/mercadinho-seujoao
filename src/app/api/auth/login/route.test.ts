@@ -201,10 +201,19 @@ it("sets site-wide Lax cookies that are Secure only over HTTPS", async () => {
 });
 
 it("rejects malformed bodies and cross-origin logins without checking credentials", async () => {
-  expect(
-    (await login("198.51.100.2", { email: "not-an-email", password: "x" }))
-      .status,
-  ).toBe(400);
+  const malformed = await login("198.51.100.2", {
+    email: "not-an-email",
+    password: "x",
+  });
+  expect(malformed.status).toBe(422);
+  await expect(malformed.json()).resolves.toMatchObject({
+    fields: { email: "Informe um e-mail válido." },
+  });
+  const noPassword = await login("198.51.100.4", { email: "a@b.com" });
+  expect(noPassword.status).toBe(422);
+  await expect(noPassword.json()).resolves.toMatchObject({
+    fields: { password: "Informe sua senha." },
+  });
   expect(
     (await login("198.51.100.3", undefined, "https://evil.example")).status,
   ).toBe(403);

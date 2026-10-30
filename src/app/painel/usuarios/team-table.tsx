@@ -6,6 +6,7 @@ import { Button } from "@ds/components/button";
 import { Card } from "@ds/components/card";
 import { Table, type TableColumn } from "@ds/components/table";
 import { formatDateTime } from "../_lib/format";
+import { accessStatus } from "./user-state";
 
 export const ROLE_LABEL = {
   ADMIN: "Administrador",
@@ -42,14 +43,16 @@ export function TeamTable({
     {
       key: "active",
       label: "Acesso",
-      render: (user) =>
-        user.pending ? (
+      render: (user) => {
+        const status = accessStatus(user);
+        return status === "pending" ? (
           <Badge tone="warning">Convite pendente</Badge>
-        ) : user.active ? (
+        ) : status === "active" ? (
           <Badge tone="success">Ativo</Badge>
         ) : (
           <Badge tone="neutral">Desativado</Badge>
-        ),
+        );
+      },
     },
     {
       key: "last",

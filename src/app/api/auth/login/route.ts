@@ -28,7 +28,6 @@ export function POST(request: NextRequest) {
       limiter: loginRateLimiter,
       schema: loginRequestSchema,
       limitMessage: "Muitas tentativas de login. Tente novamente mais tarde.",
-      invalidMessage: "Informe e-mail e senha.",
     },
     async ({ email, password, remember }, session) => {
       const result = await authenticate(email, password);
