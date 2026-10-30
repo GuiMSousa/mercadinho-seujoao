@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
 import {
   stores,
@@ -85,6 +85,17 @@ export function createStoreWithAdmin(input: {
       .returning({ id: verificationCodes.id });
     if (consumed.length === 0) return null;
     await tx.insert(stores).values(input.store);
+    // No other signup can complete once the store exists, so its pending payloads (password
+    // hashes) have no use left.
+    await tx
+      .update(verificationCodes)
+      .set({ payload: null })
+      .where(
+        and(
+          eq(verificationCodes.purpose, "signup"),
+          isNotNull(verificationCodes.payload),
+        ),
+      );
     const [user] = await tx
       .insert(users)
       .values({

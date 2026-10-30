@@ -7,7 +7,8 @@ import { findUserByEmail, touchLastLogin } from "./repository";
 export { touchLastLogin as recordLogin };
 
 export type AuthResult =
-  | { ok: true; user: AuthUser }
+  // `passwordHash` is the verified hash; createSession checks that it is still current.
+  | { ok: true; user: AuthUser; passwordHash: string }
   | { ok: false; reason: "invalid" | "inactive" | "not_admin" | "no_password" };
 
 let unknownUserHash: Promise<string> | undefined;
@@ -34,5 +35,6 @@ export async function authenticate(
   return {
     ok: true,
     user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    passwordHash: user.passwordHash,
   };
 }

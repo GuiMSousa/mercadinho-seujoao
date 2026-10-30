@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import type { Role } from "@/infrastructure/db/schema";
+import { ServiceError } from "./errors";
 import * as repository from "./sessions-repository";
 
 const MINUTE_MS = 60_000;
@@ -34,16 +35,22 @@ export const hashToken = (token: string) =>
 
 const newToken = () => randomBytes(32).toString("base64url");
 
+/**
+ * Opens a session and drops the user's expired ones. With `passwordHash` (the hash a login just
+ * verified) it is refused with 401 when the user was deactivated or changed the password meanwhile.
+ */
 export async function createSession(input: {
   userId: string;
   remember: boolean;
   userAgent: string | null;
   ip: string;
+  passwordHash?: string;
 }) {
   const token = newToken();
   const csrfToken = newToken();
   const lifetimeMs = input.remember ? REMEMBER_MS : SHIFT_MS;
-  await repository.insertSession({
+  await repository.deleteExpiredSessions(input.userId, new Date());
+  const values = {
     id: hashToken(token),
     userId: input.userId,
     csrfHash: hashToken(csrfToken),
@@ -51,7 +58,12 @@ export async function createSession(input: {
     expiresAt: new Date(Date.now() + lifetimeMs),
     userAgent: input.userAgent,
     ip: input.ip,
-  });
+  };
+  if (input.passwordHash === undefined) await repository.insertSession(values);
+  else if (
+    !(await repository.insertSessionIfCurrent(values, input.passwordHash))
+  )
+    throw new ServiceError(401, "E-mail ou senha incorretos.");
   return {
     token,
     csrfToken,
@@ -98,8 +110,7 @@ export async function readSession(
       email: row.userEmail,
       role: row.userRole,
     },
-    // A session without a CSRF hash can never pass the CSRF check.
-    csrfHash: row.csrfHash ?? "",
+    csrfHash: row.csrfHash,
     remember: row.remember,
     ...(renewed && { renewed }),
   };

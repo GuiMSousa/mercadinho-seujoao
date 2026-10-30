@@ -1,11 +1,11 @@
 import "server-only";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, lt, ne, sql } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
 import { sessions, stores, users } from "@/infrastructure/db/schema";
 
 export type SessionRow = {
   userId: string;
-  csrfHash: string | null;
+  csrfHash: string;
   remember: boolean;
   expiresAt: Date;
   lastUsedAt: Date;
@@ -19,6 +19,29 @@ export type SessionRow = {
 
 export function insertSession(values: typeof sessions.$inferInsert) {
   return getDb().insert(sessions).values(values);
+}
+
+/**
+ * Inserts the session only while the user is active and still has the password hash that was
+ * verified, in one statement: a password reset that commits in between leaves zero rows.
+ */
+export async function insertSessionIfCurrent(
+  values: typeof sessions.$inferInsert,
+  passwordHash: string,
+) {
+  const result = await getDb().execute(sql`
+    insert into sessions (id, user_id, csrf_hash, remember, expires_at, user_agent, ip)
+    select ${values.id}, u.id, ${values.csrfHash}, ${values.remember ?? false},
+      ${values.expiresAt.toISOString()}::timestamptz, ${values.userAgent ?? null}, ${values.ip ?? null}
+    from users u
+    where u.id = ${values.userId} and u.active and u.password_hash = ${passwordHash}`);
+  return (result.rowCount ?? 0) > 0;
+}
+
+export function deleteExpiredSessions(userId: string, now: Date) {
+  return getDb()
+    .delete(sessions)
+    .where(and(eq(sessions.userId, userId), lt(sessions.expiresAt, now)));
 }
 
 export async function findSessionRow(

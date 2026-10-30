@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq, or, sql } from "drizzle-orm";
 import { getDb } from "@/infrastructure/db";
-import { users, type Role } from "@/infrastructure/db/schema";
+import { sessions, users, type Role } from "@/infrastructure/db/schema";
 
 const row = {
   id: users.id,
@@ -86,6 +86,9 @@ export function updateUserChecked(
       .set(patch)
       .where(eq(users.id, id))
       .returning(row);
+    // Same transaction: a deactivated user never keeps a live session.
+    if (patch.active === false)
+      await tx.delete(sessions).where(eq(sessions.userId, id));
     return updated;
   });
 }

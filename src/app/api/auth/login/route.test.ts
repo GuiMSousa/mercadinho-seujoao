@@ -7,6 +7,7 @@ import {
   loginResponseSchema,
 } from "@/contracts/auth";
 import { logActivity } from "@/domains/activity/service";
+import { ServiceError } from "@/domains/auth/errors";
 import { authenticate, recordLogin } from "@/domains/auth/service";
 import {
   createSession,
@@ -34,7 +35,11 @@ const USER = {
   email: "maria@example.com",
   role: "ADMIN",
 } as const;
-const granted = { ok: true, user: USER } as const;
+const granted = {
+  ok: true,
+  user: USER,
+  passwordHash: "verified-hash",
+} as const;
 
 beforeEach(() => {
   vi.mocked(readSession).mockResolvedValue(null);
@@ -115,6 +120,7 @@ it("normalizes the e-mail and opens a database session with an HTTP-only opaque 
     remember: false,
     userAgent: "TestBrowser/1.0",
     ip: "198.51.100.1",
+    passwordHash: "verified-hash",
   });
   const body = loginResponseSchema.parse(await response.json());
   expect(body).toEqual({ user: USER, csrfToken: "csrf-token" });
@@ -130,6 +136,20 @@ it("normalizes the e-mail and opens a database session with an HTTP-only opaque 
     user: { id: USER.id, name: "Maria" },
     action: "Login",
   });
+});
+
+it("answers 401 and records no login when the credentials changed before the session was created", async () => {
+  vi.mocked(authenticate).mockResolvedValue(granted);
+  vi.mocked(createSession).mockRejectedValue(
+    new ServiceError(401, "E-mail ou senha incorretos."),
+  );
+  const response = await login("198.51.100.1");
+  expect(response.status).toBe(401);
+  expect(await response.json()).toEqual({
+    error: "E-mail ou senha incorretos.",
+  });
+  expect(response.cookies.get(SESSION_COOKIE)).toBeUndefined();
+  expect(recordLogin).not.toHaveBeenCalled();
 });
 
 it("remembers the session for 30 days only when asked", async () => {

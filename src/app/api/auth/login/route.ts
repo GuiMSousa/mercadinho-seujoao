@@ -40,13 +40,14 @@ export function POST(request: NextRequest) {
         return errorResponse(status, message);
       }
 
-      await recordLogin(result.user.id);
       const response = await sessionResponse(
         request,
         result.user,
         session,
         remember,
+        result.passwordHash,
       );
+      await recordLogin(result.user.id);
       await logActivity({
         user: { id: result.user.id, name: result.user.name },
         action: "Login",

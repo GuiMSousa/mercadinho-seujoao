@@ -9,11 +9,7 @@ import {
   changePasswordAndRevoke,
   findUserByEmail,
 } from "@/domains/auth/repository";
-import {
-  revokeAllSessions,
-  revokeOtherSessions,
-  type AuthSession,
-} from "@/domains/auth/sessions";
+import { revokeOtherSessions, type AuthSession } from "@/domains/auth/sessions";
 import { deliverCode } from "@/domains/auth/verification";
 import { getStore } from "@/domains/store/service";
 import { uniqueViolation } from "@/infrastructure/db/errors";
@@ -118,7 +114,6 @@ export async function updateUser(actor: Actor, id: string, patch: UserUpdate) {
     },
   );
   if (!updated) throw new ServiceError(404, "Usuário não encontrado.");
-  if (patch.active === false) await revokeAllSessions(id);
   await logActivity({
     user: actor,
     action: patch.active === false ? "Usuário desativado" : "Usuário alterado",

@@ -51,6 +51,16 @@ export async function insertCode(values: {
   expiresAt: Date;
   payload: unknown;
 }) {
+  // Rows older than the 24 h cap window (plus 1 h of slack) can no longer matter; drop them here.
+  await getDb()
+    .delete(verificationCodes)
+    .where(
+      and(
+        eq(verificationCodes.purpose, values.purpose),
+        eq(verificationCodes.email, values.email),
+        lt(verificationCodes.createdAt, new Date(Date.now() - 25 * 3_600_000)),
+      ),
+    );
   // Explicit JS time (ms precision): now() is constant inside a transaction, which would tie "latest".
   const [row] = await getDb()
     .insert(verificationCodes)

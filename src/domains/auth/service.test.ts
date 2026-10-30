@@ -32,6 +32,7 @@ it("returns the user for the right password", async () => {
       email: "ana@loja.com",
       role: "ADMIN",
     },
+    passwordHash,
   });
 });
 

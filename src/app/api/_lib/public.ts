@@ -118,6 +118,7 @@ export async function sessionResponse(
   user: AuthUser,
   previous: AuthSession | null,
   remember: boolean,
+  passwordHash?: string,
 ) {
   if (previous) await revokeSession(previous.id);
   const session = await createSession({
@@ -125,6 +126,7 @@ export async function sessionResponse(
     remember,
     userAgent: request.headers.get("user-agent"),
     ip: clientIp(request.headers),
+    passwordHash,
   });
   const response = NextResponse.json(
     loginResponseSchema.parse({ user, csrfToken: session.csrfToken }),
