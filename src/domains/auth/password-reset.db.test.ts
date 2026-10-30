@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, expect, it, vi } from "vitest";
 import {
   activityLog,
@@ -7,9 +8,11 @@ import {
 } from "@/infrastructure/db/schema";
 import { withTestDb, type TestDb } from "@/infrastructure/db/test-db";
 import { getMailer } from "@/infrastructure/mail";
+import { INVITE_TTL_MS } from "./codes";
 import { ServiceError } from "./errors";
 import { hashPassword, verifyPassword } from "./password";
 import { confirmPasswordReset, requestPasswordReset } from "./password-reset";
+import { deliverCode } from "./verification";
 
 vi.mock("server-only", () => ({}));
 
@@ -129,6 +132,27 @@ it("every failure reads the same, and an invited user can set a first password",
 
     await confirmPasswordReset("ana@loja.com", code, "nova12345");
     const [after] = await db.select().from(users);
+    await expect(
+      verifyPassword("nova12345", after.passwordHash!),
+    ).resolves.toBe(true);
+  }));
+
+it("an invite code older than the resend interval still works when no new reset was requested", () =>
+  inTest(async (db) => {
+    await newUser(db, { passwordHash: null });
+    await deliverCode("password_reset", "ana@loja.com", undefined, {
+      ttlMs: INVITE_TTL_MS,
+    });
+    const code = sentCode();
+    await db
+      .update(verificationCodes)
+      .set({ createdAt: new Date(Date.now() - 5 * 60_000) });
+
+    await confirmPasswordReset("ana@loja.com", code, "nova12345");
+    const [after] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, "ana@loja.com"));
     await expect(
       verifyPassword("nova12345", after.passwordHash!),
     ).resolves.toBe(true);

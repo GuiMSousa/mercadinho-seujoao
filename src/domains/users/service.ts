@@ -72,7 +72,7 @@ export async function inviteUser(
       mail: (code) =>
         inviteMail({
           name: input.name,
-          storeName: store?.name ?? "",
+          storeName: store?.name ?? "Mkt Control",
           code,
         }),
     });
@@ -107,6 +107,7 @@ export async function updateUser(actor: Actor, id: string, patch: UserUpdate) {
       if (
         target.role === "ADMIN" &&
         target.active &&
+        !target.pending &&
         !staysActiveAdmin &&
         activeAdmins <= 1
       )
@@ -138,7 +139,11 @@ export async function changePassword(
     });
   await setPassword(user.id, await hashPassword(next));
   await revokeOtherSessions(user.id, session.id);
-  await logActivity({ user: session.user, action: "Senha alterada" });
+  await logActivity({
+    user: session.user,
+    action: "Senha alterada",
+    detail: `Conta ${session.user.email}`,
+  });
 }
 
 /** Ends every session of the user except this one; returns how many ended. */
@@ -147,7 +152,7 @@ export async function endOtherSessions(session: Session) {
   await logActivity({
     user: session.user,
     action: "Sessões encerradas",
-    detail: String(revoked),
+    detail: `${revoked} ${revoked === 1 ? "sessão" : "sessões"}`,
   });
   return revoked;
 }

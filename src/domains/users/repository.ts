@@ -58,13 +58,18 @@ export function updateUserChecked(
   id: string,
   patch: { name?: string; role?: Role; active?: boolean },
   check: (context: {
-    target: { id: string; role: Role; active: boolean };
+    target: { id: string; role: Role; active: boolean; pending: boolean };
     activeAdmins: number;
   }) => void | Promise<void>,
 ) {
   return getDb().transaction(async (tx) => {
     const locked = await tx
-      .select({ id: users.id, role: users.role, active: users.active })
+      .select({
+        id: users.id,
+        role: users.role,
+        active: users.active,
+        pending: row.pending,
+      })
       .from(users)
       .where(
         or(
@@ -78,7 +83,10 @@ export function updateUserChecked(
     if (!target) return undefined;
     await check({
       target,
-      activeAdmins: locked.filter((u) => u.role === "ADMIN" && u.active).length,
+      // A pending ADMIN has no password yet and cannot sign in, so it does not count.
+      activeAdmins: locked.filter(
+        (u) => u.role === "ADMIN" && u.active && !u.pending,
+      ).length,
     });
     const [updated] = await tx
       .update(users)

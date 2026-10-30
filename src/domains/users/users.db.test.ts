@@ -295,7 +295,10 @@ it("changes the password, ends the other sessions and keeps the current one", as
     expect((await db.select().from(sessions)).map((s) => s.id)).toEqual([
       "here",
     ]);
-    expect((await activityOf(db)).map(([a]) => a)).toContain("Senha alterada");
+    expect(await activityOf(db)).toContainEqual([
+      "Senha alterada",
+      "Conta ana@loja.com",
+    ]);
   });
 });
 
@@ -330,9 +333,11 @@ it("revokes only the other sessions and reports how many", async () => {
     await newSession(db, admin.id, "b");
     expect(await endOtherSessions({ id: "here", user: admin })).toBe(2);
     expect(await db.select().from(sessions)).toHaveLength(1);
-    expect((await activityOf(db)).map(([a]) => a)).toContain(
+    expect(await activityOf(db)).toContainEqual([
       "Sessões encerradas",
-    );
+      "2 sessões",
+    ]);
+    expect(await endOtherSessions({ id: "here", user: admin })).toBe(0);
   });
 });
 
@@ -371,5 +376,31 @@ it("updates only the fields sent to the store", async () => {
       phone: "11999999999",
       sessionIdle: "never",
     });
+  });
+});
+
+it("does not count a pending ADMIN invite as an active ADMIN", async () => {
+  await inTest(async (db) => {
+    const admin = await newUser(db);
+    await newUser(db, {
+      name: "Dora",
+      email: "dora@loja.com",
+      passwordHash: null,
+    });
+    const demote = await failure(
+      updateUser(admin, admin.id, { role: "CASHIER" }),
+    );
+    expect(demote.message).toBe("Mantenha ao menos um administrador ativo.");
+    const cashier = await newUser(db, {
+      name: "Caio",
+      email: "caio@loja.com",
+      role: "CASHIER",
+    });
+    const deactivate = await failure(
+      updateUser(cashier, admin.id, { active: false }),
+    );
+    expect(deactivate.message).toBe(
+      "Mantenha ao menos um administrador ativo.",
+    );
   });
 });

@@ -33,8 +33,18 @@ it("never leaves zero active ADMIN when two admins demote each other at once", a
     const rows = await db
       .insert(users)
       .values([
-        { name: "Ana", email: "race-a@loja.com", role: "ADMIN" },
-        { name: "Bia", email: "race-b@loja.com", role: "ADMIN" },
+        {
+          name: "Ana",
+          email: "race-a@loja.com",
+          role: "ADMIN",
+          passwordHash: "x",
+        },
+        {
+          name: "Bia",
+          email: "race-b@loja.com",
+          role: "ADMIN",
+          passwordHash: "x",
+        },
       ])
       .returning();
     const [a, b] = rows as [(typeof rows)[0], (typeof rows)[0]];
