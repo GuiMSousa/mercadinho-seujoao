@@ -23,7 +23,8 @@ export function insertSession(values: typeof sessions.$inferInsert) {
 
 /**
  * Inserts the session only while the user is active and still has the password hash that was
- * verified, in one statement: a password reset that commits in between leaves zero rows.
+ * verified, in one statement: a password reset that commits in between leaves zero rows. FOR SHARE
+ * makes it wait for an uncommitted update of the user and re-check the row after it commits.
  */
 export async function insertSessionIfCurrent(
   values: typeof sessions.$inferInsert,
@@ -34,7 +35,8 @@ export async function insertSessionIfCurrent(
     select ${values.id}, u.id, ${values.csrfHash}, ${values.remember ?? false},
       ${values.expiresAt.toISOString()}::timestamptz, ${values.userAgent ?? null}, ${values.ip ?? null}
     from users u
-    where u.id = ${values.userId} and u.active and u.password_hash = ${passwordHash}`);
+    where u.id = ${values.userId} and u.active and u.password_hash = ${passwordHash}
+    for share of u`);
   return (result.rowCount ?? 0) > 0;
 }
 

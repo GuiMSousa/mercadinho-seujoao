@@ -64,6 +64,8 @@ O npm 11 bloqueia install scripts não aprovados (`allowScripts`). Os avisos sob
 
 - **A migration `0001` apaga todos os usuários** (`DELETE FROM "users"`), porque o `username` antigo não vira e-mail. Em desenvolvimento, recrie-os com `npm run db:seed` (cria a loja e os usuários de demonstração) ou, se a loja já existe, com `npm run user:create -- <email> "<Nome completo>" ADMIN`. Não aplique a `0001` num banco cujos usuários precisem ser mantidos.
 
+- **A migration `0002` falha de propósito** (e não altera nada) se houver e-mails de usuários que diferem só por maiúsculas/minúsculas (o `UPDATE` que os põe em minúsculas viola o `UNIQUE`) ou mais de uma linha em `stores` com `singleton = false` e outra com `true`. Antes de migrar, confira com `SELECT lower(email), count(*) FROM users GROUP BY 1 HAVING count(*) > 1;` e `SELECT count(*) FROM stores;`. Remova ou renomeie os e-mails duplicados e deixe uma única loja. A `0002` também apaga sessões sem hash CSRF (só desconecta esses usuários).
+
 ### Banco de testes
 
 Os testes com banco real (`*.db.test.ts`) usam o banco `mkt_control_test`, no mesmo servidor, e rodam cada teste numa transação que sofre rollback. Preparação, uma vez:
