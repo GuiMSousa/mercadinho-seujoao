@@ -67,18 +67,40 @@ function login(
   );
 }
 
+// The account limiter is keyed by e-mail, so tests that count attempts use their own address.
+const bodyFor = (email: string) => ({ email, password: "senha" });
+
 it("refuses the 11th login attempt from the same IP within 15 minutes with 429", async () => {
   vi.mocked(authenticate).mockResolvedValue({ ok: false, reason: "invalid" });
+  const body = bodyFor("per-ip@example.com");
   for (let attempt = 1; attempt <= 10; attempt++) {
-    expect((await login("203.0.113.10")).status).toBe(401);
+    expect((await login("203.0.113.10", body)).status).toBe(401);
   }
-  const blocked = await login("203.0.113.10");
+  const blocked = await login("203.0.113.10", body);
   expect(blocked.status).toBe(429);
   expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(0);
   errorResponseSchema.parse(await blocked.json());
   expect(authenticate).toHaveBeenCalledTimes(10);
   expect(createSession).not.toHaveBeenCalled();
-  expect((await login("203.0.113.11")).status).toBe(401);
+  expect((await login("203.0.113.11", body)).status).toBe(401);
+});
+
+it("refuses the 21st attempt on one account even when every request comes from another IP", async () => {
+  vi.mocked(authenticate).mockResolvedValue({ ok: false, reason: "invalid" });
+  const body = bodyFor(" Victim@Example.com ");
+  for (let attempt = 1; attempt <= 20; attempt++) {
+    expect((await login(`198.51.100.${attempt}`, body)).status).toBe(401);
+  }
+  const blocked = await login("198.51.100.99", bodyFor("victim@example.com"));
+  expect(blocked.status).toBe(429);
+  expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(0);
+  await expect(blocked.json()).resolves.toEqual({
+    error: "Muitas tentativas de login. Tente novamente mais tarde.",
+  });
+  expect(authenticate).toHaveBeenCalledTimes(20);
+  expect(
+    (await login("198.51.100.98", bodyFor("other@example.com"))).status,
+  ).toBe(401);
 });
 
 it("normalizes the e-mail and opens a database session with an HTTP-only opaque cookie", async () => {

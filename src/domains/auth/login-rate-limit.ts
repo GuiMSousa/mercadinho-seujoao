@@ -34,6 +34,13 @@ const perAction = () =>
   createRateLimiter({ limit: 10, windowMs: 15 * 60 * 1000 });
 
 export const loginRateLimiter = perAction();
+// Keyed by e-mail: the IP headers are client-controlled on the LAN, so the per-IP limiter alone can be rotated around.
+export const loginAccountRateLimiter = createRateLimiter({
+  limit: 20,
+  windowMs: 15 * 60 * 1000,
+});
+// Keyed by session user id: bounds guesses at the current password from a stolen session.
+export const passwordCheckRateLimiter = perAction();
 export const signupRateLimiter = perAction();
 export const resendRateLimiter = perAction();
 export const verifyRateLimiter = perAction();

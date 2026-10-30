@@ -15,6 +15,15 @@ import { errorResponse, guard, setSessionCookies } from "./guard";
 
 type Limiter = ReturnType<typeof createRateLimiter>;
 
+const DEFAULT_LIMIT_MESSAGE = "Muitas tentativas. Tente novamente mais tarde.";
+
+export function tooManyResponse(retryAfterSeconds: number, message?: string) {
+  return NextResponse.json(
+    { error: message ?? DEFAULT_LIMIT_MESSAGE },
+    { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } },
+  );
+}
+
 export function validationResponse(error: z.ZodError) {
   const fields: Record<string, string> = {};
   for (const issue of error.issues)
@@ -49,6 +58,8 @@ export async function publicPost<S extends z.ZodType>(
     limiter: Limiter;
     schema: S;
     limitMessage?: string;
+    /** Second limiter, keyed by something in the validated body (for example the e-mail). */
+    account?: { limiter: Limiter; key: (input: z.output<S>) => string };
   },
   run: (
     input: z.output<S>,
@@ -59,25 +70,21 @@ export async function publicPost<S extends z.ZodType>(
   if (denial) return errorResponse(denial);
 
   const limit = options.limiter.hit(clientIp(request.headers));
-  if (!limit.allowed) {
-    return NextResponse.json(
-      {
-        error:
-          options.limitMessage ??
-          "Muitas tentativas. Tente novamente mais tarde.",
-      },
-      {
-        status: 429,
-        headers: { "Retry-After": String(limit.retryAfterSeconds) },
-      },
-    );
-  }
+  if (!limit.allowed)
+    return tooManyResponse(limit.retryAfterSeconds, options.limitMessage);
 
   const body: unknown = await request.json().catch(() => undefined);
   if (body === undefined) return errorResponse(400);
   const input = options.schema.safeParse(body);
   if (!input.success) {
     return validationResponse(input.error);
+  }
+  if (options.account) {
+    const byAccount = options.account.limiter.hit(
+      options.account.key(input.data),
+    );
+    if (!byAccount.allowed)
+      return tooManyResponse(byAccount.retryAfterSeconds, options.limitMessage);
   }
   try {
     return await run(input.data, session);

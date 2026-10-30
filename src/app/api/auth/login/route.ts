@@ -1,7 +1,10 @@
 import type { NextRequest } from "next/server";
 import { loginRequestSchema } from "@/contracts/auth";
 import { logActivity } from "@/domains/activity/service";
-import { loginRateLimiter } from "@/domains/auth/login-rate-limit";
+import {
+  loginAccountRateLimiter,
+  loginRateLimiter,
+} from "@/domains/auth/login-rate-limit";
 import { authenticate, recordLogin } from "@/domains/auth/service";
 import { errorResponse } from "../../_lib/guard";
 import { publicPost, sessionResponse } from "../../_lib/public";
@@ -28,6 +31,7 @@ export function POST(request: NextRequest) {
       limiter: loginRateLimiter,
       schema: loginRequestSchema,
       limitMessage: "Muitas tentativas de login. Tente novamente mais tarde.",
+      account: { limiter: loginAccountRateLimiter, key: ({ email }) => email },
     },
     async ({ email, password, remember }, session) => {
       const result = await authenticate(email, password);
