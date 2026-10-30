@@ -63,3 +63,19 @@ it("reports a wrong current password as 422 on the current field", async () => {
     fields: { current: "Senha atual incorreta." },
   });
 });
+
+it("refuses the 11th attempt of the same user within 15 minutes with 429, without checking the password", async () => {
+  // Earlier tests in this file already spent part of this user's budget of 10 (the limiter is per process).
+  const responses: Response[] = [];
+  for (let i = 0; i < 12; i++) responses.push(await post("ADMIN"));
+  const blocked = responses.findIndex((response) => response.status === 429);
+  expect(blocked).toBeGreaterThan(0);
+  expect(responses.slice(blocked).every((r) => r.status === 429)).toBe(true);
+  expect(Number(responses[blocked].headers.get("retry-after"))).toBeGreaterThan(
+    0,
+  );
+  await expect(responses[blocked].json()).resolves.toEqual({
+    error: "Muitas tentativas. Tente novamente mais tarde.",
+  });
+  expect(changePassword).toHaveBeenCalledTimes(blocked);
+});
