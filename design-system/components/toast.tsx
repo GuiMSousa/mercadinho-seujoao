@@ -22,7 +22,9 @@ const tones = {
   info: { icon: Info, color: "text-info-solid" },
 } as const;
 
+// Single source of the timeouts; errors stay longer because they are read, then acted on.
 const TIMEOUT_MS = 3600;
+const DANGER_TIMEOUT_MS = 8000;
 
 function ToastList() {
   const { toasts } = ToastPrimitive.useToastManager();
@@ -44,7 +46,7 @@ function ToastList() {
         </ToastPrimitive.Content>
         <ToastPrimitive.Close
           aria-label="Fechar"
-          className="flex shrink-0 cursor-pointer rounded-xs text-inverse-sub"
+          className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-xs text-inverse-sub"
         >
           <X aria-hidden="true" className="size-4" />
         </ToastPrimitive.Close>
@@ -56,7 +58,7 @@ function ToastList() {
 /** Wraps the app once; renders the viewport (bottom on mobile, bottom-right on desktop). */
 function ToastProvider({ children }: { children: ReactNode }) {
   return (
-    <ToastPrimitive.Provider timeout={TIMEOUT_MS}>
+    <ToastPrimitive.Provider>
       {children}
       <ToastPrimitive.Portal>
         <ToastPrimitive.Viewport className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col gap-2 sm:left-auto sm:w-96">
@@ -75,7 +77,9 @@ function useToast() {
         title,
         description: message,
         type: tone,
-        timeout: TIMEOUT_MS,
+        // Danger interrupts the screen reader (assertive); the rest wait their turn (polite).
+        priority: tone === "danger" ? "high" : "low",
+        timeout: tone === "danger" ? DANGER_TIMEOUT_MS : TIMEOUT_MS,
       }),
   };
 }
