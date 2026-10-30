@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { eq, isNull } from "drizzle-orm";
 import { beforeEach, expect, it, vi } from "vitest";
 import { storeExists } from "@/domains/store/repository";
@@ -196,7 +197,7 @@ it("maps a users.email violation at confirmation time to 409", () =>
 
 it("locks the code after five wrong guesses, even when they arrive in parallel", async () => {
   // Needs real concurrent connections, so it commits and cleans up after itself.
-  const email = "parallel-guess@loja.com";
+  const email = `parallel-guess-${randomUUID()}@loja.com`;
   await withTestPool(async (db) => {
     current = db as unknown as TestDb;
     try {

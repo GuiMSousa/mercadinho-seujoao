@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { inArray } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { expect, it, vi } from "vitest";
@@ -30,18 +31,19 @@ vi.mock("@/domains/activity/service", () => ({ logActivity: vi.fn() }));
 it("never leaves zero active ADMIN when two admins demote each other at once", async () => {
   await withTestPool(async (db) => {
     current = db;
+    const tag = randomUUID();
     const rows = await db
       .insert(users)
       .values([
         {
           name: "Ana",
-          email: "race-a@loja.com",
+          email: `race-a-${tag}@loja.com`,
           role: "ADMIN",
           passwordHash: "x",
         },
         {
           name: "Bia",
-          email: "race-b@loja.com",
+          email: `race-b-${tag}@loja.com`,
           role: "ADMIN",
           passwordHash: "x",
         },
