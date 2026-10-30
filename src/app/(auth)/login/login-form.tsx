@@ -113,7 +113,7 @@ export function LoginForm({
         <>
           <div
             aria-hidden="true"
-            className="flex items-center gap-3 text-caption text-soft"
+            className="flex items-center gap-3 text-caption text-sub"
           >
             <span className="h-px flex-1 bg-border" />
             ou

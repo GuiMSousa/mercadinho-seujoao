@@ -1,4 +1,4 @@
-const EMAIL = /^\S+@\S+\.\S+$/;
+import { emailSchema } from "@/contracts/auth";
 
 type Param = string | string[] | undefined;
 const first = (value: Param) => (Array.isArray(value) ? value[0] : value);
@@ -8,10 +8,10 @@ const first = (value: Param) => (Array.isArray(value) ? value[0] : value);
  * straight to the code step; asking for a new code there would replace the 48 h invite code.
  */
 export function resetStart(params: { email?: Param; etapa?: Param }) {
-  const email = first(params.email)?.trim() ?? "";
-  const validEmail = EMAIL.test(email) && email.length <= 254;
+  const parsed = emailSchema.safeParse(first(params.email) ?? "");
+  const validEmail = parsed.success;
   return {
-    email: validEmail ? email : "",
+    email: parsed.success ? parsed.data : "",
     step:
       validEmail && first(params.etapa) === "codigo"
         ? (2 as const)

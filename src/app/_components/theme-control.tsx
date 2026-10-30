@@ -4,7 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Radio } from "@base-ui/react/radio";
 import { RadioGroup } from "@base-ui/react/radio-group";
-import { useId, useState, useSyncExternalStore } from "react";
+import { useId, useRef, useState, useSyncExternalStore } from "react";
 import type { ThemeChoice } from "@/contracts/theme";
 import { IconButton } from "@ds/components/button";
 import { useToast } from "@ds/components/toast";
@@ -59,6 +59,9 @@ export function ThemeControl({
   const router = useRouter();
   const { toast } = useToast();
   const [pending, setPending] = useState(false);
+  // Requests run one at a time and a superseded choice is skipped, so the last click always wins.
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const latest = useRef<ThemeChoice | null>(null);
   const dark = useSyncExternalStore(
     subscribe,
     isDark,
@@ -70,7 +73,8 @@ export function ThemeControl({
     () => initialTheme ?? "system",
   );
 
-  async function choose(theme: ThemeChoice) {
+  async function send(theme: ThemeChoice) {
+    if (latest.current !== theme) return;
     setPending(true);
     try {
       const response = await fetch("/api/theme", {
@@ -79,7 +83,7 @@ export function ThemeControl({
         body: JSON.stringify({ theme }),
       });
       if (!response.ok) throw new Error(String(response.status));
-      router.refresh();
+      if (latest.current === theme) router.refresh();
     } catch {
       toast({
         title: "Não foi possível mudar o tema",
@@ -87,8 +91,13 @@ export function ThemeControl({
         tone: "danger",
       });
     } finally {
-      setPending(false);
+      if (latest.current === theme) setPending(false);
     }
+  }
+
+  function choose(theme: ThemeChoice) {
+    latest.current = theme;
+    queue.current = queue.current.then(() => send(theme));
   }
 
   if (variant === "icon") {
@@ -99,7 +108,7 @@ export function ThemeControl({
         label={dark ? "Modo claro" : "Modo escuro"}
         disabled={pending}
         focusableWhenDisabled
-        onClick={() => void choose(dark ? "light" : "dark")}
+        onClick={() => choose(dark ? "light" : "dark")}
       />
     );
   }
@@ -111,7 +120,7 @@ export function ThemeControl({
       <RadioGroup
         aria-labelledby={labelId}
         value={choice}
-        onValueChange={(value) => void choose(value as ThemeChoice)}
+        onValueChange={(value) => choose(value as ThemeChoice)}
         className="inline-flex gap-1 self-start rounded-lg bg-surface-sunken p-1"
       >
         {options.map((option) => (

@@ -62,7 +62,7 @@ export function StoreForm({ store }: { store: StoreData }) {
       ]),
     );
     if (Object.keys(changes).length === 0)
-      return toast({ title: "Nenhuma alteração para salvar.", tone: "info" });
+      return toast({ title: "Nenhuma alteração para salvar", tone: "info" });
     setPending(true);
     setErrors(null);
     const result = await apiFetch("/api/store", {

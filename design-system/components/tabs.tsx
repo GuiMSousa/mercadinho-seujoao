@@ -9,7 +9,7 @@ type TabsProps = {
   items: TabItem[];
   value: string;
   onValueChange: (value: string) => void;
-  /** Names the tab list for screen readers (e.g. "Tema"). */
+  /** Names the tab list for screen readers (e.g. "Filtro de lotes"). */
   "aria-label": string;
   className?: string;
 };
