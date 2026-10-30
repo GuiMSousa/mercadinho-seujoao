@@ -71,6 +71,7 @@ const newSession = async (db: TestDb, userId: string, id: string) => {
   await db.insert(sessions).values({
     id,
     userId,
+    csrfHash: "c",
     expiresAt: new Date(Date.now() + 3_600_000),
   });
 };

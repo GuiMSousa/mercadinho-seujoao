@@ -36,7 +36,12 @@ it("stores, users, sessions, codes and activity round-trip with their defaults",
 
     const [session] = await db
       .insert(sessions)
-      .values({ id: "a".repeat(64), userId: user.id, expiresAt: hour() })
+      .values({
+        id: "a".repeat(64),
+        userId: user.id,
+        csrfHash: "c",
+        expiresAt: hour(),
+      })
       .returning();
     expect(session.remember).toBe(false);
 
@@ -90,9 +95,12 @@ it("deleting a user deletes their sessions and keeps the activity log with a nul
       .insert(users)
       .values({ name: "Maria", email: "maria@example.com", role: "CASHIER" })
       .returning();
-    await db
-      .insert(sessions)
-      .values({ id: "b".repeat(64), userId: user.id, expiresAt: hour() });
+    await db.insert(sessions).values({
+      id: "b".repeat(64),
+      userId: user.id,
+      csrfHash: "c",
+      expiresAt: hour(),
+    });
     await db
       .insert(activityLog)
       .values({ userId: user.id, userName: user.name, action: "login" });
@@ -102,4 +110,43 @@ it("deleting a user deletes their sessions and keeps the activity log with a nul
     expect(await db.select().from(sessions)).toHaveLength(0);
     const [entry] = await db.select().from(activityLog);
     expect(entry).toMatchObject({ userId: null, userName: "Maria" });
+  }));
+
+it("refuses a store with singleton false, a non-lowercase e-mail and a session without CSRF hash", () =>
+  withTestDb(async (db) => {
+    const store = await pgError(
+      (tx) => tx.insert(stores).values({ ...newStore, singleton: false }),
+      db,
+    );
+    expect(store).toMatchObject({
+      code: "23514",
+      constraint: "stores_singleton_true",
+    });
+
+    const email = await pgError(
+      (tx) =>
+        tx
+          .insert(users)
+          .values({ name: "Maria", email: "Maria@Example.com", role: "ADMIN" }),
+      db,
+    );
+    expect(email).toMatchObject({
+      code: "23514",
+      constraint: "users_email_lowercase",
+    });
+
+    const [user] = await db
+      .insert(users)
+      .values({ name: "Maria", email: "maria@example.com", role: "ADMIN" })
+      .returning();
+    const session = await pgError(
+      (tx) =>
+        tx.insert(sessions).values({
+          id: "c".repeat(64),
+          userId: user.id,
+          expiresAt: hour(),
+        } as typeof sessions.$inferInsert),
+      db,
+    );
+    expect(session).toMatchObject({ code: "23502" });
   }));

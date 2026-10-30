@@ -38,8 +38,8 @@ it("sets the hash, ends the other sessions and consumes the open reset codes of 
       .returning();
     const expiresAt = new Date(Date.now() + 3_600_000);
     await db.insert(sessions).values([
-      { id: "here", userId: admin.id, expiresAt },
-      { id: "elsewhere", userId: admin.id, expiresAt },
+      { id: "here", userId: admin.id, csrfHash: "c", expiresAt },
+      { id: "elsewhere", userId: admin.id, csrfHash: "c", expiresAt },
     ]);
     await db
       .insert(verificationCodes)

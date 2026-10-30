@@ -88,6 +88,7 @@ it("confirming changes the password, consumes the code and ends every session", 
     await db.insert(sessions).values({
       id: "s1",
       userId: user.id,
+      csrfHash: "c",
       expiresAt: new Date(Date.now() + 3_600_000),
     });
     await requestPasswordReset("ana@loja.com");

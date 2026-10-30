@@ -31,9 +31,10 @@ export const verificationCodes = pgTable(
     payload: jsonb("payload"),
   },
   (table) => [
-    index("verification_codes_email_purpose_idx").on(
+    index("verification_codes_email_purpose_created_idx").on(
       table.email,
       table.purpose,
+      table.createdAt,
     ),
   ],
 );
