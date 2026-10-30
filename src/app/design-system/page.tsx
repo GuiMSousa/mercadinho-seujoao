@@ -10,6 +10,7 @@ import { Money } from "@ds/components/money";
 import { Select } from "@ds/components/select";
 import { Table } from "@ds/components/table";
 import { DialogDemo, KeypadDemo, SelectableTable, ThemeSwitch } from "./demos";
+import { TabsDemo, ToastDemo } from "./demos-navigation";
 import { TokensSection } from "./tokens-section";
 
 export const metadata: Metadata = { title: "Design system — Mkt Control" };
@@ -224,6 +225,13 @@ export default function DesignSystemPage() {
         </div>
         <Row>
           <DialogDemo />
+        </Row>
+      </Section>
+
+      <Section id="navegacao" title="Abas e avisos">
+        <TabsDemo />
+        <Row>
+          <ToastDemo />
         </Row>
       </Section>
 

@@ -64,6 +64,7 @@
   --text-soft: var(--neutral-400);
   --text-disabled: var(--neutral-300);
   --text-inverse: var(--neutral-0);
+  --text-inverse-sub: var(--neutral-400);
   --text-link: var(--blue-500);
   --text-on-color: var(--neutral-0);
   --border-soft: var(--neutral-100);
@@ -139,6 +140,7 @@
   --text-soft: var(--neutral-500);
   --text-disabled: var(--neutral-600);
   --text-inverse: var(--neutral-950);
+  --text-inverse-sub: var(--neutral-500);
   --text-link: var(--blue-400);
   --border-soft: #22262f;
   --border-default: var(--neutral-700);
@@ -192,6 +194,7 @@
     --text-soft: var(--neutral-500);
     --text-disabled: var(--neutral-600);
     --text-inverse: var(--neutral-950);
+    --text-inverse-sub: var(--neutral-500);
     --text-link: var(--blue-400);
     --border-soft: #22262f;
     --border-default: var(--neutral-700);
@@ -266,6 +269,7 @@
   --color-soft: var(--text-soft);
   --color-disabled: var(--text-disabled);
   --color-inverse: var(--text-inverse);
+  --color-inverse-sub: var(--text-inverse-sub);
   --color-link: var(--text-link);
   --color-on-color: var(--text-on-color);
   --color-border-soft: var(--border-soft);

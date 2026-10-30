@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { fontSans } from "@ds/fonts";
+import { ToastProvider } from "@ds/components/toast";
 import { getTheme } from "./theme";
 import "./globals.css";
 
@@ -15,7 +16,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-theme={await getTheme()}
       className={`${fontSans.variable} h-full`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

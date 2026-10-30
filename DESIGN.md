@@ -111,6 +111,8 @@ Importe pelo alias `@ds/*`, por exemplo `import { Button } from "@ds/components/
 | `Card`       | `card.tsx`     | `title`, `subtitle`, `actions`, `titleAs` h2 · h3, `as`, `flush`                                                     | —                                                     |
 | `Table`      | `table.tsx`    | `caption` obrigatório, `columns` com `render`, `rows`, `rowKey`, `empty`, `dense`, `isSelected`                      | hover, seleção, vazio                                 |
 | `Dialog`     | `dialog.tsx`   | Base UI; `open`, `onOpenChange`, `title`, `description`, `footer`                                                    | abertura/fechamento, foco preso, Esc, retorno do foco |
+| `Tabs`       | `tabs.tsx`     | Base UI; `items` (`value`, `label`, `count?`), `value`, `onValueChange`, `aria-label` obrigatório                    | selecionada, foco, setas e Home/End                   |
+| `Toast`      | `toast.tsx`    | Base UI; `ToastProvider` uma vez no layout; `useToast().toast({ title, message?, tone })`, some em 3,6 s             | quatro tons, fechar, anunciado com `role="status"`    |
 | `Keypad`     | `keypad.tsx`   | `value` (centavos em dígitos), `onChange`, `maxLength`, `label`; converta com `keypadCents()`                        | pressionado, foco                                     |
 | `Label`      | `label.tsx`    | rótulo de formulário                                                                                                 | desabilitado                                          |
 | `Field`      | `field.tsx`    | interno: rótulo, controle e dica/erro compartilhados por `Input` e `Select`                                          | —                                                     |
@@ -150,7 +152,7 @@ Para abrir, sirva a pasta `design-system` por HTTP, por exemplo `python -m http.
 
 A pasta não é código do app: ESLint, Prettier, TypeScript e Tailwind a ignoram, e importar de lá é erro de lint.
 
-**Ainda não portados** (especificação só nas referências): `StatCard`, `Tag`, `Radio`, `Switch`, `Tabs`, `SidebarNav`, `BottomNav`, `Toast`, `Tooltip` e `Icon` (HugeIcons). Os tokens deles (gráficos, barra inferior, switch, contadores, texto inverso secundário e layout) entram aqui quando o componente for portado.
+**Ainda não portados** (especificação só nas referências): `StatCard`, `Tag`, `Radio`, `Switch`, `SidebarNav`, `BottomNav`, `Tooltip` e `Icon` (HugeIcons). Os tokens deles (gráficos, barra inferior, switch, contadores e layout) entram aqui quando o componente for portado.
 
 ## Tokens
 
@@ -199,21 +201,22 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 
 **Superfícies e texto**
 
-| Token               | Claro                    | Escuro                |
-| ------------------- | ------------------------ | --------------------- |
-| `--bg-app`          | `var(--neutral-50)`      | `#0a0d14`             |
-| `--surface-card`    | `var(--neutral-0)`       | `var(--neutral-900)`  |
-| `--surface-sunken`  | `var(--neutral-100)`     | `#1f232d`             |
-| `--surface-hover`   | `var(--neutral-50)`      | `var(--neutral-800)`  |
-| `--surface-overlay` | `rgba(14, 18, 27, 0.48)` | `rgba(0, 0, 0, 0.64)` |
-| `--text-strong`     | `var(--neutral-950)`     | `#f5f7fa`             |
-| `--text-body`       | `var(--neutral-700)`     | `var(--neutral-300)`  |
-| `--text-sub`        | `var(--neutral-500)`     | `var(--neutral-400)`  |
-| `--text-soft`       | `var(--neutral-400)`     | `var(--neutral-500)`  |
-| `--text-disabled`   | `var(--neutral-300)`     | `var(--neutral-600)`  |
-| `--text-inverse`    | `var(--neutral-0)`       | `var(--neutral-950)`  |
-| `--text-link`       | `var(--blue-500)`        | `var(--blue-400)`     |
-| `--text-on-color`   | `var(--neutral-0)`       | —                     |
+| Token                | Claro                    | Escuro                |
+| -------------------- | ------------------------ | --------------------- |
+| `--bg-app`           | `var(--neutral-50)`      | `#0a0d14`             |
+| `--surface-card`     | `var(--neutral-0)`       | `var(--neutral-900)`  |
+| `--surface-sunken`   | `var(--neutral-100)`     | `#1f232d`             |
+| `--surface-hover`    | `var(--neutral-50)`      | `var(--neutral-800)`  |
+| `--surface-overlay`  | `rgba(14, 18, 27, 0.48)` | `rgba(0, 0, 0, 0.64)` |
+| `--text-strong`      | `var(--neutral-950)`     | `#f5f7fa`             |
+| `--text-body`        | `var(--neutral-700)`     | `var(--neutral-300)`  |
+| `--text-sub`         | `var(--neutral-500)`     | `var(--neutral-400)`  |
+| `--text-soft`        | `var(--neutral-400)`     | `var(--neutral-500)`  |
+| `--text-disabled`    | `var(--neutral-300)`     | `var(--neutral-600)`  |
+| `--text-inverse`     | `var(--neutral-0)`       | `var(--neutral-950)`  |
+| `--text-inverse-sub` | `var(--neutral-400)`     | `var(--neutral-500)`  |
+| `--text-link`        | `var(--blue-500)`        | `var(--blue-400)`     |
+| `--text-on-color`    | `var(--neutral-0)`       | —                     |
 
 **Bordas e ações**
 
@@ -294,76 +297,77 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 
 `--color-*: initial` remove a paleta padrão do Tailwind. Cada token abaixo gera `bg-*`, `text-*`, `border-*`, `ring-*` e as demais utilidades de cor. Os nomes do shadcn continuam existindo para que componentes adicionados pelo CLI já saiam no sistema.
 
-| Token                          | Valor                         | Uso                                                    |
-| ------------------------------ | ----------------------------- | ------------------------------------------------------ |
-| `--color-background`           | `var(--bg-app)`               | shadcn: fundo da página                                |
-| `--color-foreground`           | `var(--text-strong)`          | shadcn: texto de destaque                              |
-| `--color-card`                 | `var(--surface-card)`         | shadcn: cartão                                         |
-| `--color-card-foreground`      | `var(--text-body)`            | shadcn: texto do cartão                                |
-| `--color-popover`              | `var(--surface-card)`         | shadcn: popover                                        |
-| `--color-popover-foreground`   | `var(--text-body)`            | shadcn: texto do popover                               |
-| `--color-primary`              | `var(--action-primary)`       | botão principal (tinta)                                |
-| `--color-primary-foreground`   | `var(--text-inverse)`         | texto sobre `bg-primary`                               |
-| `--color-secondary`            | `var(--control-soft)`         | shadcn: botão secundário                               |
-| `--color-secondary-foreground` | `var(--text-strong)`          | shadcn: texto do secundário                            |
-| `--color-muted`                | `var(--surface-sunken)`       | shadcn: fundo rebaixado                                |
-| `--color-muted-foreground`     | `var(--text-sub)`             | shadcn: texto secundário                               |
-| `--color-accent`               | `var(--surface-hover)`        | shadcn: hover de item                                  |
-| `--color-accent-foreground`    | `var(--text-strong)`          | shadcn: texto em hover                                 |
-| `--color-destructive`          | `var(--action-danger)`        | ação destrutiva                                        |
-| `--color-border`               | `var(--border-default)`       | borda padrão (aplicada a `*` em `globals.css`)         |
-| `--color-input`                | `var(--border-default)`       | shadcn: borda de campo                                 |
-| `--color-ring`                 | `var(--border-focus)`         | shadcn: anel de foco                                   |
-| `--color-app`                  | `var(--bg-app)`               | `bg-app`: fundo da página                              |
-| `--color-surface-card`         | `var(--surface-card)`         | `bg-surface-card`                                      |
-| `--color-surface-sunken`       | `var(--surface-sunken)`       | `bg-surface-sunken`: cabeçalho de tabela, desabilitado |
-| `--color-surface-hover`        | `var(--surface-hover)`        | `hover:bg-surface-hover`                               |
-| `--color-overlay`              | `var(--surface-overlay)`      | `bg-overlay`: fundo do diálogo                         |
-| `--color-strong`               | `var(--text-strong)`          | `text-strong`: títulos e valores                       |
-| `--color-body`                 | `var(--text-body)`            | `text-body`: texto corrido (padrão do `body`)          |
-| `--color-sub`                  | `var(--text-sub)`             | `text-sub`: texto secundário                           |
-| `--color-soft`                 | `var(--text-soft)`            | `text-soft`: placeholder, centavos                     |
-| `--color-disabled`             | `var(--text-disabled)`        | `text-disabled`                                        |
-| `--color-inverse`              | `var(--text-inverse)`         | `text-inverse`                                         |
-| `--color-link`                 | `var(--text-link)`            | `text-link`                                            |
-| `--color-on-color`             | `var(--text-on-color)`        | `text-on-color`: texto sobre azul/vermelho sólido      |
-| `--color-border-soft`          | `var(--border-soft)`          | `border-border-soft`: cartões e linhas de tabela       |
-| `--color-border-strong`        | `var(--border-strong)`        | `border-border-strong`                                 |
-| `--color-focus`                | `var(--border-focus)`         | `outline-focus`, `border-focus`                        |
-| `--color-primary-hover`        | `var(--action-primary-hover)` | `hover:bg-primary-hover`                               |
-| `--color-brand`                | `var(--action-brand)`         | `bg-brand`: ação-chave                                 |
-| `--color-brand-hover`          | `var(--action-brand-hover)`   | `hover:bg-brand-hover`                                 |
-| `--color-destructive-hover`    | `var(--action-danger-hover)`  | `hover:bg-destructive-hover`                           |
-| `--color-success-fg`           | `var(--success-fg)`           | status: texto                                          |
-| `--color-success-bg`           | `var(--success-bg)`           | status: fundo                                          |
-| `--color-success-solid`        | `var(--success-solid)`        | status: ponto e preenchimento                          |
-| `--color-danger-fg`            | `var(--danger-fg)`            | erro: texto                                            |
-| `--color-danger-bg`            | `var(--danger-bg)`            | erro: fundo                                            |
-| `--color-danger-solid`         | `var(--danger-solid)`         | erro: borda de campo, ponto                            |
-| `--color-warning-fg`           | `var(--warning-fg)`           | alerta: texto                                          |
-| `--color-warning-bg`           | `var(--warning-bg)`           | alerta: fundo                                          |
-| `--color-warning-solid`        | `var(--warning-solid)`        | alerta: ponto                                          |
-| `--color-info-fg`              | `var(--info-fg)`              | informação: texto                                      |
-| `--color-info-bg`              | `var(--info-bg)`              | informação: fundo                                      |
-| `--color-info-solid`           | `var(--info-solid)`           | informação: ponto                                      |
-| `--color-neutral-fg`           | `var(--neutral-fg)`           | neutro: texto                                          |
-| `--color-neutral-bg`           | `var(--neutral-bg)`           | neutro: fundo                                          |
-| `--color-neutral-solid`        | `var(--neutral-solid)`        | neutro: ponto                                          |
-| `--color-control-soft`         | `var(--control-soft)`         | botão `soft`                                           |
-| `--color-control-soft-hover`   | `var(--control-soft-hover)`   | hover do `soft`                                        |
-| `--color-control-pressed`      | `var(--control-pressed)`      | tecla pressionada                                      |
-| `--color-selected-bg`          | `var(--selected-bg)`          | linha ou item selecionado                              |
-| `--color-selected-fg`          | `var(--selected-fg)`          | texto selecionado                                      |
-| `--color-selected-border`      | `var(--selected-border)`      | borda selecionada                                      |
-| `--color-focus-halo`           | `var(--focus-halo)`           | `ring-focus-halo`: halo de campo                       |
-| `--color-focus-halo-danger`    | `var(--focus-halo-danger)`    | halo de campo com erro                                 |
-| `--color-danger-soft-hover`    | `var(--danger-soft-hover)`    | hover do `IconButton` danger                           |
-| `--color-money-in`             | `var(--money-in)`             | entrada de dinheiro                                    |
-| `--color-money-out`            | `var(--money-out)`            | saída de dinheiro                                      |
-| `--color-money-margin`         | `var(--money-margin)`         | margem em gráficos                                     |
-| `--color-expiry-ok`            | `var(--expiry-ok)`            | validade no prazo                                      |
-| `--color-expiry-soon`          | `var(--expiry-soon)`          | a vencer                                               |
-| `--color-expiry-expired`       | `var(--expiry-expired)`       | vencido                                                |
+| Token                          | Valor                         | Uso                                                     |
+| ------------------------------ | ----------------------------- | ------------------------------------------------------- |
+| `--color-background`           | `var(--bg-app)`               | shadcn: fundo da página                                 |
+| `--color-foreground`           | `var(--text-strong)`          | shadcn: texto de destaque                               |
+| `--color-card`                 | `var(--surface-card)`         | shadcn: cartão                                          |
+| `--color-card-foreground`      | `var(--text-body)`            | shadcn: texto do cartão                                 |
+| `--color-popover`              | `var(--surface-card)`         | shadcn: popover                                         |
+| `--color-popover-foreground`   | `var(--text-body)`            | shadcn: texto do popover                                |
+| `--color-primary`              | `var(--action-primary)`       | botão principal (tinta)                                 |
+| `--color-primary-foreground`   | `var(--text-inverse)`         | texto sobre `bg-primary`                                |
+| `--color-secondary`            | `var(--control-soft)`         | shadcn: botão secundário                                |
+| `--color-secondary-foreground` | `var(--text-strong)`          | shadcn: texto do secundário                             |
+| `--color-muted`                | `var(--surface-sunken)`       | shadcn: fundo rebaixado                                 |
+| `--color-muted-foreground`     | `var(--text-sub)`             | shadcn: texto secundário                                |
+| `--color-accent`               | `var(--surface-hover)`        | shadcn: hover de item                                   |
+| `--color-accent-foreground`    | `var(--text-strong)`          | shadcn: texto em hover                                  |
+| `--color-destructive`          | `var(--action-danger)`        | ação destrutiva                                         |
+| `--color-border`               | `var(--border-default)`       | borda padrão (aplicada a `*` em `globals.css`)          |
+| `--color-input`                | `var(--border-default)`       | shadcn: borda de campo                                  |
+| `--color-ring`                 | `var(--border-focus)`         | shadcn: anel de foco                                    |
+| `--color-app`                  | `var(--bg-app)`               | `bg-app`: fundo da página                               |
+| `--color-surface-card`         | `var(--surface-card)`         | `bg-surface-card`                                       |
+| `--color-surface-sunken`       | `var(--surface-sunken)`       | `bg-surface-sunken`: cabeçalho de tabela, desabilitado  |
+| `--color-surface-hover`        | `var(--surface-hover)`        | `hover:bg-surface-hover`                                |
+| `--color-overlay`              | `var(--surface-overlay)`      | `bg-overlay`: fundo do diálogo                          |
+| `--color-strong`               | `var(--text-strong)`          | `text-strong`: títulos e valores                        |
+| `--color-body`                 | `var(--text-body)`            | `text-body`: texto corrido (padrão do `body`)           |
+| `--color-sub`                  | `var(--text-sub)`             | `text-sub`: texto secundário                            |
+| `--color-soft`                 | `var(--text-soft)`            | `text-soft`: placeholder, centavos                      |
+| `--color-disabled`             | `var(--text-disabled)`        | `text-disabled`                                         |
+| `--color-inverse`              | `var(--text-inverse)`         | `text-inverse`                                          |
+| `--color-inverse-sub`          | `var(--text-inverse-sub)`     | `text-inverse-sub`: texto secundário sobre `bg-primary` |
+| `--color-link`                 | `var(--text-link)`            | `text-link`                                             |
+| `--color-on-color`             | `var(--text-on-color)`        | `text-on-color`: texto sobre azul/vermelho sólido       |
+| `--color-border-soft`          | `var(--border-soft)`          | `border-border-soft`: cartões e linhas de tabela        |
+| `--color-border-strong`        | `var(--border-strong)`        | `border-border-strong`                                  |
+| `--color-focus`                | `var(--border-focus)`         | `outline-focus`, `border-focus`                         |
+| `--color-primary-hover`        | `var(--action-primary-hover)` | `hover:bg-primary-hover`                                |
+| `--color-brand`                | `var(--action-brand)`         | `bg-brand`: ação-chave                                  |
+| `--color-brand-hover`          | `var(--action-brand-hover)`   | `hover:bg-brand-hover`                                  |
+| `--color-destructive-hover`    | `var(--action-danger-hover)`  | `hover:bg-destructive-hover`                            |
+| `--color-success-fg`           | `var(--success-fg)`           | status: texto                                           |
+| `--color-success-bg`           | `var(--success-bg)`           | status: fundo                                           |
+| `--color-success-solid`        | `var(--success-solid)`        | status: ponto e preenchimento                           |
+| `--color-danger-fg`            | `var(--danger-fg)`            | erro: texto                                             |
+| `--color-danger-bg`            | `var(--danger-bg)`            | erro: fundo                                             |
+| `--color-danger-solid`         | `var(--danger-solid)`         | erro: borda de campo, ponto                             |
+| `--color-warning-fg`           | `var(--warning-fg)`           | alerta: texto                                           |
+| `--color-warning-bg`           | `var(--warning-bg)`           | alerta: fundo                                           |
+| `--color-warning-solid`        | `var(--warning-solid)`        | alerta: ponto                                           |
+| `--color-info-fg`              | `var(--info-fg)`              | informação: texto                                       |
+| `--color-info-bg`              | `var(--info-bg)`              | informação: fundo                                       |
+| `--color-info-solid`           | `var(--info-solid)`           | informação: ponto                                       |
+| `--color-neutral-fg`           | `var(--neutral-fg)`           | neutro: texto                                           |
+| `--color-neutral-bg`           | `var(--neutral-bg)`           | neutro: fundo                                           |
+| `--color-neutral-solid`        | `var(--neutral-solid)`        | neutro: ponto                                           |
+| `--color-control-soft`         | `var(--control-soft)`         | botão `soft`                                            |
+| `--color-control-soft-hover`   | `var(--control-soft-hover)`   | hover do `soft`                                         |
+| `--color-control-pressed`      | `var(--control-pressed)`      | tecla pressionada                                       |
+| `--color-selected-bg`          | `var(--selected-bg)`          | linha ou item selecionado                               |
+| `--color-selected-fg`          | `var(--selected-fg)`          | texto selecionado                                       |
+| `--color-selected-border`      | `var(--selected-border)`      | borda selecionada                                       |
+| `--color-focus-halo`           | `var(--focus-halo)`           | `ring-focus-halo`: halo de campo                        |
+| `--color-focus-halo-danger`    | `var(--focus-halo-danger)`    | halo de campo com erro                                  |
+| `--color-danger-soft-hover`    | `var(--danger-soft-hover)`    | hover do `IconButton` danger                            |
+| `--color-money-in`             | `var(--money-in)`             | entrada de dinheiro                                     |
+| `--color-money-out`            | `var(--money-out)`            | saída de dinheiro                                       |
+| `--color-money-margin`         | `var(--money-margin)`         | margem em gráficos                                      |
+| `--color-expiry-ok`            | `var(--expiry-ok)`            | validade no prazo                                       |
+| `--color-expiry-soon`          | `var(--expiry-soon)`          | a vencer                                                |
+| `--color-expiry-expired`       | `var(--expiry-expired)`       | vencido                                                 |
 
 ### Escalas
 
