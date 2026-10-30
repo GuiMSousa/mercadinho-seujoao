@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { resetStart } from "./reset-start";
+import { isEmail, resetStart } from "./reset-start";
 
 it("opens the code step, prefilled, for a valid e-mail with etapa=codigo", () => {
   expect(resetStart({ email: " ana@loja.com ", etapa: "codigo" })).toEqual({
@@ -26,4 +26,10 @@ it("ignores an invalid e-mail and unknown steps", () => {
     email: "a@b.co",
     step: 2,
   });
+});
+
+it("checks the e-mail shape", () => {
+  expect(isEmail(" ana@loja.com ")).toBe(true);
+  expect(isEmail("abc")).toBe(false);
+  expect(isEmail("a@b")).toBe(false);
 });

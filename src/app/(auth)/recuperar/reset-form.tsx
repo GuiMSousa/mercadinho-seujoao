@@ -14,6 +14,7 @@ import {
 } from "../auth-client";
 import { FormAlert } from "../form-alert";
 import { PasswordField } from "../password-field";
+import { isEmail } from "./reset-start";
 
 const titles = ["Recuperar senha", "Defina uma nova senha", "Senha redefinida"];
 const labels = ["Enviar código", "Redefinir senha"];
@@ -38,7 +39,7 @@ export function ResetForm({
 
   // The invite code is still valid: asking for a new one here would replace it.
   function haveCode() {
-    if (!/^S+@S+.S+$/.test(email.trim()))
+    if (!isEmail(email))
       return setErrors({ fields: { email: "Informe um e-mail válido." } });
     setErrors(null);
     setStep(2);
