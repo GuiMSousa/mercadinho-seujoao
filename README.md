@@ -21,7 +21,7 @@ Verificação completa (sem banco nem credenciais): `npm run check`.
 
 Primeiro acesso: com o seed, entre em `/login` com `ana@bompreco.com.br` e a senha `mkt12345` (só em desenvolvimento). Numa instalação real, use "Criar conta da loja" em `/login`. Para criar um usuário pela linha de comando: `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` (a senha inicial aparece só nessa hora).
 
-Imagem de produção: `docker build -t mkt-control .` e depois `docker run -p 3000:3000 -e DATABASE_URL=... mkt-control`.
+Imagem de produção: `docker build -t mkt-control .` e depois `docker run -p 3000:3000 -e DATABASE_URL=... -e RESEND_API_KEY=... -e MAIL_FROM=... mkt-control` (`RESEND_API_KEY` e `MAIL_FROM` são obrigatórios em produção).
 
 ## Documentação
 

@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 # Production image: Next.js standalone output on Node.js 24 (same major as .nvmrc and CI).
-# No secrets at build time; DATABASE_URL and LOG_LEVEL are provided when the container runs.
+# No secrets at build time; DATABASE_URL, RESEND_API_KEY and MAIL_FROM (the last two required in
+# production) and optionally LOG_LEVEL are provided when the container runs.
 
 FROM node:24-alpine AS base
 ENV NEXT_TELEMETRY_DISABLED=1

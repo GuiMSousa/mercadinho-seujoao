@@ -57,9 +57,9 @@ src/
 ├── lib/                      # env (Zod, server-only), logger Pino, `cn`, `document.ts` (máscara e dígitos de CPF/CNPJ)
 └── infrastructure/
     ├── db/                   # index.ts: único ponto de conexão (pool max 5, lazy); schema/ (users, stores, sessions,
-    │                         # verification-codes, activity-log); test-db.ts (transação com rollback nos testes)
+    │                         # verification-codes, activity-log); test-db.ts (`withTestDb`: transação com rollback; `withTestPool`: commit e limpeza)
     └── mail/                 # Resend por `fetch`; sem chave e fora de produção, só registra no log ("mail (dev)")
-drizzle/                      # SQL versionado (0000: user_role + users; 0001_auth_foundation: loja, sessões, códigos, atividade)
+drizzle/                      # SQL versionado (0000: user_role + users; 0001_auth_foundation: loja, sessões, códigos, atividade; 0002: `csrf_hash` NOT NULL, CHECKs de e-mail em minúsculas e de `singleton`, índice de códigos por e-mail, finalidade e data)
 scripts/                      # create-user.mts, seed-dev.mts, migrate-test.mjs, generate-openapi.mts, verify-quality-rules.mjs
 eslint-rules/                 # regras locais do toolkit
 ```
@@ -116,8 +116,8 @@ Guardas automáticas atuais (ESLint):
 
 ## Dados e migrations
 
-- **Schema:** `src/infrastructure/db/schema/` (re-exportado por `index.ts`). Hoje: enums `user_role` (`ADMIN`, `CASHIER`) e `verification_purpose`, e as tabelas `users` (`id` uuid com `gen_random_uuid()`, `name`, `email` único sempre em minúsculas, `password_hash` anulável no formato `scrypt$N$r$p$salt$hash`, `role`, `active`, `last_login_at`, `password_changed_at`, `created_at`), `stores` (uma linha por instalação, garantida por `stores_singleton`), `sessions` (id = SHA-256 do token; apagada em cascata com o usuário), `verification_codes` e `activity_log` (`user_id` vira nulo ao apagar o usuário). Testes com banco real: `*.db.test.ts` via `npm run test:db`, cada um numa transação com rollback (`withTestDb`). As próximas tabelas virão do PRODUCT.md, fluxo a fluxo.
-- **SQL versionado:** `drizzle/0000_needy_nightcrawler.sql` (cria `user_role` e `users`) e `drizzle/0001_auth_foundation.sql` (apaga os usuários antigos, troca `username` por `name`/`email` e cria loja, sessões, códigos e log de atividade). Gerar não exige conexão.
+- **Schema:** `src/infrastructure/db/schema/` (re-exportado por `index.ts`). Hoje: enums `user_role` (`ADMIN`, `CASHIER`) e `verification_purpose`, e as tabelas `users` (`id` uuid com `gen_random_uuid()`, `name`, `email` único sempre em minúsculas, `password_hash` anulável no formato `scrypt$N$r$p$salt$hash`, `role`, `active`, `last_login_at`, `password_changed_at`, `created_at`), `stores` (uma linha por instalação, garantida por `stores_singleton`), `sessions` (id = SHA-256 do token; apagada em cascata com o usuário), `verification_codes` e `activity_log` (`user_id` vira nulo ao apagar o usuário). Testes com banco real: `*.db.test.ts` via `npm run test:db`, quase todos numa transação com rollback (`withTestDb`); só os testes de concorrência (cadastro com palpites em paralelo, último `ADMIN`, corrida de sessão) usam `withTestPool`, fazem commit com e-mails únicos e apagam o que criaram. As próximas tabelas virão do PRODUCT.md, fluxo a fluxo.
+- **SQL versionado:** `drizzle/0000_needy_nightcrawler.sql` (cria `user_role` e `users`) e `drizzle/0001_auth_foundation.sql` (apaga os usuários antigos, troca `username` por `name`/`email` e cria loja, sessões, códigos e log de atividade). `drizzle/0002_pale_secret_warriors.sql` (torna `sessions.csrf_hash` obrigatório, adiciona os CHECKs `users_email_lowercase` e `stores_singleton_true` e troca o índice dos códigos por `(email, purpose, created_at)`; antes, apaga sessões sem hash CSRF e põe e-mails em minúsculas). Gerar não exige conexão.
 - **Aplicação:** `npm run db:migrate` usa `DATABASE_URL_UNPOOLED` ou `DATABASE_URL`, só no destino autorizado. Nunca durante build, import ou requisição. Sem `db:push` no fluxo padrão.
 - **Conexão:** `getDb()` valida a URL com Zod e cria o pool só no primeiro uso. Por isso `lint`, `test` e `build` funcionam sem credenciais. `closeDatabase()` existe só para encerramento controlado e testes.
 - **Transações:** obrigatórias em vendas (baixa PVPS de vários lotes, CMV e pagamento) e no caixa. O driver `pg` as suporta.

@@ -14,7 +14,7 @@
 | `npm run build`        | Build de produção `standalone` sem credenciais                                                                                                                                         |
 | `npm run check`        | Tudo acima, na mesma ordem do CI (`.github/workflows/ci.yml`)                                                                                                                          |
 
-Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e `npm run check` antes de concluir uma tarefa. O CI usa `npm ci` em Node 24 (`.nvmrc`) sem segredos.
+Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e `npm run check` antes de concluir uma tarefa. O CI também confere o drift do schema: roda `npx drizzle-kit generate` e falha se `git status --porcelain -- drizzle` mostrar qualquer mudança (inclusive migration nova não commitada); localmente, rode o mesmo antes de commitar mudanças de schema. O CI usa `npm ci` em Node 24 (`.nvmrc`) sem segredos.
 
 ## Regras de base
 
@@ -51,9 +51,9 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
   | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                      |
   | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                   |
-  | SQL           | Migration `0000` gerada, revisada e aplicada no PostgreSQL local                                                                                                                                    |
+  | SQL           | Migrations `0000` a `0002` geradas, revisadas e aplicadas no PostgreSQL local e no banco de testes                                                                                                  |
   | CI            | Configurado, sem execução remota                                                                                                                                                                    |
-  | Segurança     | Prompt registrado abaixo, nenhuma revisão feita                                                                                                                                                     |
+  | Segurança     | Ciclos de revisão de segurança da autenticação concluídos (resumo abaixo)                                                                                                                           |
   | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404 |
 
 ## Roteiro E2E no navegador
@@ -128,7 +128,7 @@ Escolha o escopo da revisão pelo risco e pelo diff real. Use revisão independe
   - CSP;
   - integridade de caixa e venda (transações, caixa único);
   - importação de planilhas.
-- **Histórico:** nenhuma revisão executada ainda. A primeira deve acompanhar a entrega de autenticação.
+- **Histórico:** a entrega de autenticação passou por cinco ciclos de revisão (2026-10-29 e 2026-10-30), com achados corrigidos e testes de regressão: sessão por hash SHA-256, token CSRF obrigatório, `ADMIN` exclusivo no painel, cadastro preso ao navegador por nonce, tentativas de código gastas de forma atômica, CHECKs de e-mail em minúsculas e de loja única (migration `0002`), cabeçalhos de segurança, mensagens sem enumeração de contas e proteção do último `ADMIN` contra corrida. Relatórios completos ficam fora do repositório. Não houve varredura de rede nem teste em produção; CSP, importação de planilhas e sigilo de custo ainda não têm código para revisar.
 
 ## Dependências e entrega
 

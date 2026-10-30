@@ -129,7 +129,7 @@ Ordem de entrega, uma funcionalidade por vez:
 
 - Tabela `users` (papéis `ADMIN`/`CASHIER`, senha com hash scrypt) na primeira migration.
 - Login por cookie HTTP-only com sessão no banco (30 dias deslizantes com "Manter conectado"; senão cookie de navegador e 12 h) com token anti-CSRF exigido em toda requisição autenticada que altera estado, e recusa de requisições de outra origem.
-- Proxy e cada rota aplicam a mesma regra. Qualquer caminho fora de `/`, `/login` e do login exige sessão, e `/painel`, `/api/admin`, `/api/account` e `/api/store` são exclusivos de `ADMIN`.
+- Proxy e cada rota aplicam a mesma regra. Só são públicos `/`, `/login`, `/cadastro`, `/recuperar`, `/design-system`, `/api/setup`, `/api/theme` e as rotas de login, cadastro (início, verificação, reenvio) e redefinição de senha (pedido, confirmação) em `/api/auth`; sair (`/api/auth/logout`) exige sessão e todo o resto exige sessão, e `/painel`, `/api/admin`, `/api/account` e `/api/store` são exclusivos de `ADMIN`.
 - Limite de 10 logins por IP a cada 15 minutos; a 11ª tentativa recebe 429 com `Retry-After`.
 - Contrato OpenAPI em `src/contracts/openapi.json`, verificado por `npm run spec:check`.
 - Primeiro usuário pelo "Criar conta da loja" em `/login` (cadastro em 3 etapas com código por e-mail), ou, em desenvolvimento, por `npm run db:seed`; `npm run user:create -- <email> "<Nome>" <ADMIN|CASHIER>` cria usuários pela linha de comando.

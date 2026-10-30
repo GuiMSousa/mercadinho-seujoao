@@ -55,7 +55,7 @@ O npm 11 bloqueia install scripts não aprovados (`allowScripts`). Os avisos sob
 - `npm run db:up` sobe `postgres:18-alpine` (`compose.yaml`) e espera o healthcheck. A porta fica só no loopback (`127.0.0.1`) e os dados no volume `mkt-control_postgres-data`.
 - `npm run db:down` para e remove o container, mantendo o volume. Apagar o volume (`docker volume rm mkt-control_postgres-data`) destrói os dados locais.
 - Rode o Compose sempre pelos scripts, ou passe `--env-file .env.local`. Sem ele, o Compose recusa iniciar por falta de `POSTGRES_*`.
-- **Migrations** (a `0000` cria `user_role` e `users`; a `0001` adiciona loja, sessões, códigos de verificação e log de atividade, e troca `username` por `name`/`email`):
+- **Migrations** (a `0000` cria `user_role` e `users`; a `0001` adiciona loja, sessões, códigos de verificação e log de atividade, e troca `username` por `name`/`email`; a `0002` torna `sessions.csrf_hash` obrigatório, exige e-mail em minúsculas e `singleton = true` por CHECK e troca o índice dos códigos):
   1. `npm run db:generate` gera o SQL em `drizzle/` sem conectar.
   2. Revise o diff.
   3. `npm run db:migrate` aplica no banco de `DATABASE_URL_UNPOOLED`/`DATABASE_URL`.
@@ -68,13 +68,13 @@ O npm 11 bloqueia install scripts não aprovados (`allowScripts`). Os avisos sob
 
 ### Banco de testes
 
-Os testes com banco real (`*.db.test.ts`) usam o banco `mkt_control_test`, no mesmo servidor, e rodam cada teste numa transação que sofre rollback. Preparação, uma vez:
+Os testes com banco real (`*.db.test.ts`) usam o banco `mkt_control_test`, no mesmo servidor, e rodam quase todos os testes numa transação que sofre rollback. Três testes de concorrência (cadastro com palpites em paralelo, último `ADMIN` e corrida de sessão) precisam de várias conexões: fazem commit com e-mails únicos e apagam o que criaram. Preparação, uma vez:
 
 ```bash
 docker compose --env-file .env.local exec postgres sh -c 'createdb -U "$POSTGRES_USER" mkt_control_test'
 ```
 
-Depois defina `DATABASE_URL_TEST` no `.env.local` (mesmas credenciais, banco `mkt_control_test`) e aplique as migrations nele com `npm run db:migrate:test`. Repita `db:migrate:test` sempre que houver migration nova.
+Depois defina `DATABASE_URL_TEST` no `.env.local` (mesmas credenciais, banco `mkt_control_test`) e aplique as migrations nele com `npm run db:migrate:test`. Repita `db:migrate:test` sempre que houver migration nova. O CI confere se o schema não tem drift: `npx drizzle-kit generate` não pode criar nem alterar arquivos em `drizzle/`. Rode o mesmo comando antes de commitar mudanças de schema.
 
 ### Banco do teste em navegador
 
