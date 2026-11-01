@@ -1,5 +1,7 @@
 # Auditoria do projeto × Calendário de Entregas
 
+> Calendário de 7 semanas substituído pelo calendário oficial de 9 semanas em [ROADMAP.md](../ROADMAP.md). O mapeamento do que existe no código continua válido.
+
 Data: 2026-11-01. Base: `main` em `f08a4fb`.
 Fontes lidas:
 

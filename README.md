@@ -26,6 +26,7 @@ Imagem de produção: `docker build -t mkt-control .` e depois `docker run -p 30
 ## Documentação
 
 - [Produto e escopo](PRODUCT.md).
+- [Roadmap de entregas](ROADMAP.md).
 - [Preparação local](docs/onboarding.md).
 - [Estrutura e decisões técnicas](docs/architecture.md).
 - [Design, acessibilidade e tokens](DESIGN.md); vitrine em `/design-system`.
