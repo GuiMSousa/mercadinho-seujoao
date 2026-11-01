@@ -42,6 +42,8 @@ Nunca use `NEXT_PUBLIC_*` para segredos.
 
 Sem `RESEND_API_KEY`, fora de produção, o servidor não envia nada: o texto de cada e-mail (códigos de cadastro, recuperação e convite) aparece no log do `npm run dev` com a mensagem `mail (dev)`. Em produção a chave é obrigatória. No `.env.local`, `RESEND_API_KEY` é a chave da conta Resend e `MAIL_FROM` é o remetente, por exemplo `Mkt Control <no-reply@seudominio.com.br>` (padrão fora de produção: `Mkt Control <no-reply@localhost>`).
 
+Com `RESEND_API_KEY` definida, o envio vai pelo Resend em qualquer ambiente. Um remetente `@resend.dev` é o modo de teste do Resend: só entrega para o e-mail dono da conta, então convites e códigos para outros endereços falham. Para uso real, verifique um domínio no Resend e use um endereço dele em `MAIL_FROM`.
+
 O npm 11 bloqueia install scripts não aprovados (`allowScripts`). Os avisos sobre `esbuild` e `unrs-resolver` no `npm ci` são esperados: lint, testes, build e drizzle-kit funcionam sem esses scripts. Não aprove scripts sem revisar.
 
 ## Operação
