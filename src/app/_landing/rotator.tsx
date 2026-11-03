@@ -33,10 +33,8 @@ export function Rotator() {
           <span
             key={word}
             className={cn(
-              "col-start-1 row-start-1 transition-[opacity,translate] duration-(--dur-slow)",
-              position === index
-                ? "translate-y-0 opacity-100"
-                : "translate-y-4 opacity-0",
+              "col-start-1 row-start-1 transition-opacity duration-(--dur-slow)",
+              position === index ? "opacity-100" : "opacity-0",
             )}
           >
             {word}

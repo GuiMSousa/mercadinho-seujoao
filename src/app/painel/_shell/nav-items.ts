@@ -1,6 +1,8 @@
 import {
   LayoutDashboard,
+  Package,
   Settings,
+  Warehouse,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -10,6 +12,8 @@ export type NavItem = { href: string; label: string; icon: LucideIcon };
 /** Future subprojects add their entries here. */
 export const NAV_ITEMS: NavItem[] = [
   { href: "/painel", label: "Painel", icon: LayoutDashboard },
+  { href: "/painel/produtos", label: "Produtos", icon: Package },
+  { href: "/painel/estoque", label: "Estoque", icon: Warehouse },
   { href: "/painel/usuarios", label: "Usuários", icon: Users },
   { href: "/painel/configuracoes", label: "Configurações", icon: Settings },
 ];

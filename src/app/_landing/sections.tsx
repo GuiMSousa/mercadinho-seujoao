@@ -83,7 +83,7 @@ export function Losses() {
     <section
       id="ralos"
       aria-labelledby="ralos-titulo"
-      className="scroll-mt-16 border-t border-border py-16 lg:py-24"
+      className="border-t border-border py-16 lg:py-24"
     >
       <div className={cn(container, "flex flex-col gap-16 lg:gap-24")}>
         <p id="ralos-titulo" className="text-body-sm font-medium text-sub">
@@ -113,10 +113,7 @@ export function Losses() {
 
 export function Counter() {
   return (
-    <section
-      id="balcao"
-      className="scroll-mt-16 border-t border-border bg-surface-card"
-    >
+    <section id="balcao" className="border-t border-border bg-surface-card">
       <div
         className={cn(
           container,
@@ -134,7 +131,7 @@ export function Counter() {
             <p className="max-w-lg text-pretty">
               As telas de venda, caixa e entrada usam botões de 60 px e texto
               acima de 16 pt. Funciona com leitor de código de barras, no toque
-              e no teclado. Experimente o troco ao lado.
+              e no teclado. Experimente o troco nesta seção.
             </p>
           </div>
           <ChangeDemo />
@@ -143,7 +140,7 @@ export function Counter() {
           {FEATURES.map(({ icon: Icon, title, text }) => (
             <li
               key={title}
-              className="flex flex-col gap-3.5 rounded-card border border-border-soft bg-app p-6"
+              className="flex flex-col gap-3 rounded-card border border-border-soft bg-app p-6"
             >
               <span className="flex size-10 items-center justify-center rounded-md border border-border-soft bg-surface-card text-strong">
                 <Icon aria-hidden="true" className="size-5" />

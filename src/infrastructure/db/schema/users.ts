@@ -8,8 +8,9 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { USER_ROLES } from "../../../contracts/enums";
 
-export const userRole = pgEnum("user_role", ["ADMIN", "CASHIER"]);
+export const userRole = pgEnum("user_role", USER_ROLES);
 
 export const users = pgTable(
   "users",

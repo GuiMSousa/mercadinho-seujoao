@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { onlyDigits } from "@/lib/document";
-import { userRole } from "@/infrastructure/db/schema";
+import { USER_ROLES } from "./enums";
 
 export const SESSION_COOKIE = "mkt_session";
 // Readable by the page so it can echo the token in CSRF_HEADER on mutations.
@@ -104,7 +104,7 @@ export const authUserSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   email: z.string(),
-  role: z.enum(userRole.enumValues),
+  role: z.enum(USER_ROLES),
 });
 
 export const loginResponseSchema = z.object({

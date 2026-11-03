@@ -43,3 +43,12 @@ it("refuses a request without a barcode", async () => {
   });
   expect(response.status).toBe(400);
 });
+
+it("refuses a NUL byte, which PostgreSQL could not compare", async () => {
+  const response = await callRoute(GET, {
+    url: "/api/products?barcode=%00",
+    role: "CASHIER",
+  });
+  expect(response.status).toBe(400);
+  expect(findProductForSale).not.toHaveBeenCalled();
+});

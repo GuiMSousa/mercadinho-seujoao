@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, gt, sql } from "drizzle-orm";
+import { and, asc, eq, exists, gt, ilike, inArray, or, sql } from "drizzle-orm";
 import type {
   CreateBatch,
   CreateProduct,
@@ -28,7 +28,13 @@ const productColumns = {
   active: products.active,
 };
 
-const stock = sql<number>`coalesce(sum(${inventoryBatches.quantity}), 0)::int`;
+// A bigint: each batch fits an integer, but their sum may not.
+const stock = sql`coalesce(sum(${inventoryBatches.quantity}), 0)`.mapWith(
+  Number,
+);
+
+// Batches are never deleted, so this also tells whether the product has any history.
+const hasBatches = sql<boolean>`count(${inventoryBatches.id}) > 0`;
 
 export function selectCategories() {
   return getDb()
@@ -53,19 +59,86 @@ export async function categoryExists(id: string) {
   return row !== undefined;
 }
 
-// shortcut: no pagination, a small store has a few thousand products; add a cursor when the catalog screen needs one.
-export function selectProducts() {
+type ProductScope = {
+  search: string;
+  /** Leaves out discontinued products, unless some of their stock is still on the shelf. */
+  inUseOnly: boolean;
+};
+
+function inScope({ search, inUseOnly }: ProductScope) {
+  // What the person typed is literal text, not LIKE wildcards.
+  const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`;
+  return and(
+    search
+      ? or(ilike(products.name, pattern), ilike(products.barcode, pattern))
+      : undefined,
+    inUseOnly
+      ? or(
+          eq(products.active, true),
+          exists(
+            getDb()
+              .select({ id: inventoryBatches.id })
+              .from(inventoryBatches)
+              .where(
+                and(
+                  eq(inventoryBatches.productId, products.id),
+                  gt(inventoryBatches.quantity, 0),
+                ),
+              ),
+          ),
+        )
+      : undefined,
+  );
+}
+
+export function countProducts(scope: ProductScope) {
+  return getDb().$count(products, inScope(scope));
+}
+
+export function selectProductsPage(
+  scope: ProductScope,
+  page: { limit: number; offset: number },
+) {
   return getDb()
-    .select({ ...productColumns, stock })
+    .select({ ...productColumns, stock, hasBatches })
     .from(products)
     .leftJoin(inventoryBatches, eq(inventoryBatches.productId, products.id))
+    .where(inScope(scope))
     .groupBy(products.id)
-    .orderBy(asc(products.name));
+    .orderBy(asc(products.name), asc(products.id))
+    .limit(page.limit)
+    .offset(page.offset);
+}
+
+const batchRow = {
+  id: inventoryBatches.id,
+  productId: inventoryBatches.productId,
+  batchCode: inventoryBatches.batchCode,
+  expirationDate: inventoryBatches.expirationDate,
+  quantity: inventoryBatches.quantity,
+};
+
+/** Batches that still hold stock, in the order PVPS consumes them. */
+export function selectBatchesWithStock(productIds: string[]) {
+  return getDb()
+    .select(batchRow)
+    .from(inventoryBatches)
+    .where(
+      and(
+        inArray(inventoryBatches.productId, productIds),
+        gt(inventoryBatches.quantity, 0),
+      ),
+    )
+    .orderBy(
+      sql`${inventoryBatches.expirationDate} ASC NULLS LAST`,
+      asc(inventoryBatches.createdAt),
+      asc(inventoryBatches.id),
+    );
 }
 
 export async function selectProduct(id: string) {
   const [row] = await getDb()
-    .select({ ...productColumns, stock })
+    .select({ ...productColumns, stock, hasBatches })
     .from(products)
     .leftJoin(inventoryBatches, eq(inventoryBatches.productId, products.id))
     .where(eq(products.id, id))
@@ -104,11 +177,15 @@ export async function updateProductRow(id: string, values: UpdateProduct) {
     .update(products)
     .set(values)
     .where(eq(products.id, id))
-    .returning({ id: products.id });
+    .returning({ id: products.id, name: products.name });
   return row as typeof row | undefined;
 }
 
-/** A batch and its IN movement land together or not at all. */
+/**
+ * A batch and its IN movement land together or not at all. An id chosen by the client makes a
+ * retry after a lost response safe: the same entry answers the batch that exists and adds no stock.
+ * Answers undefined when the id already holds a different entry, or a batch of another product.
+ */
 export function insertBatchWithMovement(
   productId: string,
   values: CreateBatch,
@@ -118,13 +195,33 @@ export function insertBatchWithMovement(
     const [batch] = await tx
       .insert(inventoryBatches)
       .values({ ...values, productId })
-      .returning({
-        id: inventoryBatches.id,
-        productId: inventoryBatches.productId,
-        batchCode: inventoryBatches.batchCode,
-        expirationDate: inventoryBatches.expirationDate,
-        quantity: inventoryBatches.quantity,
-      });
+      .onConflictDoNothing({ target: inventoryBatches.id })
+      .returning(batchRow);
+    if (!batch) {
+      const [existing] = await tx
+        .select({ ...batchRow, received: inventoryMovements.quantity })
+        .from(inventoryBatches)
+        .innerJoin(
+          inventoryMovements,
+          and(
+            eq(inventoryMovements.batchId, inventoryBatches.id),
+            eq(inventoryMovements.type, "IN"),
+          ),
+        )
+        .where(
+          and(
+            // Only an id sent by the client can conflict.
+            eq(inventoryBatches.id, values.id as string),
+            eq(inventoryBatches.productId, productId),
+          ),
+        );
+      // The batch quantity may already be consumed, so the entry is compared by what came in.
+      const sameEntry =
+        existing?.batchCode === values.batchCode &&
+        existing.expirationDate === values.expirationDate &&
+        existing.received === values.quantity;
+      return sameEntry ? existing : undefined;
+    }
     await tx.insert(inventoryMovements).values({
       productId,
       batchId: batch.id,

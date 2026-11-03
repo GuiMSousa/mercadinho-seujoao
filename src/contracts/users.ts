@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { userRole } from "@/infrastructure/db/schema";
+import { USER_ROLES } from "./enums";
 import { emailSchema } from "./auth";
 
 const nameSchema = z
@@ -7,7 +7,7 @@ const nameSchema = z
   .trim()
   .min(1, "Informe o nome.")
   .max(120, "Use até 120 caracteres.");
-const roleSchema = z.enum(userRole.enumValues, "Escolha o perfil.");
+const roleSchema = z.enum(USER_ROLES, "Escolha o perfil.");
 
 export const userRowSchema = z.object({
   id: z.uuid(),

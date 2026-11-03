@@ -40,6 +40,7 @@ const product = {
   unit: "UN",
   active: true,
   stock: 3,
+  hasBatches: true,
 };
 
 it("changes only the fields sent, and never resets the defaults", async () => {
@@ -60,6 +61,7 @@ it("refuses an empty change, a malformed id and a CASHIER", async () => {
 
 it("receives a batch in the name of the session user", async () => {
   const batch = {
+    id,
     batchCode: "L-1",
     expirationDate: "2026-12-01",
     quantity: 8,
@@ -76,6 +78,7 @@ it("receives a batch in the name of the session user", async () => {
 
 it("refuses a bad batch before reaching the service", async () => {
   const good = {
+    id,
     batchCode: "L-1",
     expirationDate: "2026-12-01",
     quantity: 8,
@@ -83,8 +86,14 @@ it("refuses a bad batch before reaching the service", async () => {
   for (const change of [
     { expirationDate: "01/12/2026" },
     { expirationDate: "2026-02-30" },
+    // Typing 03/11/26 in a date input sends the year 0026.
+    { expirationDate: "0026-11-03" },
+    { expirationDate: "0000-01-01" },
+    { batchCode: "L\u00001" },
     { quantity: 0 },
     { quantity: 1.5 },
+    { quantity: 2_147_483_648 },
+    { id: "nope" },
     { batchCode: "  " },
   ]) {
     expect((await receive({ ...good, ...change })).status).toBe(422);
@@ -98,7 +107,17 @@ it("refuses a bad batch before reaching the service", async () => {
 });
 
 it("accepts a batch of an item that does not expire", async () => {
-  const batch = { batchCode: "L-2", expirationDate: null, quantity: 3 };
+  const batch = { id, batchCode: "L-2", expirationDate: null, quantity: 3 };
+  vi.mocked(receiveBatch).mockResolvedValue({ ...batch, id, productId: id });
+  expect((await receive(batch)).status).toBe(201);
+});
+
+it("accepts a batch without a client id", async () => {
+  const batch = {
+    batchCode: "L-3",
+    expirationDate: "2026-12-01",
+    quantity: 3,
+  };
   vi.mocked(receiveBatch).mockResolvedValue({ ...batch, id, productId: id });
   expect((await receive(batch)).status).toBe(201);
 });

@@ -30,6 +30,7 @@ const row = {
   minStock: 0,
   active: true,
   stock: 0,
+  hasBatches: false,
 };
 const post = (role: "ADMIN" | "CASHIER" = "ADMIN", body: unknown = input) =>
   callRoute(POST, { url, method: "POST", role, body });
@@ -41,11 +42,25 @@ it("refuses without a session and for a CASHIER", async () => {
   expect(listProducts).not.toHaveBeenCalled();
 });
 
-it("lists products to an ADMIN, cost included", async () => {
-  vi.mocked(listProducts).mockResolvedValue([row] as never);
-  const response = await callRoute(GET, { url, role: "ADMIN" });
+it("lists a page of products to an ADMIN, cost included", async () => {
+  const page = { products: [row], total: 21, page: 2, pageSize: 20 };
+  vi.mocked(listProducts).mockResolvedValue(page as never);
+  const response = await callRoute(GET, {
+    url: `${url}?search=caf%C3%A9&page=2`,
+    role: "ADMIN",
+  });
   expect(response.status).toBe(200);
-  await expect(response.json()).resolves.toEqual({ products: [row] });
+  await expect(response.json()).resolves.toEqual(page);
+  expect(listProducts).toHaveBeenCalledWith({ search: "café", page: 2 });
+});
+
+it("refuses a bad page", async () => {
+  const response = await callRoute(GET, {
+    url: `${url}?page=abc`,
+    role: "ADMIN",
+  });
+  expect(response.status).toBe(400);
+  expect(listProducts).not.toHaveBeenCalled();
 });
 
 it("creates a product with the defaults and trimmed values", async () => {

@@ -167,7 +167,6 @@ Os usuários temporários (`teste.admin`, `teste.caixa`) e os arquivos com suas 
 ## Pendências e próxima entrega
 
 - **Externas ou do usuário:**
-  - criar o primeiro `ADMIN` com `npm run user:create`;
   - migração de dados do sistema atual;
   - conta Resend com domínio remetente verificado;
   - domínio fixo na Cloudflare para o túnel nomeado;
@@ -178,11 +177,9 @@ Os usuários temporários (`teste.admin`, `teste.caixa`) e os arquivos com suas 
   - O limite de login usa o IP dos cabeçalhos (`cf-connecting-ip` ou o primeiro `x-forwarded-for`). Quem acessa o servidor direto pela LAN pode forjar `x-forwarded-for` e escapar do limite.
   - Mitigações possíveis: ouvir só em `127.0.0.1` atrás do Cloudflare Tunnel, ou somar um limite por usuário.
   - CSP com nonce ainda não foi aplicada.
-  - Faltam troca de senha e desativação de usuário (entram com a gestão de usuários).
 - **Técnicas:**
   - ESLint 10 e TS 7 quando os plugins suportarem;
   - advisories de dev do `drizzle-kit` e do `shadcn`;
-  - `test:e2e` entra com os fluxos de tela;
-  - testes automatizados de repository contra o PostgreSQL.
-- **Próxima entrega do MVP:** telas de catálogo e estoque e o PDV (ver [ROADMAP.md](../ROADMAP.md)).
+  - `test:e2e` entra com os fluxos de tela.
+- **Próxima entrega do MVP:** o PDV (ver [ROADMAP.md](../ROADMAP.md)).
 - **Reexecutar o bootstrap:** reaplique o prompt 11 na mesma revisão. Ele preserva estes arquivos e reaproveita a evidência quando nada mudou.

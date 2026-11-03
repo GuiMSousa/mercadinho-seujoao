@@ -52,9 +52,9 @@ Dispositivos: PC ou notebook de balcão e celulares/tablets (Android e iPhone) u
 Ordem de entrega, uma funcionalidade por vez:
 
 1. Autenticação com perfis `ADMIN` e `CASHIER` — **entregue em 2026-10-28** (ver abaixo).
-2. Cadastro de produtos (unitários e pesáveis) e entrada de estoque com lote e validade.
-3. Caixa diário: abertura, sangria, suprimento e fechamento cego/analítico.
-4. PDV com baixa PVPS, pagamentos múltiplos e recibo.
+2. Cadastro de produtos (unitários e pesáveis) e entrada de estoque com lote e validade — **entregue em 2026-11-03** (ver abaixo).
+3. PDV com baixa PVPS, pagamentos múltiplos e recibo.
+4. Caixa diário: abertura, sangria, suprimento e fechamento cego/analítico.
 5. Alertas de validade e estoque mínimo, e relatório de reposição.
 6. Painel financeiro com CMV histórico.
 7. PWA instalável e leitor por câmera.
@@ -64,7 +64,6 @@ Ordem de entrega, uma funcionalidade por vez:
 - Desconto manual no checkout (o PDV não terá esse campo).
 - Dedução de despesas fixas (aluguel, energia, salários): o lucro é só a margem bruta, faturamento menos CMV.
 - Emissão fiscal (NFC-e/SAT) e integração com TEF ou maquininha: não foram pedidas.
-- Esta entrega de base técnica não implementa nenhum fluxo de negócio.
 
 ## Requisitos
 
@@ -121,7 +120,7 @@ Ordem de entrega, uma funcionalidade por vez:
 - O total de uma venda com itens pesáveis é igual à soma dos itens arredondados ao centavo.
 - O fechamento cego não mostra o valor esperado ao operador; o administrador vê a quebra.
 - A 11ª tentativa de login de um mesmo IP em 15 minutos é bloqueada.
-- Produtos com estoque igual ou abaixo do mínimo aparecem em vermelho no painel e na lista de reposição.
+- Produtos com estoque igual ou abaixo do mínimo aparecem em amarelo no painel (em vermelho com o estoque zerado) e entram na lista de reposição.
 
 **Base técnica:** `npm run check` verde, PostgreSQL local saudável e conectado, imagem Docker de produção construída e respondendo. Evidências em [docs/setup.md](docs/setup.md).
 
@@ -142,14 +141,21 @@ Ordem de entrega, uma funcionalidade por vez:
 
 Comprovado por testes automatizados e contra o servidor real (ver docs/setup.md).
 
-## Próxima entrega
+## Catálogo e estoque (entregue em 2026-11-03)
 
-**Cadastro de produtos e entrada de estoque com lote e validade** (MVP item 2):
+Telas `/painel/produtos` e `/painel/estoque`:
 
 - produtos unitários e pesáveis, com custo visível só para `ADMIN`;
-- entrada de estoque com lote e validade obrigatórios, ou "sem validade".
+- entrada de estoque com lote e validade, ou "item não vence";
+- lotes por produto com o semáforo de validade e estoque.
 
-Critério: um `CASHIER` consulta produtos sem receber o preço de custo, e uma entrada sem lote ou validade é recusada pelo servidor.
+Critério atendido: a busca do caixa (`GET /api/products`) não devolve o preço de custo, e uma entrada sem lote ou sem validade é recusada pelo servidor (ver docs/quality.md).
+
+Ficam para depois: baixa manual e perdas, ajustes, extrato de movimentações e importação por planilha.
+
+## Próxima entrega
+
+**PDV com baixa PVPS** (MVP item 3), conforme o calendário em [ROADMAP.md](ROADMAP.md).
 
 **Endurecimento pendente:** CSP com nonce (scripts só do próprio servidor), numa tarefa própria de segurança.
 

@@ -17,7 +17,7 @@ export function ChangeDemo() {
   const difference = received - TOTAL_CENTS;
 
   return (
-    <div className="flex w-full max-w-md flex-col gap-4 justify-self-center rounded-2xl border border-border-soft bg-app p-5 shadow-(--shadow-xl)">
+    <div className="flex w-full max-w-md flex-col gap-4 justify-self-center rounded-card border border-border-soft bg-app p-5 shadow-(--shadow-xl)">
       <div className="flex items-center justify-between gap-3">
         <span className="font-medium text-strong">Pagamento em dinheiro</span>
         <Badge tone="info" size="sm">
@@ -25,17 +25,18 @@ export function ChangeDemo() {
         </Badge>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex min-w-0 flex-col gap-1.5 rounded-lg border border-border-soft bg-surface-card p-3.5">
+        <div className="flex min-w-0 flex-col gap-1.5 rounded-lg border border-border-soft bg-surface-card p-3">
           <span className="text-body-sm text-sub">Total da venda</span>
           <Money cents={TOTAL_CENTS} size="lg" />
         </div>
-        <div className="flex min-w-0 flex-col gap-1.5 rounded-lg border border-selected-border bg-surface-card p-3.5">
+        <div className="flex min-w-0 flex-col gap-1.5 rounded-lg border border-selected-border bg-surface-card p-3">
           <span className="text-body-sm text-sub">Valor recebido</span>
           <Money cents={received} size="lg" />
         </div>
       </div>
       <div
         aria-live="polite"
+        aria-atomic="true"
         className="flex min-h-24 flex-col justify-center gap-1 rounded-lg border border-border-soft bg-surface-card p-4"
       >
         {typed === "" ? (
@@ -67,7 +68,12 @@ export function ChangeDemo() {
           Limpar
         </Button>
       </div>
-      <Keypad value={typed} onChange={setTyped} label="Valor recebido" />
+      <Keypad
+        value={typed}
+        onChange={setTyped}
+        label="Valor recebido"
+        maxLength={5}
+      />
     </div>
   );
 }

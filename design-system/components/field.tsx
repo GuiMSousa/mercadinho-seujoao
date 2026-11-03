@@ -49,7 +49,7 @@ function Field({ id, label, hint, error, className, children }: FieldProps) {
 
 /** Box styles shared by text inputs and selects: border, halo on focus, error and disabled. */
 const controlBox =
-  "border border-border bg-surface-card text-strong shadow-(--shadow-xs) transition-[border-color,box-shadow] duration-(--dur-fast) focus-within:border-focus focus-within:ring-3 focus-within:ring-focus-halo data-invalid:border-danger-solid data-invalid:focus-within:ring-focus-halo-danger has-disabled:cursor-not-allowed has-disabled:bg-surface-sunken has-disabled:text-disabled has-disabled:shadow-none";
+  "border border-input bg-surface-card text-strong shadow-(--shadow-xs) transition-[border-color,box-shadow] duration-(--dur-fast) focus-within:border-focus focus-within:ring-3 focus-within:ring-focus-halo data-invalid:border-danger-solid data-invalid:focus-within:ring-focus-halo-danger has-[:disabled:not(option)]:cursor-not-allowed has-[:disabled:not(option)]:bg-surface-sunken has-[:disabled:not(option)]:text-disabled has-[:disabled:not(option)]:shadow-none";
 
 const controlSizes = {
   sm: "h-control-sm rounded-control px-3 text-body-md",

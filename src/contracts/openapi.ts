@@ -28,9 +28,10 @@ import {
   createBatchSchema,
   createCategorySchema,
   createProductSchema,
+  inventoryPageSchema,
   productLookupSchema,
   productRowSchema,
-  productsListResponseSchema,
+  productsPageSchema,
   updateProductSchema,
 } from "./inventory";
 import { adminPaths } from "./openapi-admin";
@@ -88,7 +89,8 @@ export function buildOpenApiDocument() {
         CategoriesListResponse: jsonSchema(categoriesListResponseSchema),
         CreateCategoryRequest: jsonSchema(createCategorySchema, "input"),
         ProductRow: jsonSchema(productRowSchema),
-        ProductsListResponse: jsonSchema(productsListResponseSchema),
+        ProductsPage: jsonSchema(productsPageSchema),
+        InventoryPage: jsonSchema(inventoryPageSchema),
         ProductLookup: jsonSchema(productLookupSchema),
         CreateProductRequest: jsonSchema(createProductSchema, "input"),
         UpdateProductRequest: jsonSchema(updateProductSchema, "input"),

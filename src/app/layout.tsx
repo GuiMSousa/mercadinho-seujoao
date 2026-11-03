@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       data-theme={await getTheme()}
-      className={`${fontSans.variable} h-full`}
+      className={`${fontSans.variable} h-full scroll-pt-16`}
     >
       <body className="flex min-h-full flex-col">
         <ServiceWorker />

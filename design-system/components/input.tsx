@@ -61,7 +61,7 @@ function Input({
           aria-invalid={error ? true : undefined}
           aria-describedby={fieldMessageId(inputId, hint, error)}
           className={cn(
-            "h-full w-full min-w-0 bg-transparent outline-hidden placeholder:text-soft disabled:cursor-not-allowed",
+            "h-full w-full min-w-0 bg-transparent outline-hidden placeholder:text-sub disabled:cursor-not-allowed",
             numeric && "text-right tabular-nums",
           )}
           {...props}

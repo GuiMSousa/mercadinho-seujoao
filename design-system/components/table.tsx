@@ -13,6 +13,8 @@ type TableColumn<Row> = {
   /** Right-align amounts and quantities. */
   align?: keyof typeof align;
   wrap?: boolean;
+  /** Extra classes on the cells, e.g. "hidden md:table-cell" to drop a column on phones. */
+  className?: string;
   render: (row: Row) => ReactNode;
 };
 
@@ -47,7 +49,7 @@ function Table<Row>({
       aria-label={caption}
       tabIndex={0}
       data-slot="table"
-      className={cn("min-w-0 overflow-x-auto", className)}
+      className={cn("relative min-w-0 overflow-x-auto", className)}
     >
       <table className="w-full border-separate border-spacing-0 text-body-md tabular-nums">
         <caption className="sr-only">{caption}</caption>
@@ -60,6 +62,7 @@ function Table<Row>({
                 className={cn(
                   "bg-surface-sunken px-3 py-2 text-caption font-medium whitespace-nowrap text-sub first:rounded-l-sm last:rounded-r-sm",
                   align[column.align ?? "left"],
+                  column.className,
                 )}
               >
                 {column.label}
@@ -92,6 +95,7 @@ function Table<Row>({
                       dense ? "py-2" : "py-3",
                       column.wrap ? "whitespace-normal" : "whitespace-nowrap",
                       align[column.align ?? "left"],
+                      column.className,
                     )}
                   >
                     {column.render(row)}

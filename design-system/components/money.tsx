@@ -65,7 +65,7 @@ function Money({
         </span>
       )}
       {parts.integer}
-      <span className={cn(mutedCents && (tone ? "opacity-60" : "text-soft"))}>
+      <span className={cn(mutedCents && !tone && "text-sub")}>
         ,{parts.cents}
       </span>
     </span>

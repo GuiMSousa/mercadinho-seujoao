@@ -21,7 +21,7 @@ function Stat({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1.5 rounded-lg p-3.5",
+        "flex flex-col gap-1.5 rounded-lg p-3",
         highlight ? "bg-success-bg" : "bg-surface-sunken",
       )}
     >
@@ -77,7 +77,11 @@ export function ProfilePreview() {
         />
       </div>
 
-      <div className="flex w-full max-w-lg min-w-0 flex-col gap-4 justify-self-center">
+      <div
+        role="tabpanel"
+        aria-label={admin ? "Administrador" : "Operador de caixa"}
+        className="flex w-full max-w-lg min-w-0 flex-col gap-4 justify-self-center"
+      >
         <div className={cn(card, "gap-4")}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex flex-col gap-0.5">

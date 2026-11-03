@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SESSION_IDLE_VALUES } from "@/infrastructure/db/schema";
+import { SESSION_IDLE_VALUES } from "./enums";
 import { documentSchema, phoneSchema, storeNameSchema } from "./auth";
 
 // Partial update: only the fields sent change, so two editors cannot overwrite each other's other fields.

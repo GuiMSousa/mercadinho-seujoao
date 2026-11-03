@@ -5,12 +5,8 @@ export type StockBatch = {
   quantity: number;
 };
 
-export type Allocation = { batchId: string; quantity: number };
+type Allocation = { batchId: string; quantity: number };
 
-/**
- * PVPS (Primeiro que Vence, Primeiro que Sai): takes `quantity` from the batches that expire first,
- * older entries first on the same date and batches without expiration last. Returns null when the stock does not cover it.
- */
 function byExpiration(a: string | null, b: string | null) {
   if (a === b) return 0;
   if (a === null) return 1;
@@ -18,6 +14,10 @@ function byExpiration(a: string | null, b: string | null) {
   return a.localeCompare(b);
 }
 
+/**
+ * PVPS (Primeiro que Vence, Primeiro que Sai): takes `quantity` from the batches that expire first,
+ * older entries first on the same date and batches without expiration last. Returns null when the stock does not cover it.
+ */
 export function allocatePvps(
   batches: StockBatch[],
   quantity: number,

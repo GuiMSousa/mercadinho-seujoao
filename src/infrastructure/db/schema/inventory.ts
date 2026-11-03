@@ -11,9 +11,10 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { PRODUCT_UNITS } from "../../../contracts/enums";
 import { users } from "./users";
 
-export const productUnit = pgEnum("product_unit", ["UN", "KG", "L"]);
+export const productUnit = pgEnum("product_unit", PRODUCT_UNITS);
 export const inventoryMovementType = pgEnum("inventory_movement_type", [
   "IN",
   "OUT",

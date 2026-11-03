@@ -15,7 +15,7 @@
 > Ainda não estão no repositório:
 >
 > - Leitor de código de barras: só existe a busca por código, `GET /api/products?barcode=`.
-> - Telas de produtos e estoque no painel: o catálogo existe só pela API.
+> - Baixa manual e extrato de movimentações no painel: `/painel/produtos` cadastra categorias e produtos, e `/painel/estoque` registra entradas e mostra os lotes com o semáforo.
 > - Instalação como PWA conferida em aparelho: o navegador exige HTTPS, que chega com o domínio fixo da semana 9.
 >
 > **Mudança de ordem (2026-11-03):** o catálogo de produtos e os lotes com PVPS vêm antes do PDV, para o caixa ter itens cadastrados para dar baixa. Por isso a base de lotes e PVPS da semana 6 já está entregue; alertas e relatório de reposição continuam na semana 6.

@@ -93,5 +93,23 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // Contracts reach client bundles; importing the schema would publish table and column names.
+    files: ["src/contracts/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/infrastructure/*", "@/domains/*"],
+              message:
+                "Contratos chegam ao navegador: não importe banco nem domínio aqui.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores(["design-system/references/**"]),
 ]);

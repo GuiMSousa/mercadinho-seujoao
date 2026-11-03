@@ -15,32 +15,29 @@ const panel = "shadow-(--shadow-xl)";
 const LOTS = [
   {
     code: "L-0412",
-    date: "30/10/2026",
     quantity: 12,
-    tone: "warning",
+    tone: "danger",
     tag: "Vence em 2 dias",
     width: "w-1/2",
-    bar: "bg-expiry-soon",
+    bar: "bg-expiry-expired",
     first: true,
   },
   {
     code: "L-0419",
-    date: "06/11/2026",
     quantity: 24,
-    tone: "success",
+    tone: "warning",
     tag: "Vence em 9 dias",
     width: "w-full",
-    bar: "bg-expiry-ok",
+    bar: "bg-expiry-soon",
     first: false,
   },
   {
     code: "L-0425",
-    date: "15/11/2026",
     quantity: 24,
-    tone: "success",
+    tone: "warning",
     tag: "Vence em 18 dias",
     width: "w-full",
-    bar: "bg-expiry-ok",
+    bar: "bg-expiry-soon",
     first: false,
   },
 ] as const;
@@ -58,18 +55,13 @@ export function ExpiryDemo() {
           <li
             key={lot.code}
             className={cn(
-              "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5 rounded-lg border p-3.5",
+              "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5 rounded-lg border p-3",
               lot.first ? "border-selected-border" : "border-border-soft",
             )}
           >
-            <div className="flex min-w-0 flex-wrap items-baseline gap-2">
-              <span className="text-body-md font-medium text-strong">
-                {lot.code}
-              </span>
-              <span className="text-body-sm text-sub tabular-nums">
-                {lot.date}
-              </span>
-            </div>
+            <span className="text-body-md font-medium text-strong">
+              {lot.code}
+            </span>
             <Badge tone={lot.tone} size="sm" dot>
               {lot.tag}
             </Badge>
@@ -82,7 +74,7 @@ export function ExpiryDemo() {
           </li>
         ))}
       </ul>
-      <p className="mt-3.5 text-body-sm text-sub">
+      <p className="mt-3 text-body-sm text-sub">
         Próxima venda baixa do lote L-0412, o que vence primeiro.
       </p>
     </Card>
@@ -159,7 +151,7 @@ export function RestockDemo() {
           </li>
         ))}
       </ul>
-      <div className="mt-4.5 flex items-center gap-2.5 rounded-lg bg-surface-sunken p-3.5">
+      <div className="mt-4 flex items-center gap-2.5 rounded-lg bg-surface-sunken p-3">
         <PackageX
           aria-hidden="true"
           className="size-4 shrink-0 text-warning-fg"
@@ -239,7 +231,7 @@ export function CashDemo() {
           </li>
         ))}
       </ul>
-      <div className="mt-3.5 flex flex-col gap-1.5 rounded-lg border border-border p-4">
+      <div className="mt-3 flex flex-col gap-1.5 rounded-lg border border-border p-4">
         <span className="text-body-sm text-sub">
           Fechamento cego · valor contado pelo operador
         </span>
@@ -247,10 +239,10 @@ export function CashDemo() {
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <span className="text-body-sm text-sub">
-          Esperado R$ 1.490,00 · só o administrador vê
+          Esperado <Money cents={149000} size="sm" /> · só o administrador vê
         </span>
         <Badge tone="danger" dot>
-          Quebra −R$ 7,70
+          Quebra <Money cents={-770} size="sm" tone="out" />
         </Badge>
       </div>
     </Card>
@@ -259,13 +251,13 @@ export function CashDemo() {
 
 // Margin is 28% of revenue on every day of the sample, so the split is constant.
 const WEEK = [
-  { day: "seg", height: "h-63/100", label: "R$ 2.150,00" },
-  { day: "ter", height: "h-73/100", label: "R$ 2.480,00" },
-  { day: "qua", height: "h-68/100", label: "R$ 2.310,00" },
-  { day: "qui", height: "h-79/100", label: "R$ 2.690,00" },
-  { day: "sex", height: "h-91/100", label: "R$ 3.120,00" },
-  { day: "sáb", height: "h-full", label: "R$ 3.410,00" },
-  { day: "dom", height: "h-66/100", label: "R$ 2.260,00" },
+  { day: "seg", height: "h-63/100" },
+  { day: "ter", height: "h-73/100" },
+  { day: "qua", height: "h-68/100" },
+  { day: "qui", height: "h-79/100" },
+  { day: "sex", height: "h-91/100" },
+  { day: "sáb", height: "h-full" },
+  { day: "dom", height: "h-66/100" },
 ];
 
 const WEEK_TOTALS = [
@@ -292,15 +284,14 @@ export function MarginDemo() {
         aria-label="Faturamento de segunda a domingo: cresce até sábado, o maior dia, e cai no domingo. A margem é 28% de cada dia."
         className="flex h-40 items-end gap-2.5"
       >
-        {WEEK.map(({ day, height, label }) => (
+        {WEEK.map(({ day, height }) => (
           <div
             key={day}
-            title={`${day}: ${label}`}
             className="flex h-full flex-1 flex-col justify-end gap-2"
           >
             <div className={cn("flex min-h-0 flex-col gap-0.5", height)}>
               <div className="flex-28 rounded-t-xs bg-brand" />
-              <div className="flex-72 bg-soft" />
+              <div className="flex-72 bg-sub" />
             </div>
             <span className="text-center text-caption text-sub">{day}</span>
           </div>
@@ -312,7 +303,7 @@ export function MarginDemo() {
           Margem
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-xs bg-soft" />
+          <span className="size-2 rounded-xs bg-sub" />
           CMV
         </span>
       </div>

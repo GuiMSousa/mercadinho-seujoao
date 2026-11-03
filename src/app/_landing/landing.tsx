@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge } from "@ds/components/badge";
-import { Button } from "@ds/components/button";
+import { buttonVariants } from "@ds/components/button";
 import { cn } from "@ds/lib/cn";
 import { ThemeControl } from "../_components/theme-control";
 import { ProfilePreview } from "./profile-preview";
@@ -39,15 +39,11 @@ function LoginButton({
   variant?: "brand" | "primary";
   children: ReactNode;
 }) {
+  // A plain link: it goes somewhere, so it must not be announced as a button.
   return (
-    <Button
-      render={<Link href="/login" />}
-      nativeButton={false}
-      variant={variant}
-      size={size}
-    >
+    <Link href="/login" className={buttonVariants({ variant, size })}>
       {children}
-    </Button>
+    </Link>
   );
 }
 
@@ -96,7 +92,7 @@ function Hero() {
         "grid items-center gap-12 py-12 lg:grid-cols-2 lg:gap-20 lg:py-24",
       )}
     >
-      <div className="flex min-w-0 flex-col items-start gap-7">
+      <div className="flex min-w-0 flex-col items-start gap-6">
         <Badge tone="info" dot>
           Para mercadinhos e pequenos comércios
         </Badge>
@@ -114,14 +110,12 @@ function Hero() {
             Entrar no sistema
             <ArrowRight aria-hidden="true" />
           </LoginButton>
-          <Button
-            render={<a href="#ralos" />}
-            nativeButton={false}
-            variant="secondary"
-            size="lg"
+          <a
+            href="#ralos"
+            className={buttonVariants({ variant: "secondary", size: "lg" })}
           >
             Ver como funciona
-          </Button>
+          </a>
         </div>
       </div>
       <div className="flex min-w-0 justify-center">
@@ -183,32 +177,39 @@ function FinalCall() {
       <div
         className={cn(
           container,
-          "flex flex-col gap-14 pt-20 pb-10 lg:gap-28 lg:pt-40",
+          "flex flex-col items-start gap-8 pt-20 pb-14 lg:pt-40 lg:pb-28",
         )}
       >
-        <div className="flex flex-col items-start gap-8">
-          <h2 className="max-w-4xl text-hero font-medium tracking-display text-balance text-strong">
-            Feche o caixa hoje sabendo quanto ganhou.
-          </h2>
-          <p className="max-w-xl text-pretty">
-            Vendas, estoque por lote, caixa e margem num só sistema, pensado
-            para quem atende no balcão.
-          </p>
-          <LoginButton size="counter">
-            Entrar no Mkt Control
-            <ArrowRight aria-hidden="true" />
-          </LoginButton>
-        </div>
-        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
+        <h2 className="max-w-4xl text-hero font-medium tracking-display text-balance text-strong">
+          Feche o caixa hoje sabendo quanto ganhou.
+        </h2>
+        <p className="max-w-xl text-pretty">
+          Vendas, estoque por lote, caixa e margem num só sistema, pensado para
+          quem atende no balcão.
+        </p>
+        <LoginButton size="counter">
+          Entrar no Mkt Control
+          <ArrowRight aria-hidden="true" />
+        </LoginButton>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer data-theme="dark" className="bg-app">
+      <div className={cn(container, "pb-10")}>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
           <span className="text-h3 font-semibold tracking-display text-strong">
             Mkt Control
           </span>
           <span className="text-body-sm text-sub">
             Vendas e estoque para o pequeno comércio · © 2026
           </span>
-        </footer>
+        </div>
       </div>
-    </section>
+    </footer>
   );
 }
 
@@ -217,20 +218,18 @@ export function Landing({ initialTheme }: { initialTheme?: "light" | "dark" }) {
   return (
     <>
       <Header initialTheme={initialTheme} />
-      <main id="topo" className="scroll-mt-16">
+      <main id="topo">
         <Hero />
         <Manifesto />
         <Losses />
         <Vocabulary />
-        <section
-          id="perfis"
-          className={cn(container, "scroll-mt-16 py-16 lg:py-32")}
-        >
+        <section id="perfis" className={cn(container, "py-16 lg:py-32")}>
           <ProfilePreview />
         </section>
         <Counter />
+        <FinalCall />
       </main>
-      <FinalCall />
+      <Footer />
     </>
   );
 }

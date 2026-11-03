@@ -11,11 +11,41 @@ import { Money } from "@ds/components/money";
 import { cn } from "@ds/lib/cn";
 
 const ITEMS = [
-  { name: "Arroz tipo 1 5 kg", detail: "1 un × R$ 27,90", cents: 2790 },
-  { name: "Leite integral 1 L", detail: "2 un × R$ 4,99", cents: 998 },
-  { name: "Café torrado 500 g", detail: "1 un × R$ 18,49", cents: 1849 },
-  { name: "Banana prata", detail: "1,200 kg × R$ 6,90/kg", cents: 828 },
-  { name: "Pão francês", detail: "0,600 kg × R$ 15,90/kg", cents: 954 },
+  {
+    name: "Arroz tipo 1 5 kg",
+    amount: "1 un",
+    price: 2790,
+    per: "",
+    cents: 2790,
+  },
+  {
+    name: "Leite integral 1 L",
+    amount: "2 un",
+    price: 499,
+    per: "",
+    cents: 998,
+  },
+  {
+    name: "Café torrado 500 g",
+    amount: "1 un",
+    price: 1849,
+    per: "",
+    cents: 1849,
+  },
+  {
+    name: "Banana prata",
+    amount: "1,200 kg",
+    price: 690,
+    per: "/kg",
+    cents: 828,
+  },
+  {
+    name: "Pão francês",
+    amount: "0,600 kg",
+    price: 1590,
+    per: "/kg",
+    cents: 954,
+  },
 ];
 const TOTAL_CENTS = ITEMS.reduce((sum, item) => sum + item.cents, 0);
 
@@ -35,7 +65,7 @@ function Chip({
   return (
     <div
       className={cn(
-        "absolute z-10 hidden items-center gap-2.5 rounded-xl border border-border-soft bg-surface-card py-2.5 pr-3.5 pl-2.5 shadow-(--shadow-lg) xl:flex",
+        "absolute z-10 hidden items-center gap-2.5 rounded-xl border border-border-soft bg-surface-card py-2.5 pr-3 pl-2.5 shadow-(--shadow-lg) xl:flex",
         className,
       )}
     >
@@ -61,11 +91,11 @@ export function SaleCard() {
     <div className="relative w-full max-w-md xl:py-7">
       <Chip
         icon={CalendarClock}
-        iconClass="bg-warning-bg text-warning-fg"
+        iconClass="bg-danger-bg text-danger-fg"
         title="Iogurte natural · L-0412"
         className="top-0 -left-16"
       >
-        <Badge tone="warning" size="sm" dot>
+        <Badge tone="danger" size="sm" dot>
           Vence em 2 dias
         </Badge>
       </Chip>
@@ -86,8 +116,8 @@ export function SaleCard() {
         <Money cents={128460} size="sm" tone="margin" />
       </Chip>
 
-      <div className="overflow-hidden rounded-2xl border border-border-soft bg-surface-card shadow-(--shadow-xl)">
-        <div className="flex items-center justify-between gap-3 px-5 pt-4.5 pb-3.5">
+      <div className="overflow-hidden rounded-card border border-border-soft bg-surface-card shadow-(--shadow-xl)">
+        <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-3">
           <div className="flex flex-col gap-0.5">
             <span className="font-medium text-strong">Venda 0148</span>
             <span className="text-body-sm text-sub">Caixa 01 · Ana</span>
@@ -111,7 +141,13 @@ export function SaleCard() {
                   {item.name}
                 </span>
                 <span className="text-caption text-sub tabular-nums">
-                  {item.detail}
+                  {item.amount} ×{" "}
+                  <Money
+                    cents={item.price}
+                    size="sm"
+                    className="text-caption font-normal text-sub"
+                  />
+                  {item.per}
                 </span>
               </div>
               <Money cents={item.cents} size="sm" />

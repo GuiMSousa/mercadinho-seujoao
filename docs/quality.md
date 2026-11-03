@@ -9,7 +9,7 @@
 | `npm run typecheck`    | `next typegen` (tipos de rotas) seguido de `tsc --noEmit` estrito                                                                                                                      |
 | `npm run lint:typed`   | `@typescript-eslint/no-floating-promises` e `no-misused-promises` como **erro** em `src/**`. Custo medido nesta máquina: 3,1 s e pico de ~669 MB                                       |
 | `npm run lint:rules`   | Autoteste das regras locais com o `RuleTester` do ESLint                                                                                                                               |
-| `npm test`             | Vitest em Node: ambiente, logger e pool, mais autenticação, painel e design system, sem banco                                                                                          |
+| `npm test`             | Vitest em Node: ambiente, logger e pool, mais autenticação, painel, catálogo, Service Worker e design system, sem banco                                                                |
 | `npm run spec:check`   | Contrato OpenAPI 3.1 válido (`@apidevtools/swagger-parser`), igual ao `src/contracts/openapi.json` versionado e cobrindo exatamente os métodos exportados em `src/app/api/**/route.ts` |
 | `npm run build`        | Build de produção `standalone` sem credenciais                                                                                                                                         |
 | `npm run check`        | Tudo acima, na mesma ordem do CI (`.github/workflows/ci.yml`)                                                                                                                          |
@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-03): 226 testes em 59 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 77 testes em 13 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 4 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-03): 250 testes em 65 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 98 testes em 13 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 5 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -43,7 +43,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
   - **Checagem por mutação** (2026-10-28): com o limite trocado para 11 e a regra de perfil desligada, esses 3 testes falharam; restaurado o código, voltaram a passar.
 - **Contrato:** as rotas devolvem DTOs parseados pelos schemas de `src/contracts`, e os testes de rota validam as respostas com os mesmos schemas. O `spec:check` garante que a spec cobre todas as rotas.
 - **Por fluxo:** cada feature testa a regra de negócio no service, em Node puro (PVPS, total igual à soma dos itens arredondados, caixa único, sigilo de custo).
-- **Banco real:** `npm run test:db` cobre sessões, cadastro (inclusive loja concorrente), recuperação de senha, usuários (último `ADMIN`), atividade e o schema contra o PostgreSQL 18. Não faz parte de `npm run check`; o CI roda os dois.
+- **Banco real:** `npm run test:db` cobre sessões, cadastro (inclusive loja concorrente), recuperação de senha, usuários (último `ADMIN`), atividade, catálogo e baixa PVPS e o schema contra o PostgreSQL 18. Não faz parte de `npm run check`; o CI roda os dois.
 - **`test:e2e`:** automatizado ainda não existe e não é simulado. O fluxo de telas tem um roteiro manual com resultados em [Roteiro E2E no navegador](#roteiro-e2e-no-navegador).
 - **Capacidades adotadas e evidência atual** (detalhes em [setup.md](setup.md)):
 
@@ -81,6 +81,25 @@ Desde 2026-11-03, `/` mostra a landing pública a quem não é `ADMIN`. Ao repet
 | 15  | "Sair" com a sessão já apagada no banco leva a `/login`                                                                                | Passou    | `DELETE FROM sessions` no banco do E2E; o clique recebeu 401 de `/api/auth/logout` e a página foi para `/login`                                     |
 
 Observação: na etapa 3 do cadastro, o texto "enviado para …" mostra o e-mail como digitado (`Ana@Teste.com`), enquanto o envio e a conta usam a forma normalizada.
+
+### Catálogo e estoque
+
+Executado em 2026-11-03 com o Playwright (MCP), contra `npm run dev -- -p 3100` no banco `mkt_control_e2e`, com 25 produtos e lotes em cada faixa do semáforo. O `usePagedList` não tem teste automatizado, porque o repositório não usa jsdom; este roteiro o cobre.
+
+| #   | Passo                                                                                                                  | Resultado |
+| --- | ---------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | `/admin/products` e `/admin/inventory` levam a `/painel/produtos` e `/painel/estoque`                                  | Passou    |
+| 2   | 25 produtos: 20 na página 1, 5 na 2; "Próxima" na última página mantém o foco e não muda                               | Passou    |
+| 3   | Busca lenta respondendo depois de uma busca mais nova não sobrescreve o resultado                                      | Passou    |
+| 4   | Editar um produto atualiza a lista mantendo a busca e a página                                                         | Passou    |
+| 5   | Semáforo: vencido e 7 dias em vermelho; 8 e 30 dias, ou no mínimo, em amarelo; 31 em verde                             | Passou    |
+| 6   | Foco abre no primeiro campo; Enter do leitor no código de barras não envia nem fecha                                   | Passou    |
+| 7   | Com o salvamento em andamento, Esc não fecha e Cancelar fica desabilitado                                              | Passou    |
+| 8   | Sessão `CASHIER`: `/api/admin/*` e `/painel/*` 403; `/api/%61dmin/*` e `/%70ainel/*` 404                               | Passou    |
+| 9   | Em 375 px, sem rolagem lateral na página, e a tabela de produtos cabe na tela                                          | Passou    |
+| 10  | Resposta perdida na entrada de lote: reenviar igual não soma estoque de novo; reenviar com outra quantidade é recusado | Passou    |
+
+Desempenho medido com `EXPLAIN ANALYZE` em 5.000 produtos e 50.000 lotes: 12,7 ms para a primeira página e 5,5 ms para uma busca.
 
 ## Harness (método nativo inspirado no Harness2)
 

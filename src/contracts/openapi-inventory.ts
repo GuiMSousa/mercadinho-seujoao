@@ -3,6 +3,22 @@ import { body, error, formError, json } from "./openapi-helpers";
 const forbidden = error(
   "Perfil sem permissão (CASHIER) ou cabeçalho anti-CSRF ausente ou inválido.",
 );
+const listParameters = [
+  {
+    name: "search",
+    in: "query",
+    required: false,
+    description: "Parte do nome ou do código de barras.",
+    schema: { type: "string", maxLength: 120 },
+  },
+  {
+    name: "page",
+    in: "query",
+    required: false,
+    description: "Começa em 1. Além do fim, responde a última página.",
+    schema: { type: "integer", minimum: 1 },
+  },
+];
 const productIdParameter = {
   name: "id",
   in: "path",
@@ -45,12 +61,15 @@ export const inventoryPaths = {
   "/api/admin/products": {
     get: {
       summary: "Lista os produtos com custo e estoque (somente ADMIN)",
+      description: "Paginada e ordenada por nome, com 20 produtos por página.",
       security: [{ session: [] }],
+      parameters: listParameters,
       responses: {
         "200": {
-          description: "Produtos por nome.",
-          content: json("ProductsListResponse"),
+          description: "Página de produtos.",
+          content: json("ProductsPage"),
         },
+        "400": error("Parâmetros de busca inválidos."),
         "401": error("Sem sessão."),
         "403": error("Perfil sem permissão (CASHIER)."),
       },
@@ -87,7 +106,9 @@ export const inventoryPaths = {
         "401": error("Sem sessão."),
         "403": forbidden,
         "404": error("Produto não encontrado."),
-        "409": formError("Código de barras já usado (fields.barcode)."),
+        "409": formError(
+          "Código de barras já usado (fields.barcode) ou troca de unidade depois do primeiro lote (fields.unit).",
+        ),
         "422": formError(
           "Campos inválidos ou categoria inexistente (fields.categoryId).",
         ),
@@ -98,7 +119,7 @@ export const inventoryPaths = {
     post: {
       summary: "Registra a entrada de um lote (somente ADMIN)",
       description:
-        "Cria o lote e a movimentação IN na mesma transação. O mesmo código de lote pode entrar mais de uma vez. Validade null indica item que não vence.",
+        "Cria o lote e a movimentação IN na mesma transação. O id é opcional e gerado pelo cliente: repetir a mesma entrada com o mesmo id devolve o lote já criado, sem somar estoque. O mesmo código de lote pode entrar mais de uma vez. Validade null indica item que não vence.",
       security: [{ session: [], csrf: [] }],
       parameters: [productIdParameter],
       requestBody: body("CreateBatchRequest"),
@@ -108,7 +129,28 @@ export const inventoryPaths = {
         "401": error("Sem sessão."),
         "403": forbidden,
         "404": error("Produto não encontrado."),
+        "409": formError(
+          "O id já é de uma entrada com outros dados ou de outro produto.",
+        ),
         "422": formError("Campos inválidos (fields)."),
+      },
+    },
+  },
+  "/api/admin/inventory": {
+    get: {
+      summary: "Lista os lotes por produto, com o semáforo (somente ADMIN)",
+      description:
+        "Paginada por produto, com 10 por página. Só lista lotes com saldo, e deixa de fora produtos inativos sem saldo. Lote: vermelho se vencido ou se vence em até 7 dias, amarelo de 8 a 30 dias, verde depois disso ou sem validade. Produto: o pior entre os lotes e o estoque (vermelho se zerado, amarelo no mínimo ou abaixo).",
+      security: [{ session: [] }],
+      parameters: listParameters,
+      responses: {
+        "200": {
+          description: "Página de produtos com lotes.",
+          content: json("InventoryPage"),
+        },
+        "400": error("Parâmetros de busca inválidos."),
+        "401": error("Sem sessão."),
+        "403": error("Perfil sem permissão (CASHIER)."),
       },
     },
   },

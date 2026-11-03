@@ -45,6 +45,7 @@ function Button({
   fullWidth,
   loading = false,
   disabled,
+  focusableWhenDisabled,
   children,
   ...props
 }: ButtonProps) {
@@ -53,7 +54,7 @@ function Button({
       data-slot="button"
       className={cn(buttonVariants({ variant, size, fullWidth, className }))}
       disabled={disabled || loading}
-      focusableWhenDisabled={loading}
+      focusableWhenDisabled={focusableWhenDisabled || loading}
       aria-busy={loading || undefined}
       {...props}
     >

@@ -7,8 +7,8 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { SESSION_IDLE_VALUES } from "../../../contracts/enums";
 
-export const SESSION_IDLE_VALUES = ["1h", "8h", "24h", "never"] as const;
 export type SessionIdle = (typeof SESSION_IDLE_VALUES)[number];
 
 // One row per installation: the UNIQUE on a constant-true column refuses a second store.
