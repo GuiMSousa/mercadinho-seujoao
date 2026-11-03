@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // The dev server blocks its JS chunks and HMR for other hostnames; without this the
   // LAN address (http://192.168.0.27:3000) never hydrates. Dev only; update if the IP changes.
-  allowedDevOrigins: ["192.168.0.27"],
+  allowedDevOrigins: ["192.168.0.4", "192.168.0.27"],
   // same-origin: /recuperar?email=... must not leak through Referer to other sites.
   headers: async () => [
     {

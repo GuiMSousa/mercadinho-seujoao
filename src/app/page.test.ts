@@ -1,11 +1,13 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { readSession } from "@/domains/auth/sessions";
+import { Landing } from "./_landing/landing";
 import Home from "./page";
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => ({ value: "token" }) }),
 }));
+vi.mock("./theme", () => ({ getTheme: async () => "light" }));
 vi.mock("next/navigation", () => ({
   redirect: (path: string) => {
     throw new Error(`redirect:${path}`);
@@ -27,11 +29,11 @@ const as = (role?: "ADMIN" | "CASHIER") =>
 
 beforeEach(() => vi.mocked(readSession).mockReset());
 
-it("sends an ADMIN to the panel and everyone else to the login", async () => {
+it("sends an ADMIN to the panel and shows the landing to everyone else", async () => {
   as("ADMIN");
   await expect(Home()).rejects.toThrow("redirect:/painel");
   as("CASHIER");
-  await expect(Home()).rejects.toThrow("redirect:/login");
+  expect((await Home()).type).toBe(Landing);
   as();
-  await expect(Home()).rejects.toThrow("redirect:/login");
+  expect((await Home()).type).toBe(Landing);
 });

@@ -182,7 +182,7 @@ Os usuários temporários (`teste.admin`, `teste.caixa`) e os arquivos com suas 
 - **Técnicas:**
   - ESLint 10 e TS 7 quando os plugins suportarem;
   - advisories de dev do `drizzle-kit` e do `shadcn`;
-  - `test:e2e` e PWA entram com os fluxos de tela;
+  - `test:e2e` entra com os fluxos de tela;
   - testes automatizados de repository contra o PostgreSQL.
-- **Próxima entrega do MVP:** cadastro de produtos e entrada de estoque com lote e validade (ver PRODUCT.md).
+- **Próxima entrega do MVP:** telas de catálogo e estoque e o PDV (ver [ROADMAP.md](../ROADMAP.md)).
 - **Reexecutar o bootstrap:** reaplique o prompt 11 na mesma revisão. Ele preserva estes arquivos e reaproveita a evidência quando nada mudou.

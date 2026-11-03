@@ -6,23 +6,21 @@
 - **Semana 2:** ENTREGUE (Design System & PWA Base)
 - **Semanas 3 a 9:** PLANEJADAS / EM EXECUÇÃO
 
-> **Conferência com o código (2026-11-01):** os itens abaixo, das semanas 1 e 2, ainda não estão no repositório:
+> **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
-> - Landing Page em `/`: está desenhada, mas hoje `/` só redireciona.
-> - Cadastro de produtos e categorias.
-> - Correções de viewport/zoom para iOS/Android.
-> - `manifest.json` e Service Worker (`sw.js`); `public/` está vazio.
-> - Leitor de código de barras.
-> - Instalação como PWA.
+> - Landing Page pública em `/`, com chamada para `/login`.
+> - Viewport para iOS/Android, `manifest.json`, ícones e Service Worker (`sw.js`).
+> - Catálogo e estoque na API e no banco: categorias, produtos, lotes, movimentações e baixa PVPS.
 >
-> Estão entregues:
+> Ainda não estão no repositório:
 >
-> - o ambiente: Node.js 24, Docker, PostgreSQL 18 e Drizzle;
-> - a autenticação ADMIN/CASHIER com sessões no banco;
-> - o painel responsivo;
-> - o Design System (`@ds/components`).
+> - Leitor de código de barras: só existe a busca por código, `GET /api/products?barcode=`.
+> - Telas de produtos e estoque no painel: o catálogo existe só pela API.
+> - Instalação como PWA conferida em aparelho: o navegador exige HTTPS, que chega com o domínio fixo da semana 9.
 >
-> Detalhes em [docs/auditoria-calendario-2026-11-01.md](docs/auditoria-calendario-2026-11-01.md).
+> **Mudança de ordem (2026-11-03):** o catálogo de produtos e os lotes com PVPS vêm antes do PDV, para o caixa ter itens cadastrados para dar baixa. Por isso a base de lotes e PVPS da semana 6 já está entregue; alertas e relatório de reposição continuam na semana 6.
+>
+> Conferência anterior em [docs/auditoria-calendario-2026-11-01.md](docs/auditoria-calendario-2026-11-01.md).
 
 ---
 

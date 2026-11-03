@@ -4,3 +4,4 @@ export * from "./stores";
 export * from "./sessions";
 export * from "./verification-codes";
 export * from "./activity-log";
+export * from "./inventory";

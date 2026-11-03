@@ -11,6 +11,9 @@ export const ACTIVITY_ACTIONS = [
   "Usuário alterado",
   "Usuário desativado",
   "Dados da loja alterados",
+  "Categoria criada",
+  "Produto criado",
+  "Produto alterado",
 ] as const;
 
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];

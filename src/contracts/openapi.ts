@@ -19,7 +19,22 @@ import {
   signupResendSchema,
   signupVerifySchema,
 } from "./auth";
+import {
+  batchRowSchema,
+  categoriesListResponseSchema,
+  categoryRowSchema,
+  consumeStockResponseSchema,
+  consumeStockSchema,
+  createBatchSchema,
+  createCategorySchema,
+  createProductSchema,
+  productLookupSchema,
+  productRowSchema,
+  productsListResponseSchema,
+  updateProductSchema,
+} from "./inventory";
 import { adminPaths } from "./openapi-admin";
+import { inventoryPaths } from "./openapi-inventory";
 import {
   body,
   error,
@@ -69,6 +84,18 @@ export function buildOpenApiDocument() {
         RevokedSessions: jsonSchema(revokedSessionsSchema),
         StoreResponse: jsonSchema(storeResponseSchema),
         UpdateStoreRequest: jsonSchema(updateStoreSchema, "input"),
+        CategoryRow: jsonSchema(categoryRowSchema),
+        CategoriesListResponse: jsonSchema(categoriesListResponseSchema),
+        CreateCategoryRequest: jsonSchema(createCategorySchema, "input"),
+        ProductRow: jsonSchema(productRowSchema),
+        ProductsListResponse: jsonSchema(productsListResponseSchema),
+        ProductLookup: jsonSchema(productLookupSchema),
+        CreateProductRequest: jsonSchema(createProductSchema, "input"),
+        UpdateProductRequest: jsonSchema(updateProductSchema, "input"),
+        BatchRow: jsonSchema(batchRowSchema),
+        CreateBatchRequest: jsonSchema(createBatchSchema, "input"),
+        ConsumeStockRequest: jsonSchema(consumeStockSchema, "input"),
+        ConsumeStockResponse: jsonSchema(consumeStockResponseSchema),
         UserRow: jsonSchema(userRowSchema),
         UsersList: jsonSchema(usersListResponseSchema),
         InviteUserRequest: jsonSchema(inviteUserSchema, "input"),
@@ -231,6 +258,7 @@ export function buildOpenApiDocument() {
         },
       },
       ...adminPaths,
+      ...inventoryPaths,
       "/api/admin/activity": {
         get: {
           summary:

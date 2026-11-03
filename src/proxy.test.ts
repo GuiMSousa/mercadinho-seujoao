@@ -63,8 +63,7 @@ it("routes the home path by session", async () => {
   expect(admin.headers.get("location")).toBe("http://localhost:3000/painel");
 
   const anonymous = await request("/");
-  expect(anonymous.status).toBe(307);
-  expect(anonymous.headers.get("location")).toBe("http://localhost:3000/login");
+  expect(anonymous.headers.get("x-middleware-next")).toBe("1");
 
   const cashier = await request("/", "CASHIER");
   expect(cashier.headers.get("x-middleware-next")).toBe("1");

@@ -31,8 +31,8 @@
   --red-50: #ffebec;
   --red-100: #ffd5d8;
   --red-500: #fb3748;
-  --red-600: #e93544;
   --red-700: #c0293b;
+  --red-800: #a32032;
   --orange-50: #fff1eb;
   --orange-500: #fa7319;
   --orange-700: #b64f0a;
@@ -77,8 +77,8 @@
   --action-primary-hover: var(--neutral-800);
   --action-brand: var(--blue-500);
   --action-brand-hover: var(--blue-600);
-  --action-danger: var(--red-500);
-  --action-danger-hover: var(--red-600);
+  --action-danger: var(--red-700);
+  --action-danger-hover: var(--red-800);
   --success-fg: var(--green-800);
   --success-bg: var(--green-50);
   --success-solid: var(--green-500);
@@ -322,6 +322,11 @@
 @theme {
   /* Sizes in rem so text follows browser zoom and font settings (16px base). */
   --text-*: initial;
+  /* Landing page only: fluid sizes for the hero and the section titles. */
+  --text-hero: clamp(2.75rem, 6.4vw, 5.5rem);
+  --text-hero--line-height: 1.04;
+  --text-section: clamp(2rem, 4.4vw, 3.75rem);
+  --text-section--line-height: 1.06;
   --text-display: 2.5rem;
   --text-display--line-height: 3rem;
   --text-h1: 2rem;

@@ -82,6 +82,8 @@ Contrato visual do Mkt Control e **fonte da verdade dos tokens**. `design-system
 - Tabelas têm `caption` (oculto visualmente) e região rolável focável.
 - O estado de seleção vem do controle (`Checkbox`); a linha só destaca.
 - Cada fluxo novo define seus estados vazio, de erro e de carregamento.
+- **Zoom:** o viewport não bloqueia o zoom de pinça (WCAG 1.4.4, decisão de 2026-11-03). Campos com 16 px já evitam o zoom automático do iOS ao focar; não os reduza nem volte a usar `maximum-scale` ou `user-scalable=no`.
+- **Movimento:** o que se move sozinho para em menos de 5 s e respeita `prefers-reduced-motion`, como o título da landing (`src/app/_landing/rotator.tsx`).
 - Revise com a skill `web-design-guidelines` antes de concluir mudanças de UI.
 
 ## Biblioteca `design-system/`
@@ -174,8 +176,8 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 | `--red-50`      | `#ffebec` |
 | `--red-100`     | `#ffd5d8` |
 | `--red-500`     | `#fb3748` |
-| `--red-600`     | `#e93544` |
 | `--red-700`     | `#c0293b` |
+| `--red-800`     | `#a32032` |
 | `--orange-50`   | `#fff1eb` |
 | `--orange-500`  | `#fa7319` |
 | `--orange-700`  | `#b64f0a` |
@@ -232,8 +234,8 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 | `--action-primary-hover` | `var(--neutral-800)` | `var(--neutral-200)` |
 | `--action-brand`         | `var(--blue-500)`    | —                    |
 | `--action-brand-hover`   | `var(--blue-600)`    | `var(--blue-400)`    |
-| `--action-danger`        | `var(--red-500)`     | —                    |
-| `--action-danger-hover`  | `var(--red-600)`     | —                    |
+| `--action-danger`        | `var(--red-700)`     | —                    |
+| `--action-danger-hover`  | `var(--red-800)`     | —                    |
 
 **Status**
 
@@ -378,6 +380,10 @@ As escalas padrão do Tailwind de texto, peso, tracking, raio, sombra e easing f
 | Token                                  | Valor                                                      | Uso                                                       |
 | -------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------- |
 | `--font-sans`                          | `var(--font-hanken), ui-sans-serif, system-ui, sans-serif` | `font-sans` (padrão do `body`)                            |
+| `--text-hero`                          | `clamp(2.75rem, 6.4vw, 5.5rem)`                            | `text-hero`: título principal da landing, fluido          |
+| `--text-hero--line-height`             | `1.04`                                                     |                                                           |
+| `--text-section`                       | `clamp(2rem, 4.4vw, 3.75rem)`                              | `text-section`: títulos de seção da landing, fluido       |
+| `--text-section--line-height`          | `1.06`                                                     |                                                           |
 | `--text-display`                       | `2.5rem`                                                   | `text-display` (40/48)                                    |
 | `--text-display--line-height`          | `3rem`                                                     |                                                           |
 | `--text-h1`                            | `2rem`                                                     | `text-h1` (32/40)                                         |

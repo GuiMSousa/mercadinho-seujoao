@@ -1,0 +1,1 @@
+ALTER TABLE "inventory_batches" ALTER COLUMN "expiration_date" DROP NOT NULL;

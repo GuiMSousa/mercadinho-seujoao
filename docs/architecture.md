@@ -28,7 +28,8 @@ design-system/                # biblioteca de UI; contrato em DESIGN.md
 src/
 ├── proxy.ts                  # gate otimista (Next 16 "proxy", ex-middleware): mesma regra das rotas
 ├── app/
-│   ├── layout.tsx, page.tsx, theme.ts # layout pt-BR (tema lido do cookie no servidor); `/` decide entre /login e /painel
+│   ├── layout.tsx, page.tsx, theme.ts # layout pt-BR (tema lido do cookie no servidor); `/` mostra a landing pública, e o `ADMIN` vai para /painel
+│   ├── _landing/             # landing pública: seções estáticas e ilhas cliente (rotator, perfis, troco)
 │   ├── (auth)/               # telas públicas: login/, cadastro/ (3 etapas), recuperar/ (também define a senha do convite)
 │   ├── painel/               # shell do ADMIN: layout (guarda de perfil), _shell/ (sidebar, topbar, drawer móvel), page.tsx (saudação)
 │   │   ├── usuarios/         # abas Equipe (convites, perfil, desativar) e Registro de atividade
@@ -44,8 +45,10 @@ src/
 │       ├── auth/password-reset, password-reset/confirm
 │       ├── account, account/password, account/sessions/revoke-others
 │       ├── store             # dados e inatividade da loja (GET/PATCH)
-│       └── admin/users, admin/users/[id], admin/activity
-├── contracts/                # schemas Zod por área (auth, users, store, account, activity, theme) + openapi*.ts
+│       ├── products          # busca por código de barras para qualquer sessão, sem custo
+│       └── admin/users, admin/users/[id], admin/activity, admin/categories, admin/products, admin/products/[id],
+│                             # admin/products/[id]/batches, admin/inventory/out
+├── contracts/                # schemas Zod por área (auth, users, store, account, activity, theme, inventory) + openapi*.ts
 │   └── openapi.json          # contrato versionado (npm run spec:generate)
 ├── domains/
 │   ├── auth/                 # access.ts (regra única de acesso), sessions*.ts (sessões no banco), password.ts (scrypt),
@@ -53,13 +56,15 @@ src/
 │   │                         # codes.ts + verification*.ts (códigos por e-mail), repository.ts (único acesso a `users` no login)
 │   ├── store/                # `stores`: uma loja por instalação; criação com o primeiro ADMIN (transação) e configurações
 │   ├── users/                # equipe: listar, convidar, editar, desativar (último ADMIN protegido por transação com lock)
+│   ├── inventory/            # catálogo e estoque: pvps.ts (alocação pura), repository.ts (baixa com lock), service.ts
 │   └── activity/             # registro de atividade (quem fez o quê)
 ├── lib/                      # env (Zod, server-only), logger Pino, `cn`, `document.ts` (máscara e dígitos de CPF/CNPJ)
 └── infrastructure/
     ├── db/                   # index.ts: único ponto de conexão (pool max 5, lazy); schema/ (users, stores, sessions,
-    │                         # verification-codes, activity-log); test-db.ts (`withTestDb`: transação com rollback; `withTestPool`: commit e limpeza)
+    │                         # verification-codes, activity-log, inventory); test-db.ts (`withTestDb`: transação com rollback; `withTestPool`: commit e limpeza)
     └── mail/                 # Resend por `fetch`; sem chave e fora de produção, só registra no log ("mail (dev)")
-drizzle/                      # SQL versionado (0000: user_role + users; 0001_auth_foundation: loja, sessões, códigos, atividade; 0002: `csrf_hash` NOT NULL, CHECKs de e-mail em minúsculas e de `singleton`, índice de códigos por e-mail, finalidade e data)
+drizzle/                      # SQL versionado (0000: user_role + users; 0001_auth_foundation: loja, sessões, códigos, atividade; 0002: `csrf_hash` NOT NULL, CHECKs de e-mail em minúsculas e de `singleton`, índice de códigos por e-mail, finalidade e data; 0003 e 0004: catálogo e estoque)
+public/                       # manifest.json, sw.js e icons/ do PWA
 scripts/                      # create-user.mts, seed-dev.mts, migrate-test.mjs, generate-openapi.mts, verify-quality-rules.mjs
 eslint-rules/                 # regras locais do toolkit
 ```
@@ -93,7 +98,9 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 - Públicos: `/`, `/login`, `/cadastro`, `/recuperar`, `/design-system`, `/api/setup`, `/api/theme` e as rotas de `/api/auth` de entrada (login, cadastro, recuperação); qualquer outro caminho exige sessão (padrão seguro).
 - `/painel`, `/api/admin`, `/api/account` e `/api/store` exigem `ADMIN`.
 - Métodos que alteram estado exigem `x-csrf-token` cujo SHA-256 seja igual a `sessions.csrfHash` e mesma origem.
-- O proxy redireciona páginas sem sessão para `/login`; em `/`, `ADMIN` vai para `/painel` e sem sessão vai para `/login`.
+- O proxy redireciona páginas sem sessão para `/login`; em `/`, `ADMIN` vai para `/painel` e os demais veem a landing pública.
+- `/manifest.json`, `/sw.js` e `/icons/*` passam direto: o matcher do proxy ignora caminhos com extensão.
+- **PWA:** o Service Worker é registrado só em produção e guarda apenas `/_next/static/` e `/icons/`. HTML e API sempre vão à rede, porque carregam dados de sessão e preços. O navegador só o aceita em HTTPS ou `localhost`; em HTTP pela rede local a recusa é silenciosa e o sistema funciona igual.
 
 **Códigos por e-mail** (cadastro e recuperação): 6 dígitos, hash scrypt, 10 min, 5 tentativas, novo código invalida o anterior, 1 pedido por minuto e no máximo 10 códigos por e-mail e finalidade em 24 h (acima disso, 429 no cadastro; a recuperação segue respondendo 202 e não envia nada; convites criados por um ADMIN não passam por essa checagem). A tentativa é gasta num `UPDATE ... attempts + 1` condicional antes de comparar o hash, então palpites paralelos não passam de 5. A recuperação responde 202 igual para qualquer e-mail, envia o código fora do caminho da resposta e usa uma única mensagem para todo erro de código. O pedido de cadastro fica preso ao navegador que o iniciou: o payload guarda o SHA-256 de um nonce entregue no cookie HTTP-only `mkt_signup` (`Path=/api/auth/signup`, 10 min); `verify` e `resend` exigem o cookie (409 "Seu cadastro expirou. Comece de novo."), então ninguém substitui o pedido de outra pessoa. O código novo só invalida os anteriores (apenas os criados antes dele, então o mais novo sempre sobrevive) depois que o e-mail é enviado; o payload (hash da senha e do nonce) é apagado quando o código é usado ou substituído. Trocar a senha em Configurações também consome os códigos de recuperação abertos do e-mail, na mesma transação. As respostas levam `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` e `Referrer-Policy: same-origin` (`next.config.ts`). Toda página do painel que lê dados chama `requireAdmin()`, porque layouts não rodam de novo na navegação do cliente. O cadastro cria loja e ADMIN numa transação; a segunda loja falha em `stores_singleton` e vira 409.
 
@@ -116,8 +123,8 @@ Guardas automáticas atuais (ESLint):
 
 ## Dados e migrations
 
-- **Schema:** `src/infrastructure/db/schema/` (re-exportado por `index.ts`). Hoje: enums `user_role` (`ADMIN`, `CASHIER`) e `verification_purpose`, e as tabelas `users` (`id` uuid com `gen_random_uuid()`, `name`, `email` único sempre em minúsculas, `password_hash` anulável no formato `scrypt$N$r$p$salt$hash`, `role`, `active`, `last_login_at`, `password_changed_at`, `created_at`), `stores` (uma linha por instalação, garantida por `stores_singleton`), `sessions` (id = SHA-256 do token; apagada em cascata com o usuário), `verification_codes` e `activity_log` (`user_id` vira nulo ao apagar o usuário). Testes com banco real: `*.db.test.ts` via `npm run test:db`, quase todos numa transação com rollback (`withTestDb`); só os testes de concorrência (cadastro com palpites em paralelo, último `ADMIN`, corrida de sessão) usam `withTestPool`, fazem commit com e-mails únicos e apagam o que criaram. As próximas tabelas virão do PRODUCT.md, fluxo a fluxo.
-- **SQL versionado:** `drizzle/0000_needy_nightcrawler.sql` (cria `user_role` e `users`) e `drizzle/0001_auth_foundation.sql` (apaga os usuários antigos, troca `username` por `name`/`email` e cria loja, sessões, códigos e log de atividade). `drizzle/0002_pale_secret_warriors.sql` (torna `sessions.csrf_hash` obrigatório, adiciona os CHECKs `users_email_lowercase` e `stores_singleton_true` e troca o índice dos códigos por `(email, purpose, created_at)`; antes, apaga sessões sem hash CSRF e põe e-mails em minúsculas). Gerar não exige conexão.
+- **Schema:** `src/infrastructure/db/schema/` (re-exportado por `index.ts`). Hoje: enums `user_role` (`ADMIN`, `CASHIER`) e `verification_purpose`, e as tabelas `users` (`id` uuid com `gen_random_uuid()`, `name`, `email` único sempre em minúsculas, `password_hash` anulável no formato `scrypt$N$r$p$salt$hash`, `role`, `active`, `last_login_at`, `password_changed_at`, `created_at`), `stores` (uma linha por instalação, garantida por `stores_singleton`), `sessions` (id = SHA-256 do token; apagada em cascata com o usuário), `verification_codes` e `activity_log` (`user_id` vira nulo ao apagar o usuário). Testes com banco real: `*.db.test.ts` via `npm run test:db`, quase todos numa transação com rollback (`withTestDb`); só os testes de concorrência (cadastro com palpites em paralelo, último `ADMIN`, corrida de sessão) usam `withTestPool`, fazem commit com e-mails únicos e apagam o que criaram. As tabelas de catálogo e estoque estão em `inventory.ts`: `categories`, `products`, `inventory_batches` e `inventory_movements`, com os enums `product_unit` (`UN`, `KG`, `L`) e `inventory_movement_type` (`IN`, `OUT`, `ADJUSTMENT`). Preços em centavos inteiros por unidade, kg ou L; quantidades inteiras na unidade-base (unidades, gramas ou mililitros). O estoque é a soma dos lotes. Validade nula indica item que não vence, e esse lote sai por último. A baixa PVPS (`consumeStock`) trava os lotes do produto com `FOR UPDATE`, reparte a quantidade e grava uma movimentação `OUT` por lote; sem estoque suficiente, nada muda. `ADJUSTMENT` existe no enum, mas ainda não tem rota. As próximas tabelas virão do PRODUCT.md, fluxo a fluxo.
+- **SQL versionado:** `drizzle/0000_needy_nightcrawler.sql` (cria `user_role` e `users`) e `drizzle/0001_auth_foundation.sql` (apaga os usuários antigos, troca `username` por `name`/`email` e cria loja, sessões, códigos e log de atividade). `drizzle/0002_pale_secret_warriors.sql` (torna `sessions.csrf_hash` obrigatório, adiciona os CHECKs `users_email_lowercase` e `stores_singleton_true` e troca o índice dos códigos por `(email, purpose, created_at)`; antes, apaga sessões sem hash CSRF e põe e-mails em minúsculas). `drizzle/0003_curly_lizard.sql` cria as tabelas de catálogo e estoque, e `drizzle/0004_flaky_skin.sql` torna a validade do lote opcional. Gerar não exige conexão.
 - **Aplicação:** `npm run db:migrate` usa `DATABASE_URL_UNPOOLED` ou `DATABASE_URL`, só no destino autorizado. Nunca durante build, import ou requisição. Sem `db:push` no fluxo padrão.
 - **Conexão:** `getDb()` valida a URL com Zod e cria o pool só no primeiro uso. Por isso `lint`, `test` e `build` funcionam sem credenciais. `closeDatabase()` existe só para encerramento controlado e testes.
 - **Transações:** obrigatórias em vendas (baixa PVPS de vários lotes, CMV e pagamento) e no caixa. O driver `pg` as suporta.

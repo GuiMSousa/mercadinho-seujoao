@@ -16,9 +16,8 @@ function respond(
 ) {
   if (denial === null) {
     if (request.nextUrl.pathname !== "/") return NextResponse.next();
-    // The home path routes by role: the owner lands on the panel.
-    if (!session) return redirectTo("/login", request);
-    if (session.user.role === "ADMIN") return redirectTo("/painel", request);
+    // The home path is the public landing page; the owner lands on the panel.
+    if (session?.user.role === "ADMIN") return redirectTo("/painel", request);
     return NextResponse.next();
   }
   // The route answers 401 itself and clears the stale cookies, which the proxy cannot do for it.

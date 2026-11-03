@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-10-30): 200 testes em 52 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 67 testes em 12 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 3 testes de concorrência fazem commit com e-mails únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-03): 226 testes em 59 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 77 testes em 13 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 4 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -51,7 +51,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
   | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                      |
   | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                   |
-  | SQL           | Migrations `0000` a `0002` geradas, revisadas e aplicadas no PostgreSQL local e no banco de testes                                                                                                  |
+  | SQL           | Migrations `0000` a `0004` geradas, revisadas e aplicadas no PostgreSQL local e no banco de testes                                                                                                  |
   | CI            | Configurado, sem execução remota                                                                                                                                                                    |
   | Segurança     | Ciclos de revisão de segurança da autenticação concluídos (resumo abaixo)                                                                                                                           |
   | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404 |
@@ -59,6 +59,8 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 ## Roteiro E2E no navegador
 
 Executado em 2026-10-30 com o Playwright (MCP), contra `npm run dev -- -p 3100` num banco vazio `mkt_control_e2e` com as migrations `0000` a `0002` (preparação em [onboarding.md](onboarding.md#banco-do-teste-em-navegador)). Os códigos foram lidos do log do servidor (`mail (dev)`). Nenhum bug bloqueante foi encontrado. Ainda não há `test:e2e` automatizado: o roteiro é manual e deve ser repetido quando o fluxo de telas mudar.
+
+Desde 2026-11-03, `/` mostra a landing pública a quem não é `ADMIN`. Ao repetir o roteiro, abra `/login` no passo 1.
 
 | #   | Passo                                                                                                                                  | Resultado | Evidência                                                                                                                                           |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |

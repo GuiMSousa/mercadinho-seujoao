@@ -8,6 +8,8 @@ export const cn = createCn({
       "font-size": [
         {
           text: [
+            "hero",
+            "section",
             "display",
             "h1",
             "h2",
