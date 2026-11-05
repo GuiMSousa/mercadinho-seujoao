@@ -11,6 +11,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { PAYMENT_METHODS } from "../../../contracts/enums";
+import { cashSessions } from "./cash";
 import { productUnit, products } from "./inventory";
 import { users } from "./users";
 
@@ -26,6 +27,8 @@ export const sales = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
+    // The drawer the sale went into. Null only for sales made before the cash register existed.
+    cashSessionId: uuid("cash_session_id").references(() => cashSessions.id),
     paymentMethod: paymentMethod("payment_method").notNull(),
     total: integer("total").notNull(),
     amountReceived: integer("amount_received").notNull(),
@@ -36,6 +39,7 @@ export const sales = pgTable(
   },
   (table) => [
     index("sales_created_at_idx").on(table.createdAt),
+    index("sales_cash_session_idx").on(table.cashSessionId),
     check(
       "sales_amounts_consistent",
       sql`${table.total} >= 0 AND ${table.amountReceived} >= ${table.total} AND ${table.change} = ${table.amountReceived} - ${table.total}`,

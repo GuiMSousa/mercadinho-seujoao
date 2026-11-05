@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-05): 266 testes em 69 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 107 testes em 14 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 6 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-05): 276 testes em 73 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 114 testes em 15 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 8 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -40,8 +40,9 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
   - Os dois critérios do produto têm testes próprios:
     - `CASHIER` bloqueado em rotas `ADMIN`: `src/proxy.test.ts` e `src/app/api/admin/users/route.test.ts`;
     - 429 no 11º login: `src/app/api/auth/login/route.test.ts`;
-    - venda com dois lotes baixa primeiro o de validade mais próxima, e o total com item pesável é a soma dos itens arredondados: `src/domains/sales/sales.db.test.ts` e `src/app/caixa/cart.test.ts`.
-  - **Checagem por mutação** (2026-11-05): sem o `FOR UPDATE` da baixa PVPS, o teste de duas vendas concorrentes pelas últimas unidades falhou (a perdedora quebrava o CHECK de quantidade, um 500); restaurado o lock, voltou a passar.
+    - venda com dois lotes baixa primeiro o de validade mais próxima, e o total com item pesável é a soma dos itens arredondados: `src/domains/sales/sales.db.test.ts` e `src/app/caixa/cart.test.ts`;
+    - sem caixa aberto o servidor recusa a venda, e o fechamento cego não devolve o esperado, que o administrador vê com a quebra: `src/domains/sales/sales.db.test.ts`, `src/domains/cash/cash.db.test.ts` e `src/app/api/cash/close/route.test.ts`.
+  - **Checagem por mutação** (2026-11-05): sem o `FOR UPDATE` da baixa PVPS, o teste de duas vendas concorrentes pelas últimas unidades falhou (a perdedora quebrava o CHECK de quantidade, um 500); restaurado o lock, voltou a passar. No caixa diário, sem o `FOR SHARE` da venda o teste da venda que espera o fechamento falhou, e sem o `FOR UPDATE` do fechamento o teste da venda em andamento ficou fora do esperado; restaurados, passaram.
   - **Checagem por mutação** (2026-10-28): com o limite trocado para 11 e a regra de perfil desligada, esses 3 testes falharam; restaurado o código, voltaram a passar.
 - **Contrato:** as rotas devolvem DTOs parseados pelos schemas de `src/contracts`, e os testes de rota validam as respostas com os mesmos schemas. O `spec:check` garante que a spec cobre todas as rotas.
 - **Por fluxo:** cada feature testa a regra de negócio no service, em Node puro (PVPS, total igual à soma dos itens arredondados, caixa único, sigilo de custo).
@@ -53,7 +54,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
   | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                      |
   | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                   |
-  | SQL           | Migrations `0000` a `0005` geradas e revisadas; `0005` (vendas) aplicada nos bancos de teste e de E2E, e no de desenvolvimento com `npm run db:migrate`                                             |
+  | SQL           | Migrations `0000` a `0006` geradas e revisadas; `0005` (vendas) e `0006` (caixa diário) aplicadas nos bancos de teste, de E2E e de desenvolvimento                                                  |
   | CI            | Configurado, sem execução remota                                                                                                                                                                    |
   | Segurança     | Ciclos de revisão de segurança da autenticação concluídos (resumo abaixo)                                                                                                                           |
   | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404 |
@@ -129,6 +130,24 @@ Executado em 2026-11-05 com o Playwright (Edge, script local), contra o build de
 | 18  | Console sem erros, fora o 409 e o 403 provocados pelo roteiro                                                      | Passou    |
 
 Não verificado: leitor físico, impressora térmica real, WhatsApp aberto de fato e leitor de tela. O 11º login seguido do mesmo IP recebeu 429 durante as repetições do roteiro, como esperado.
+
+### Caixa diário
+
+Executado em 2026-11-05 com o Playwright (Edge, script local), contra o build de produção no banco `mkt_control_e2e`.
+
+| #   | Passo                                                                                                             | Resultado |
+| --- | ----------------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | Caixa fechado: `/caixa` mostra só a abertura, sem busca                                                           | Passou    |
+| 2   | `POST /api/sales` com o caixa fechado responde 422 "Não é possível realizar vendas com o caixa fechado."          | Passou    |
+| 3   | Abertura com R$ 100,00 pelo teclado mostra a venda e "Caixa aberto em" no cabeçalho                               | Passou    |
+| 4   | Venda em dinheiro (R$ 18,49) e venda em Pix                                                                       | Passou    |
+| 5   | F8: sangria sem motivo é recusada; com motivo, R$ 30,00 registrados                                               | Passou    |
+| 6   | Botão "Caixa": suprimento de R$ 5,00                                                                              | Passou    |
+| 7   | F4 com venda em andamento pede para finalizar ou cancelar antes                                                   | Passou    |
+| 8   | Fechamento cego com R$ 93,00: o esperado (R$ 93,49) não aparece em lugar nenhum da tela; depois, volta a abertura | Passou    |
+| 9   | Painel: esperado R$ 93,49, contado R$ 93,00 e "Falta de R$ 0,49", com o último fechamento em destaque             | Passou    |
+| 10  | Detalhe: troco, vendas em dinheiro (sem o Pix), suprimentos, sangrias e as movimentações com motivo               | Passou    |
+| 11  | Em 375 px, sem rolagem lateral; console sem erros fora o 422 provocado                                            | Passou    |
 
 ## Harness (método nativo inspirado no Harness2)
 

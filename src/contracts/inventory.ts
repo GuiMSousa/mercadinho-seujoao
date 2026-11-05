@@ -5,8 +5,8 @@ import { PRODUCT_UNITS } from "./enums";
 export const MAX_INTEGER = 2_147_483_647;
 
 // PostgreSQL text cannot hold NUL, so it must be refused here and not become a 500.
-const hasNoNul = (value: string) => !value.includes("\0");
-const NUL_MESSAGE = "Use apenas texto.";
+export const hasNoNul = (value: string) => !value.includes("\0");
+export const NUL_MESSAGE = "Use apenas texto.";
 
 const nameSchema = z
   .string("Informe o nome.")

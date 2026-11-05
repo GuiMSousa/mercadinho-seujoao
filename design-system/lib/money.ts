@@ -16,3 +16,10 @@ export function formatCents(cents: number) {
     cents: String(remainder).padStart(2, "0"),
   };
 }
+
+/** "R$ 1.234,56" as plain text, for places that cannot hold the Money component (toasts, logs, receipts).
+ * A no-break space keeps "R$" on the same line as the amount. */
+export function formatBrl(cents: number) {
+  const parts = formatCents(cents);
+  return `${parts.negative ? "−" : ""}R$\u00a0${parts.integer},${parts.cents}`;
+}

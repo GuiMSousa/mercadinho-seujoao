@@ -31,6 +31,11 @@ export function getDb() {
   return cached.db;
 }
 
+/** The handle inside `getDb().transaction(...)`, for repository steps that join a caller's transaction. */
+export type Tx = Parameters<
+  Parameters<ReturnType<typeof getDb>["transaction"]>[0]
+>[0];
+
 // Use only for owned shutdown/tests, never after each request.
 export async function closeDatabase() {
   const client = globals.__appPostgresPool;

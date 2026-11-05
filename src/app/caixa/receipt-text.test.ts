@@ -31,9 +31,9 @@ const receipt = {
 const store = { name: "Mercadinho Bom Preço", document: "" };
 
 it("formats cents as reais without floating point", () => {
-  expect(brl(123456)).toBe("R$ 1.234,56");
-  expect(brl(5)).toBe("R$ 0,05");
-  expect(brl(-428)).toBe("−R$ 4,28");
+  expect(brl(123456)).toBe("R$\u00a01.234,56");
+  expect(brl(5)).toBe("R$\u00a00,05");
+  expect(brl(-428)).toBe("−R$\u00a04,28");
 });
 
 it("writes the receipt in the store's time zone, with change only for cash", () => {
@@ -43,14 +43,14 @@ it("writes the receipt in the store's time zone, with change only for cash", () 
       "Venda nº 42 · 05/11/2026 16:20",
       "",
       "Café 500 g",
-      "2 un × R$ 18,49 = R$ 36,98",
+      "2 un × R$\u00a018,49 = R$\u00a036,98",
       "Banana prata",
-      "1,250 kg × R$ 6,99/kg = R$ 8,74",
+      "1,250 kg × R$\u00a06,99/kg = R$\u00a08,74",
       "",
-      "*Total: R$ 45,72*",
+      "*Total: R$\u00a045,72*",
       "Pagamento: Dinheiro",
-      "Recebido: R$ 50,00",
-      "Troco: R$ 4,28",
+      "Recebido: R$\u00a050,00",
+      "Troco: R$\u00a04,28",
       "",
       "Comprovante sem valor fiscal.",
     ].join("\n"),

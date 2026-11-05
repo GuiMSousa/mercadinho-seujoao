@@ -1,13 +1,11 @@
 import "server-only";
 import { and, asc, eq, gt, sql } from "drizzle-orm";
-import { getDb } from "@/infrastructure/db";
+import { getDb, type Tx } from "@/infrastructure/db";
 import {
   inventoryBatches,
   inventoryMovements,
 } from "@/infrastructure/db/schema";
 import { allocatePvps } from "./pvps";
-
-type Tx = Parameters<Parameters<ReturnType<typeof getDb>["transaction"]>[0]>[0];
 
 type TakeStock = {
   productId: string;

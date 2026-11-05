@@ -14,6 +14,10 @@ export const ACTIVITY_ACTIONS = [
   "Categoria criada",
   "Produto criado",
   "Produto alterado",
+  "Caixa aberto",
+  "Sangria registrada",
+  "Suprimento registrado",
+  "Caixa fechado",
 ] as const;
 
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];

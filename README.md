@@ -2,7 +2,7 @@
 
 Controle de vendas e estoque para pequenos comércios e mercadinhos: validade por lote (PVPS), reposição, caixa diário com fechamento cego e lucro real (faturamento menos CMV). O escopo completo está em [PRODUCT.md](PRODUCT.md).
 
-**Estado atual:** base técnica, autenticação por e-mail (perfis `ADMIN`/`CASHIER`), painel administrativo, catálogo e estoque por lote (PVPS) e frente de caixa (`/caixa`) prontos. As demais funcionalidades serão entregues uma por vez.
+**Estado atual:** base técnica, autenticação por e-mail (perfis `ADMIN`/`CASHIER`), painel administrativo, catálogo e estoque por lote (PVPS), frente de caixa (`/caixa`) e caixa diário com fechamento cego e conciliação (`/painel/caixa`) prontos. As demais funcionalidades serão entregues uma por vez.
 
 ## Executar
 
@@ -36,4 +36,4 @@ Imagem de produção: `docker build -t mkt-control .` e depois `docker run -p 30
 
 ## Próxima entrega
 
-Caixa diário: abertura com troco, sangria, suprimento e fechamento cego. Critério: sem caixa aberto, o servidor recusa a venda mesmo que o cliente envie a requisição.
+Alertas de validade e estoque mínimo e relatório de reposição. Critério: produtos com estoque igual ou abaixo do mínimo aparecem em amarelo (vermelho com o estoque zerado) e entram na lista de reposição.

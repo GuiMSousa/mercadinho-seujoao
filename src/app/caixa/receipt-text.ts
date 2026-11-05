@@ -1,7 +1,7 @@
 import type { PaymentMethod, SaleReceipt } from "@/contracts/sales";
 import { formatDateTime } from "@/app/painel/_lib/format";
 import { formatQuantity, unitSuffix } from "@/app/painel/produtos/product-form";
-import { formatCents } from "@ds/lib/money";
+import { formatBrl as brl } from "@ds/lib/money";
 
 export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   CASH: "Dinheiro",
@@ -12,11 +12,7 @@ export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
 
 export type ReceiptStore = { name: string; document: string };
 
-/** "R$ 1.234,56" as plain text, for places that cannot hold the Money component. */
-export function brl(cents: number) {
-  const parts = formatCents(cents);
-  return `${parts.negative ? "−" : ""}R$ ${parts.integer},${parts.cents}`;
-}
+export { brl };
 
 type Item = SaleReceipt["items"][number];
 

@@ -1,10 +1,13 @@
 import "server-only";
+import { CASH_CLOSED_MESSAGE } from "@/contracts/cash";
 import { MAX_INTEGER } from "@/contracts/inventory";
 import { lineTotal, type CreateSale } from "@/contracts/sales";
 import { ServiceError } from "@/domains/auth/errors";
+import { selectOpenSession } from "@/domains/cash/repository";
 import { selectProductsForSale } from "@/domains/inventory/repository";
 import { todayInStore } from "@/domains/inventory/semaphore";
 import {
+  CashClosed,
   insertSale,
   selectSale,
   StockRefusal,
@@ -12,6 +15,12 @@ import {
 } from "./repository";
 
 type Actor = { id: string };
+
+// fields.cash tells the sale screen to show the opening of the cash instead.
+const cashClosed = () =>
+  new ServiceError(422, CASH_CLOSED_MESSAGE, {
+    fields: { cash: CASH_CLOSED_MESSAGE },
+  });
 
 const PRICE_CHANGED =
   "Um preço mudou desde que o item entrou na venda. Confira o novo total e finalize de novo.";
@@ -40,8 +49,8 @@ async function recordedSale(actor: Actor, input: CreateSale) {
 
 /**
  * Registers a sale at the catalog's current prices and takes its stock by PVPS, all or nothing.
- * Refuses it when the total differs from what the operator saw, when cash does not cover it,
- * or when a product is inactive, short or has an expired batch next in line.
+ * Refuses it with the cash closed, when the total differs from what the operator saw, when cash
+ * does not cover it, or when a product is inactive, short or has an expired batch next in line.
  */
 export async function registerSale(
   actor: Actor,
@@ -50,6 +59,8 @@ export async function registerSale(
 ) {
   const previous = await recordedSale(actor, input);
   if (previous) return previous;
+  // Checked again inside the transaction; here it only spares the work when the cash is closed.
+  if (!(await selectOpenSession())) throw cashClosed();
 
   const products = new Map(
     (
@@ -102,6 +113,7 @@ export async function registerSale(
       today,
     });
   } catch (error) {
+    if (error instanceof CashClosed) throw cashClosed();
     if (!(error instanceof StockRefusal)) throw error;
     const name = products.get(error.productId)?.name ?? "Um dos produtos";
     throw new ServiceError(

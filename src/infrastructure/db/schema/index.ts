@@ -5,4 +5,5 @@ export * from "./sessions";
 export * from "./verification-codes";
 export * from "./activity-log";
 export * from "./inventory";
+export * from "./cash";
 export * from "./sales";

@@ -5,7 +5,8 @@
 - **Semana 1:** ENTREGUE (Fundação, Autenticação e Landing Page)
 - **Semana 2:** ENTREGUE (Design System & PWA Base)
 - **Semana 3:** EM EXECUÇÃO (PDV e recibos entregues; leitor por câmera pendente)
-- **Semanas 4 a 9:** PLANEJADAS
+- **Semana 4:** ENTREGUE (caixa diário, 2026-11-05)
+- **Semanas 5 a 9:** PLANEJADAS
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
@@ -56,7 +57,9 @@
 - Envio de comprovante resumido via WhatsApp Web/App.
 - Regra de arredondamento por item ao centavo (precisão fiscal por quilo).
 
-### Semana 4 — Gestão e Controle Financeiro de Caixa
+### Semana 4 — Gestão e Controle Financeiro de Caixa (ENTREGUE em 2026-11-05)
+
+Abertura com troco, sangria e suprimento com motivo, fechamento cego em `/caixa` e conciliação com quebra em `/painel/caixa`. Vendas bloqueadas na tela e no servidor com o caixa fechado.
 
 - Módulo de abertura com valor inicial de troco.
 - Movimentações: Sangrias (retiradas) e Suprimentos (entradas) com motivo.

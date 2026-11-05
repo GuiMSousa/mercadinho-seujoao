@@ -54,7 +54,7 @@ Ordem de entrega, uma funcionalidade por vez:
 1. Autenticação com perfis `ADMIN` e `CASHIER` — **entregue em 2026-10-28** (ver abaixo).
 2. Cadastro de produtos (unitários e pesáveis) e entrada de estoque com lote e validade — **entregue em 2026-11-03** (ver abaixo).
 3. PDV com baixa PVPS, pagamentos múltiplos e recibo — **entregue em parte em 2026-11-05** (ver abaixo).
-4. Caixa diário: abertura, sangria, suprimento e fechamento cego/analítico.
+4. Caixa diário: abertura, sangria, suprimento e fechamento cego/analítico — **entregue em 2026-11-05** (ver abaixo).
 5. Alertas de validade e estoque mínimo, e relatório de reposição.
 6. Painel financeiro com CMV histórico.
 7. PWA instalável e leitor por câmera.
@@ -166,11 +166,25 @@ Tela `/caixa`, aberta a `ADMIN` e `CASHIER`:
 
 Critério atendido: uma venda com dois lotes do mesmo produto baixa primeiro o de validade mais próxima, e o total de uma venda com item pesável é a soma dos itens arredondados (ver docs/quality.md).
 
-Ficam para depois: exigir caixa aberto (próxima entrega), pagamentos combinados e leitor por câmera (exige HTTPS).
+Ficam para depois: pagamentos combinados e leitor por câmera (exige HTTPS).
+
+## Caixa diário (entregue em 2026-11-05)
+
+Na frente de caixa (`/caixa`), para os dois perfis:
+
+- sem caixa aberto, a tela só mostra a abertura com o troco inicial, e o servidor recusa qualquer venda ("Não é possível realizar vendas com o caixa fechado.");
+- sangria (F8) e suprimento (F9) com motivo obrigatório;
+- fechamento cego (F4): o operador informa o dinheiro contado e nunca vê o esperado, nem na tela nem nas respostas da API; com uma venda em andamento, o fechamento espera ela ser finalizada ou cancelada.
+
+No painel (`/painel/caixa`, só `ADMIN`), o histórico de caixas com troco inicial, vendas em dinheiro, suprimentos, sangrias, esperado (troco inicial + vendas em dinheiro + suprimentos − sangrias), contado e quebra (sobra ou falta), com o último fechamento em destaque.
+
+Um único caixa aberto por vez, garantido pelo banco. Cada venda fica ligada ao caixa em que entrou. Uma venda e um fechamento simultâneos não deixam a venda fora do esperado.
+
+Critérios atendidos: sem caixa aberto, o servidor recusa a venda mesmo que o cliente envie a requisição; o fechamento cego não mostra o valor esperado ao operador, e o administrador vê a quebra (ver docs/quality.md).
 
 ## Próxima entrega
 
-**Caixa diário** (MVP item 4): abertura com troco, sangria, suprimento e fechamento cego/analítico. Com ele, o servidor passa a recusar vendas sem caixa aberto. Calendário em [ROADMAP.md](ROADMAP.md).
+**Alertas de validade e estoque mínimo e relatório de reposição** (MVP item 5). Calendário em [ROADMAP.md](ROADMAP.md).
 
 **Endurecimento pendente:** CSP com nonce (scripts só do próprio servidor), numa tarefa própria de segurança.
 

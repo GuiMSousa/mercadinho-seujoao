@@ -37,6 +37,7 @@ export function CheckoutDialog({
   onClose,
   onDone,
   onPricesChanged,
+  onCashClosed,
   finalFocus,
 }: {
   cart: CartLine[];
@@ -46,6 +47,8 @@ export function CheckoutDialog({
   onDone: (receipt: SaleReceipt) => void;
   /** The server refused the total: reload the prices so the operator sees the new one. */
   onPricesChanged: () => Promise<void>;
+  /** The server found the cash closed: the screen goes back to the opening. */
+  onCashClosed: () => void;
   finalFocus: RefObject<HTMLElement | null>;
 }) {
   const receivedField = useRef<HTMLInputElement>(null);
@@ -102,6 +105,7 @@ export function CheckoutDialog({
       done.current = true;
       return onDone(result.data);
     }
+    if (result.errors.fields.cash) return onCashClosed();
     if (result.errors.fields.total) await onPricesChanged();
     setPending(false);
     setErrors(result.errors);

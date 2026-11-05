@@ -47,7 +47,7 @@ export const salesPaths = {
           "Estoque insuficiente, lote vencido, produto inativo, preço alterado (fields.total) ou id já usado por outra venda.",
         ),
         "422": formError(
-          "Campos inválidos, valor recebido menor que o total (fields.amountReceived) ou total acima do limite.",
+          'Caixa fechado (fields.cash: "Não é possível realizar vendas com o caixa fechado."), campos inválidos, valor recebido menor que o total (fields.amountReceived) ou total acima do limite.',
         ),
       },
     },

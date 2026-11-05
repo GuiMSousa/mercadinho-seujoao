@@ -43,6 +43,13 @@
       "when": 1793905556111,
       "tag": "0005_sales",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793909625793,
+      "tag": "0006_cash_register",
+      "breakpoints": true
     }
   ]
 }

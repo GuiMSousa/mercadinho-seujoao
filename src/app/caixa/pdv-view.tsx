@@ -1,20 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { LayoutDashboard, ScanBarcode } from "lucide-react";
-import {
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
+import { ScanBarcode } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { CASH_CLOSED_MESSAGE, type OpenCashSession } from "@/contracts/cash";
 import type { ProductLookup } from "@/contracts/inventory";
 import type { SaleReceipt } from "@/contracts/sales";
-import { ThemeControl } from "@/app/_components/theme-control";
 import { newId } from "@/app/painel/_lib/new-id";
-import { LogoutButton } from "@/app/painel/_shell/logout-button";
-import { Button } from "@ds/components/button";
 import { Input } from "@ds/components/input";
 import { useToast } from "@ds/components/toast";
 import {
@@ -26,21 +18,21 @@ import {
   type CartLine,
 } from "./cart";
 import { CartList } from "./cart-list";
+import { CashDialogs, type CashDialogKind } from "./cash-dialogs";
 import { CheckoutDialog } from "./checkout-dialog";
+import { OpenCashPanel } from "./open-cash-panel";
+import { PdvHeader } from "./pdv-header";
 import { QuantityDialog } from "./quantity-dialog";
 import { ReceiptDialog, ReceiptPaper } from "./receipt";
 import { brl, type ReceiptStore } from "./receipt-text";
 import { lookupBarcode, withCurrentPrices } from "./sale-api";
 import { CancelSaleDialog, SaleTotal } from "./sale-total";
 import { SearchResults } from "./search-results";
+import { usePdvKeys } from "./use-pdv-keys";
 import { useProductSearch } from "./use-product-search";
 
 /** A product whose quantity is being typed: a new one goes in (add) or a line changes (set). */
 type Weighing = { product: ProductLookup; mode: "add" | "set" };
-
-const isTextField = (target: EventTarget | null) =>
-  target instanceof HTMLElement &&
-  target.closest("input, textarea, select, [contenteditable='true']") !== null;
 
 /** The sale screen (PDV): scan or search, adjust the items, take the payment, hand the receipt. */
 export function PdvView({
@@ -48,12 +40,16 @@ export function PdvView({
   userName,
   isAdmin,
   initialTheme,
+  cash,
 }: {
   store: ReceiptStore;
   userName: string;
   isAdmin: boolean;
   initialTheme?: "light" | "dark";
+  /** The open drawer; without one, the screen only opens the cash. */
+  cash: OpenCashSession | null;
 }) {
+  const router = useRouter();
   const { toast } = useToast();
   const searchRef = useRef<HTMLInputElement>(null);
   // Scans can answer while another is in flight; handlers read the cart here, never a stale render.
@@ -67,9 +63,15 @@ export function PdvView({
   // One id per sale, kept across failed attempts: a retry after a lost answer cannot sell twice.
   const [saleId, setSaleId] = useState(newId);
   const [announcement, setAnnouncement] = useState("");
+  const [cashDialog, setCashDialog] = useState<CashDialogKind | null>(null);
   const search = useProductSearch(query);
   const dialogOpen =
-    weighing !== null || checkout || cancelling || receipt !== null;
+    weighing !== null ||
+    checkout ||
+    cancelling ||
+    receipt !== null ||
+    cashDialog !== null;
+  const cashId = cash?.id;
   const inCart = (id: string) =>
     cart.find((line) => line.id === id)?.quantity ?? 0;
 
@@ -137,76 +139,61 @@ export function PdvView({
     setCheckout(true);
   }
 
+  function openCash(kind: CashDialogKind) {
+    // The count must include every sale, so one in progress is finished or cancelled first.
+    if (kind === "close" && cartRef.current.length > 0)
+      return toast({
+        title: "Venda em andamento",
+        message: "Finalize ou cancele a venda antes de fechar o caixa.",
+        tone: "warning",
+      });
+    setCashDialog(kind);
+  }
+
   function startNewSale() {
     commit([]);
     setSaleId(newId());
   }
 
-  const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
-    if (event.key === "F1" || event.key === "F2") {
-      // Keeps the browser's own F1 (help) and F2 from running.
-      event.preventDefault();
-      if (dialogOpen) return;
-      if (event.key === "F1") searchRef.current?.focus();
-      else openCheckout();
-      return;
-    }
-    // Dialogs handle their own keys, Escape included.
-    if (dialogOpen) return;
-    if (event.key === "Escape") {
-      setQuery("");
-      searchRef.current?.focus();
-      return;
-    }
-    // A scanner types into whatever has focus, and a cart button would take its Enter as a click.
-    const printable =
-      event.key.length === 1 &&
-      event.key !== " " &&
-      !event.ctrlKey &&
-      !event.metaKey &&
-      !event.altKey;
-    if (printable && !isTextField(event.target)) {
-      event.preventDefault();
-      setQuery((current) => current + event.key);
-      searchRef.current?.focus();
-    }
+  usePdvKeys({
+    active: !dialogOpen && cash !== null,
+    searchRef,
+    onCheckout: openCheckout,
+    onCash: openCash,
+    onType: (key) => setQuery((current) => current + key),
+    onClear: () => setQuery(""),
   });
 
   useEffect(() => {
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  useEffect(() => {
-    // Ready for the scanner on a counter PC; on a phone it would only pop up the keyboard.
-    if (window.matchMedia("(pointer: fine)").matches)
+    // Ready for the scanner once the cash is open on a counter PC; on a phone it would only pop up the keyboard.
+    if (cashId && window.matchMedia("(pointer: fine)").matches)
       searchRef.current?.focus();
-  }, []);
+  }, [cashId]);
+
+  const header = (
+    <PdvHeader
+      storeName={store.name}
+      userName={userName}
+      isAdmin={isAdmin}
+      initialTheme={initialTheme}
+      cash={cash}
+      onCash={() => setCashDialog("menu")}
+    />
+  );
+
+  if (!cash)
+    return (
+      <div className="flex h-dvh flex-col bg-app">
+        {header}
+        <main className="flex-1 overflow-auto p-4 sm:p-6">
+          <OpenCashPanel />
+        </main>
+      </div>
+    );
 
   return (
     <div className="flex h-dvh flex-col bg-app">
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-surface-card px-4 sm:px-6">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <h1 className="truncate text-h3 font-medium tracking-tight text-strong">
-            Frente de caixa
-          </h1>
-          <p className="truncate text-body-md text-sub">
-            {store.name} · {userName}
-          </p>
-        </div>
-        {isAdmin && (
-          <Button
-            variant="ghost"
-            nativeButton={false}
-            render={<Link href="/painel" />}
-          >
-            <LayoutDashboard aria-hidden="true" />
-            Painel
-          </Button>
-        )}
-        <ThemeControl variant="icon" initialTheme={initialTheme} />
-        <LogoutButton />
-      </header>
+      {header}
 
       <main className="grid min-h-0 flex-1 grid-cols-1 content-start gap-4 overflow-auto p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-6">
         <div className="flex min-w-0 flex-col gap-4">
@@ -291,6 +278,16 @@ export function PdvView({
           onPricesChanged={async () =>
             commit(await withCurrentPrices(cartRef.current))
           }
+          onCashClosed={() => {
+            // Closed from another counter: the screen goes back to the opening.
+            setCheckout(false);
+            toast({
+              title: "Caixa fechado",
+              message: CASH_CLOSED_MESSAGE,
+              tone: "danger",
+            });
+            router.refresh();
+          }}
           onDone={(done) => {
             setCheckout(false);
             setReceipt(done);
@@ -306,6 +303,15 @@ export function PdvView({
             startNewSale();
             setCancelling(false);
           }}
+        />
+      )}
+      {cashDialog && (
+        <CashDialogs
+          kind={cashDialog}
+          cash={cash}
+          finalFocus={searchRef}
+          onClose={() => setCashDialog(null)}
+          onPick={openCash}
         />
       )}
       {receipt && (

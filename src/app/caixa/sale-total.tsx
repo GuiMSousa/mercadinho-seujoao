@@ -10,6 +10,9 @@ const SHORTCUTS = [
   ["F2", "Finalizar venda"],
   ["Esc", "Limpar a busca ou fechar a janela"],
   ["Enter", "Confirmar o item ou a opção"],
+  ["F8", "Sangria"],
+  ["F9", "Suprimento"],
+  ["F4", "Fechar o caixa"],
 ] as const;
 
 /** Total and the sale's actions; a bar at the bottom on phones, a column beside the items on wide screens. */

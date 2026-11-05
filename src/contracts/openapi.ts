@@ -5,6 +5,15 @@ import {
 } from "./account";
 import { activityPageSchema } from "./activity";
 import {
+  cashMovementRowSchema,
+  cashMovementSchema,
+  cashSessionsPageSchema,
+  closeCashSchema,
+  closedCashSchema,
+  openCashSchema,
+  openCashSessionSchema,
+} from "./cash";
+import {
   CSRF_HEADER,
   SESSION_COOKIE,
   SIGNUP_COOKIE,
@@ -36,6 +45,7 @@ import {
   updateProductSchema,
 } from "./inventory";
 import { adminPaths } from "./openapi-admin";
+import { cashPaths } from "./openapi-cash";
 import { inventoryPaths } from "./openapi-inventory";
 import { salesPaths } from "./openapi-sales";
 import {
@@ -98,6 +108,13 @@ export function buildOpenApiDocument() {
         ProductSearchResponse: jsonSchema(productSearchResponseSchema),
         CreateSaleRequest: jsonSchema(createSaleSchema, "input"),
         SaleReceipt: jsonSchema(saleReceiptSchema),
+        OpenCashRequest: jsonSchema(openCashSchema, "input"),
+        OpenCashSession: jsonSchema(openCashSessionSchema),
+        CashMovementRequest: jsonSchema(cashMovementSchema, "input"),
+        CashMovementRow: jsonSchema(cashMovementRowSchema),
+        CloseCashRequest: jsonSchema(closeCashSchema, "input"),
+        ClosedCash: jsonSchema(closedCashSchema),
+        CashSessionsPage: jsonSchema(cashSessionsPageSchema),
         CreateProductRequest: jsonSchema(createProductSchema, "input"),
         UpdateProductRequest: jsonSchema(updateProductSchema, "input"),
         BatchRow: jsonSchema(batchRowSchema),
@@ -266,6 +283,7 @@ export function buildOpenApiDocument() {
       ...adminPaths,
       ...inventoryPaths,
       ...salesPaths,
+      ...cashPaths,
       "/api/admin/activity": {
         get: {
           summary:

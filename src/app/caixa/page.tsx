@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE } from "@/contracts/auth";
 import { readSession } from "@/domains/auth/sessions";
+import { getOpenCashSession } from "@/domains/cash/service";
 import { getStore } from "@/domains/store/service";
 import { getTheme } from "../theme";
 import { PdvView } from "./pdv-view";
@@ -15,7 +16,7 @@ export default async function CashierPage() {
     (await cookies()).get(SESSION_COOKIE)?.value,
   );
   if (!session) redirect("/login");
-  const store = await getStore();
+  const [store, cash] = await Promise.all([getStore(), getOpenCashSession()]);
   return (
     <PdvView
       store={{
@@ -25,6 +26,7 @@ export default async function CashierPage() {
       userName={session.user.name}
       isAdmin={session.user.role === "ADMIN"}
       initialTheme={await getTheme()}
+      cash={cash}
     />
   );
 }

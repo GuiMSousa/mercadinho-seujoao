@@ -5,6 +5,7 @@ import { expect, it, vi } from "vitest";
 import type { CreateSale } from "@/contracts/sales";
 import * as schema from "@/infrastructure/db/schema";
 import {
+  cashSessions,
   categories,
   inventoryBatches,
   inventoryMovements,
@@ -68,7 +69,12 @@ async function seed(db: Db) {
       },
     ])
     .returning();
-  return { user, category, coffee, banana };
+  // Sales need an open drawer.
+  const [cash] = await db
+    .insert(cashSessions)
+    .values({ userId: user.id, initialAmount: 0 })
+    .returning();
+  return { user, category, coffee, banana, cash };
 }
 
 const batch = (
@@ -96,6 +102,45 @@ const sale = (overrides: Partial<CreateSale> = {}): CreateSale => ({
   paymentMethod: "PIX",
   total: 0,
   ...overrides,
+});
+
+it("refuses a sale with the cash closed, before and inside the transaction", async () => {
+  await inTest(async (db) => {
+    const { user, coffee, cash } = await seed(db);
+    await db.insert(inventoryBatches).values(batch(coffee.id, "A", null, 5));
+    const input = sale({
+      items: [{ productId: coffee.id, quantity: 1 }],
+      total: 1849,
+    });
+
+    const first = await registerSale(user, input, TODAY);
+    const [recorded] = await db
+      .select({ cashSessionId: sales.cashSessionId })
+      .from(sales)
+      .where(eq(sales.id, first.id));
+    expect(recorded.cashSessionId).toBe(cash.id);
+
+    await db
+      .update(cashSessions)
+      .set({
+        status: "CLOSED",
+        closedAt: new Date(),
+        expectedAmount: 1849,
+        actualAmount: 1849,
+        difference: 0,
+      })
+      .where(eq(cashSessions.id, cash.id));
+    await expect(
+      registerSale(user, { ...input, id: randomUUID() }, TODAY),
+    ).rejects.toMatchObject({
+      status: 422,
+      message: "Não é possível realizar vendas com o caixa fechado.",
+      options: { fields: { cash: expect.any(String) } },
+    });
+    expect(await quantities(db, coffee.id)).toEqual([4]);
+    // A retry of the sale made before closing still answers that sale.
+    await expect(registerSale(user, input, TODAY)).resolves.toEqual(first);
+  });
 });
 
 it("records the sale at catalog prices with its cost, and takes each product by PVPS", async () => {
@@ -332,11 +377,12 @@ it("answers a repeated sale with the one recorded, and refuses the id for anothe
 
 async function removeSeed(
   db: NodePgDatabase<typeof schema>,
-  { user, category, coffee, banana }: Awaited<ReturnType<typeof seed>>,
+  { user, category, coffee, banana, cash }: Awaited<ReturnType<typeof seed>>,
 ) {
   const ids = [coffee.id, banana.id];
   await db.delete(saleItems).where(inArray(saleItems.productId, ids));
   await db.delete(sales).where(eq(sales.userId, user.id));
+  await db.delete(cashSessions).where(eq(cashSessions.id, cash.id));
   await db
     .delete(inventoryMovements)
     .where(inArray(inventoryMovements.productId, ids));

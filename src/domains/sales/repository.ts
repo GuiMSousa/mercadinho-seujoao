@@ -1,6 +1,7 @@
 import "server-only";
 import { asc, eq } from "drizzle-orm";
 import type { PaymentMethod } from "@/contracts/sales";
+import { lockOpenSession } from "@/domains/cash/repository";
 import { takeStock } from "@/domains/inventory/stock-repository";
 import { getDb } from "@/infrastructure/db";
 import { saleItems, sales } from "@/infrastructure/db/schema";
@@ -26,9 +27,17 @@ export class StockRefusal extends Error {
   }
 }
 
+/** No cash session is open; the sale was not recorded. */
+export class CashClosed extends Error {
+  constructor() {
+    super("Cash closed");
+  }
+}
+
 /**
  * Records the sale, its lines and the PVPS stock takes in one transaction: all of it or nothing.
- * Throws StockRefusal when a product is short or its next batch is expired on `today`.
+ * Throws CashClosed without an open drawer, and StockRefusal when a product is short or its next
+ * batch is expired on `today`.
  * Answers null when the id is already a sale (a retry got there first).
  */
 export function insertSale(sale: {
@@ -43,9 +52,12 @@ export function insertSale(sale: {
 }) {
   const { lines, today, ...values } = sale;
   return getDb().transaction(async (tx) => {
+    // Held to the end: a closing waits for this sale, so its expected amount includes it.
+    const cash = await lockOpenSession(tx);
+    if (!cash) throw new CashClosed();
     const [row] = await tx
       .insert(sales)
-      .values(values)
+      .values({ ...values, cashSessionId: cash.id })
       .onConflictDoNothing({ target: sales.id })
       .returning({ number: sales.number });
     if (!row) return null;
