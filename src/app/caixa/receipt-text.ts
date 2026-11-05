@@ -1,14 +1,9 @@
-import type { PaymentMethod, SaleReceipt } from "@/contracts/sales";
+import { PAYMENT_LABELS, type SaleReceipt } from "@/contracts/sales";
 import { formatDateTime } from "@/app/painel/_lib/format";
 import { formatQuantity, unitSuffix } from "@/app/painel/produtos/product-form";
 import { formatBrl as brl } from "@ds/lib/money";
 
-export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
-  CASH: "Dinheiro",
-  PIX: "Pix",
-  DEBIT: "Cartão de débito",
-  CREDIT: "Cartão de crédito",
-};
+export { PAYMENT_LABELS };
 
 export type ReceiptStore = { name: string; document: string };
 

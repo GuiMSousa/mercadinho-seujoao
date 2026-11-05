@@ -2,7 +2,13 @@ import "server-only";
 import { getMailFrom, getResendApiKey } from "@/lib/env";
 import { logger } from "@/lib/logger";
 
-export type MailMessage = { to: string; subject: string; text: string };
+/** `text` is always sent; `html`, when present, is the formatted version of the same content. */
+export type MailMessage = {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+};
 export type Mailer = { send(message: MailMessage): Promise<void> };
 
 export function getMailer(): Mailer {
@@ -17,14 +23,14 @@ export function getMailer(): Mailer {
   }
   const from = getMailFrom();
   return {
-    async send({ to, subject, text }) {
+    async send({ to, subject, text, html }) {
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ from, to, subject, text }),
+        body: JSON.stringify({ from, to, subject, text, html }),
       });
       // Never include the response body: it can echo the recipient or provider details.
       if (!response.ok)

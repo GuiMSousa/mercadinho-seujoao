@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-05): 276 testes em 73 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 114 testes em 15 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 8 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-05): 290 testes em 77 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 117 testes em 16 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 8 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -41,7 +41,8 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
     - `CASHIER` bloqueado em rotas `ADMIN`: `src/proxy.test.ts` e `src/app/api/admin/users/route.test.ts`;
     - 429 no 11º login: `src/app/api/auth/login/route.test.ts`;
     - venda com dois lotes baixa primeiro o de validade mais próxima, e o total com item pesável é a soma dos itens arredondados: `src/domains/sales/sales.db.test.ts` e `src/app/caixa/cart.test.ts`;
-    - sem caixa aberto o servidor recusa a venda, e o fechamento cego não devolve o esperado, que o administrador vê com a quebra: `src/domains/sales/sales.db.test.ts`, `src/domains/cash/cash.db.test.ts` e `src/app/api/cash/close/route.test.ts`.
+    - sem caixa aberto o servidor recusa a venda, e o fechamento cego não devolve o esperado, que o administrador vê com a quebra: `src/domains/sales/sales.db.test.ts`, `src/domains/cash/cash.db.test.ts` e `src/app/api/cash/close/route.test.ts`;
+    - faturamento, CMV gravado, lucro bruto, margem, ticket e formas de pagamento por dia do fuso da loja (venda às 23h30 locais no dia certo): `src/domains/reports/reports.db.test.ts` e `src/domains/reports/finance.test.ts`.
   - **Checagem por mutação** (2026-11-05): sem o `FOR UPDATE` da baixa PVPS, o teste de duas vendas concorrentes pelas últimas unidades falhou (a perdedora quebrava o CHECK de quantidade, um 500); restaurado o lock, voltou a passar. No caixa diário, sem o `FOR SHARE` da venda o teste da venda que espera o fechamento falhou, e sem o `FOR UPDATE` do fechamento o teste da venda em andamento ficou fora do esperado; restaurados, passaram.
   - **Checagem por mutação** (2026-10-28): com o limite trocado para 11 e a regra de perfil desligada, esses 3 testes falharam; restaurado o código, voltaram a passar.
 - **Contrato:** as rotas devolvem DTOs parseados pelos schemas de `src/contracts`, e os testes de rota validam as respostas com os mesmos schemas. O `spec:check` garante que a spec cobre todas as rotas.
@@ -148,6 +149,23 @@ Executado em 2026-11-05 com o Playwright (Edge, script local), contra o build de
 | 9   | Painel: esperado R$ 93,49, contado R$ 93,00 e "Falta de R$ 0,49", com o último fechamento em destaque             | Passou    |
 | 10  | Detalhe: troco, vendas em dinheiro (sem o Pix), suprimentos, sangrias e as movimentações com motivo               | Passou    |
 | 11  | Em 375 px, sem rolagem lateral; console sem erros fora o 422 provocado                                            | Passou    |
+
+### Relatórios
+
+Executado em 2026-11-05 com o Playwright (Edge, script local), contra o build de produção no banco `mkt_control_e2e`, depois do roteiro do caixa (uma venda de R$ 18,49 em dinheiro e outra em Pix, custo de R$ 12,90 cada). O servidor rodou sem `RESEND_API_KEY`: nenhum e-mail real foi enviado.
+
+| #   | Passo                                                                                                    | Resultado |
+| --- | -------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | Hoje: faturamento R$ 36,98, CMV R$ 25,80, lucro R$ 11,18, margem 30,2% com selo "Boa", ticket R$ 18,49   | Passou    |
+| 2   | 2 vendas e 2 itens; Dinheiro e Pix com 50,0% cada, débito e crédito zerados                              | Passou    |
+| 3   | Mais vendidos: PDV Café 500 g, 2 un, R$ 36,98; histórico com CMV R$ 12,90 e margem 30,2% em cada venda   | Passou    |
+| 4   | Últimos 7 dias cobre de 30/10 a 05/11; período livre recusa fim antes do início                          | Passou    |
+| 5   | Um dia sem vendas mostra zeros, margem "—" com "Sem vendas" e histórico vazio                            | Passou    |
+| 6   | Resumo por e-mail sem chave do Resend em produção: recusado com "Não foi possível enviar o e-mail agora" | Passou    |
+| 7   | `CASHIER` em `/painel/relatorios` vai para `/caixa`; `/api/admin/reports` responde 403                   | Passou    |
+| 8   | Em 375 px, sem rolagem lateral; tema escuro conferido; console sem erros fora o 502 provocado            | Passou    |
+
+O conteúdo do e-mail (valores, nomes escapados e HTML enviado ao Resend) é coberto por `reports.db.test.ts` e `mail.test.ts`, com o envio simulado.
 
 ## Harness (método nativo inspirado no Harness2)
 

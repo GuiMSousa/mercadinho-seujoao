@@ -56,7 +56,7 @@ Ordem de entrega, uma funcionalidade por vez:
 3. PDV com baixa PVPS, pagamentos múltiplos e recibo — **entregue em parte em 2026-11-05** (ver abaixo).
 4. Caixa diário: abertura, sangria, suprimento e fechamento cego/analítico — **entregue em 2026-11-05** (ver abaixo).
 5. Alertas de validade e estoque mínimo, e relatório de reposição.
-6. Painel financeiro com CMV histórico.
+6. Painel financeiro com CMV histórico — **entregue em 2026-11-05** (ver abaixo; antecipado antes do item 5).
 7. PWA instalável e leitor por câmera.
 
 ## Fora do escopo
@@ -88,7 +88,7 @@ Ordem de entrega, uma funcionalidade por vez:
 - **Banco:** PostgreSQL local em Docker Compose, com volume persistente.
 - **Hospedagem:** o PC da loja roda o servidor. Clientes locais ou remotos dependem dele ligado.
 - **Túnel e HTTPS:** Cloudflare Tunnels (`cloudflared`) publica o servidor com HTTPS, exigido pela câmera do celular e pela instalação do PWA. Pela rede local em HTTP o sistema funciona no PC, mas sem leitor por câmera no celular. O atalho do PWA precisa de um túnel nomeado com domínio fixo; um túnel rápido gera URL temporária.
-- **E-mail:** Resend, chamado por `fetch` na API HTTP (sem SDK), usado hoje nos códigos de cadastro, recuperação de senha e convite e, depois, no alerta diário de reposição. A chave (`RESEND_API_KEY`) fica só no servidor. Sem chave e fora de produção, o e-mail só vai para o log.
+- **E-mail:** Resend, chamado por `fetch` na API HTTP (sem SDK), usado hoje nos códigos de cadastro, recuperação de senha e convite e no resumo financeiro do dia e, depois, no alerta diário de reposição. A chave (`RESEND_API_KEY`) fica só no servidor. Sem chave e fora de produção, o e-mail só vai para o log.
 - **Uma loja por instalação:** o servidor atende uma única loja, criada no cadastro inicial (`/cadastro`), que só existe enquanto não há loja. Usuários novos entram por convite de um `ADMIN`.
 - **Login por e-mail:** o e-mail identifica o usuário (trim e minúsculas). O mesmo login leva o `ADMIN` ao painel e o `CASHIER` à frente de caixa (`/caixa`); o painel continua exclusivo de `ADMIN`.
 - **Demonstração só em desenvolvimento:** `npm run db:seed` e os botões de login de demonstração não funcionam em produção.
@@ -96,19 +96,19 @@ Ordem de entrega, uma funcionalidade por vez:
 
 ## Premissas e decisões pendentes
 
-| Item                               | Tipo                | Impacto e próximo passo                                                                                                                                                                                                                                  |
-| ---------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Item                               | Tipo                | Impacto e próximo passo                                                                                                                                                                                                                                  |
-| ---                                | ---                 | ---                                                                                                                                                                                                                                                      |
-| Migração de dados do sistema atual | Pendente (externa)  | Definir se cadastros e histórico existentes serão importados. A importação por planilha cobre produtos e estoque inicial                                                                                                                                 |
-| CSP "sem scripts inline"           | Premissa reversível | O Next.js injeta scripts de inicialização; a proposta é CSP com nonce por requisição, que mantém só scripts do próprio servidor. Validar na tarefa de segurança                                                                                          |
-| Valores monetários                 | Premissa reversível | Centavos inteiros; peso em gramas; total do item arredondado ao centavo; total da venda é a soma dos itens                                                                                                                                               |
-| Loja única                         | Premissa reversível | Um estabelecimento por instalação, sem multiempresa                                                                                                                                                                                                      |
-| Comprovante por WhatsApp           | Premissa reversível | Link `wa.me` com texto pré-formatado, sem API paga do WhatsApp                                                                                                                                                                                           |
-| Conta Resend e domínio remetente   | Parcial (externa)   | Chave configurada e envio real verificado em 2026-11-01 com remetente de teste `@resend.dev`, que só entrega para o e-mail da conta Resend. Falta verificar um domínio próprio e trocar `MAIL_FROM` antes de convidar usuários ou enviar o alerta diário |
-| Domínio fixo do Cloudflare Tunnel  | Pendente (externa)  | Domínio na conta Cloudflare para o túnel nomeado, para o atalho do PWA não perder o acesso                                                                                                                                                               |
-| Lote e validade na importação      | Pendente            | As colunas obrigatórias não trazem lote nem validade, mas toda entrada de estoque exige lote e validade (ou "sem validade"). Definir se a importação cria um lote "sem validade" ou aceita colunas opcionais `Lote` e `Validade`                         |
-| Formato dos valores na planilha    | Premissa reversível | Preços em reais com vírgula ou ponto decimal; `Estoque` em unidades (em quilos para pesáveis); cabeçalhos exatamente como definidos, sem diferenciar maiúsculas                                                                                          |
+| Item                               | Tipo                | Impacto e próximo passo                                                                                                                                                                                                                                             |
+| ---------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                               | Tipo                | Impacto e próximo passo                                                                                                                                                                                                                                             |
+| ---                                | ---                 | ---                                                                                                                                                                                                                                                                 |
+| Migração de dados do sistema atual | Pendente (externa)  | Definir se cadastros e histórico existentes serão importados. A importação por planilha cobre produtos e estoque inicial                                                                                                                                            |
+| CSP "sem scripts inline"           | Premissa reversível | O Next.js injeta scripts de inicialização; a proposta é CSP com nonce por requisição, que mantém só scripts do próprio servidor. Validar na tarefa de segurança                                                                                                     |
+| Valores monetários                 | Premissa reversível | Centavos inteiros; peso em gramas; total do item arredondado ao centavo; total da venda é a soma dos itens                                                                                                                                                          |
+| Loja única                         | Premissa reversível | Um estabelecimento por instalação, sem multiempresa                                                                                                                                                                                                                 |
+| Comprovante por WhatsApp           | Premissa reversível | Link `wa.me` com texto pré-formatado, sem API paga do WhatsApp                                                                                                                                                                                                      |
+| Conta Resend e domínio remetente   | Parcial (externa)   | Chave configurada e envio real verificado em 2026-11-01 com remetente de teste `@resend.dev`, que só entrega para o e-mail da conta Resend. Falta verificar um domínio próprio e trocar `MAIL_FROM` antes de convidar usuários ou enviar o resumo e o alerta diário |
+| Domínio fixo do Cloudflare Tunnel  | Pendente (externa)  | Domínio na conta Cloudflare para o túnel nomeado, para o atalho do PWA não perder o acesso                                                                                                                                                                          |
+| Lote e validade na importação      | Pendente            | As colunas obrigatórias não trazem lote nem validade, mas toda entrada de estoque exige lote e validade (ou "sem validade"). Definir se a importação cria um lote "sem validade" ou aceita colunas opcionais `Lote` e `Validade`                                    |
+| Formato dos valores na planilha    | Premissa reversível | Preços em reais com vírgula ou ponto decimal; `Estoque` em unidades (em quilos para pesáveis); cabeçalhos exatamente como definidos, sem diferenciar maiúsculas                                                                                                     |
 
 ## Critérios de aceite
 
@@ -181,6 +181,18 @@ No painel (`/painel/caixa`, só `ADMIN`), o histórico de caixas com troco inici
 Um único caixa aberto por vez, garantido pelo banco. Cada venda fica ligada ao caixa em que entrou. Uma venda e um fechamento simultâneos não deixam a venda fora do esperado.
 
 Critérios atendidos: sem caixa aberto, o servidor recusa a venda mesmo que o cliente envie a requisição; o fechamento cego não mostra o valor esperado ao operador, e o administrador vê a quebra (ver docs/quality.md).
+
+## Relatórios financeiros (entregue em 2026-11-05)
+
+Tela `/painel/relatorios`, só `ADMIN`:
+
+- períodos Hoje, Últimos 7 dias (hoje e os 6 anteriores), Últimos 30 dias, Mês atual e Período livre (até 366 dias), sempre em dias do fuso da loja: uma venda às 23h30 conta no dia em que foi feita na loja;
+- faturamento bruto, CMV (custo gravado em cada item na hora da venda), lucro bruto, margem bruta (%) com selo verde a partir de 20%, amarelo de 10% a menos de 20% e vermelho abaixo de 10%, ticket médio, quantidade de vendas e de itens (cada linha pesável conta como 1 item);
+- distribuição por forma de pagamento (total, vendas e participação) e os 5 produtos com mais quantidade, faturamento ou lucro;
+- histórico paginado das vendas com horário da loja, operador, forma de pagamento, faturamento, CMV e margem de cada venda;
+- botão que envia o resumo financeiro de hoje, em HTML e texto, para o e-mail do administrador logado (até 5 envios por hora). Em produção sem `RESEND_API_KEY`, o envio é recusado com aviso; fora de produção, vai para o log.
+
+Critério atendido: o total de cada período é a soma das vendas do período, e o CMV é o custo gravado na venda, não o custo atual do catálogo (ver docs/quality.md).
 
 ## Próxima entrega
 

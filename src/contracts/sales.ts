@@ -85,5 +85,13 @@ export const saleReceiptSchema = z.object({
 });
 
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/** How each method reads on screen, on receipts and in e-mails. */
+export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  CASH: "Dinheiro",
+  PIX: "Pix",
+  DEBIT: "Cartão de débito",
+  CREDIT: "Cartão de crédito",
+};
 export type CreateSale = z.output<typeof createSaleSchema>;
 export type SaleReceipt = z.infer<typeof saleReceiptSchema>;

@@ -1,4 +1,4 @@
-const TIME_ZONE = "America/Sao_Paulo";
+import { STORE_TIME_ZONE as TIME_ZONE } from "@/lib/store-time";
 
 function hourInSaoPaulo(date: Date) {
   const hour = new Intl.DateTimeFormat("en-US", {

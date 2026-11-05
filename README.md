@@ -2,7 +2,7 @@
 
 Controle de vendas e estoque para pequenos comércios e mercadinhos: validade por lote (PVPS), reposição, caixa diário com fechamento cego e lucro real (faturamento menos CMV). O escopo completo está em [PRODUCT.md](PRODUCT.md).
 
-**Estado atual:** base técnica, autenticação por e-mail (perfis `ADMIN`/`CASHIER`), painel administrativo, catálogo e estoque por lote (PVPS), frente de caixa (`/caixa`) e caixa diário com fechamento cego e conciliação (`/painel/caixa`) prontos. As demais funcionalidades serão entregues uma por vez.
+**Estado atual:** base técnica, autenticação por e-mail (perfis `ADMIN`/`CASHIER`), painel administrativo, catálogo e estoque por lote (PVPS), frente de caixa (`/caixa`), caixa diário com fechamento cego e conciliação (`/painel/caixa`) e relatórios financeiros com CMV e margem (`/painel/relatorios`) prontos. As demais funcionalidades serão entregues uma por vez.
 
 ## Executar
 

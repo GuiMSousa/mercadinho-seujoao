@@ -41,6 +41,20 @@ describe("getMailer with a Resend key", () => {
     });
   });
 
+  it("sends the HTML version next to the text when there is one", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test_key");
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+
+    await getMailer().send({ ...message, html: "<h1>Resumo</h1>" });
+
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({
+      text: message.text,
+      html: "<h1>Resumo</h1>",
+    });
+  });
+
   it("rejects on a non-2xx status without leaking the response body", async () => {
     vi.stubEnv("RESEND_API_KEY", "re_test_key");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(

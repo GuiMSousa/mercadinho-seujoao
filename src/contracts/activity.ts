@@ -18,6 +18,7 @@ export const ACTIVITY_ACTIONS = [
   "Sangria registrada",
   "Suprimento registrado",
   "Caixa fechado",
+  "Resumo diário enviado",
 ] as const;
 
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];

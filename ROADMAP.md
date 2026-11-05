@@ -6,7 +6,8 @@
 - **Semana 2:** ENTREGUE (Design System & PWA Base)
 - **Semana 3:** EM EXECUÇÃO (PDV e recibos entregues; leitor por câmera pendente)
 - **Semana 4:** ENTREGUE (caixa diário, 2026-11-05)
-- **Semanas 5 a 9:** PLANEJADAS
+- **Semana 5:** ENTREGUE (relatórios financeiros, 2026-11-05)
+- **Semanas 6 a 9:** PLANEJADAS
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
@@ -66,7 +67,9 @@ Abertura com troco, sangria e suprimento com motivo, fechamento cego em `/caixa`
 - Fechamento cego (operador) e detalhado com cálculo de quebra (admin).
 - Bloqueio total de vendas no PDV e no servidor quando o caixa estiver fechado.
 
-### Semana 5 — Painel de Relatórios Financeiros & Lucratividade
+### Semana 5 — Painel de Relatórios Financeiros & Lucratividade (ENTREGUE em 2026-11-05)
+
+Em `/painel/relatorios`: períodos no fuso da loja, faturamento, CMV, lucro, margem com selo de cor, ticket médio, formas de pagamento, 5 produtos mais vendidos, histórico de vendas com margem e resumo do dia por e-mail (Resend). O custo histórico já é gravado em cada venda desde a semana 3.
 
 - Dashboard de relatórios com filtros por período (Hoje, 7 dias, 30 dias, Mês, Livre).
 - Cálculo de Faturamento Bruto, CMV (Custo da Mercadoria Vendida) e Lucro Bruto.

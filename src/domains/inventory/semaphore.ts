@@ -1,3 +1,5 @@
+import { STORE_TIME_ZONE } from "@/lib/store-time";
+
 export type Signal = "green" | "yellow" | "red";
 
 const DAY_MS = 86_400_000;
@@ -6,7 +8,7 @@ const SEVERITY: Signal[] = ["green", "yellow", "red"];
 /** Today's calendar date at the store ("2026-11-03"), whatever time zone the server runs in. */
 export function todayInStore(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
+    timeZone: STORE_TIME_ZONE,
   }).format(now);
 }
 

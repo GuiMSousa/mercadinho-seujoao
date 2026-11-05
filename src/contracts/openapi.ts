@@ -46,6 +46,7 @@ import {
 } from "./inventory";
 import { adminPaths } from "./openapi-admin";
 import { cashPaths } from "./openapi-cash";
+import { reportsPaths } from "./openapi-reports";
 import { inventoryPaths } from "./openapi-inventory";
 import { salesPaths } from "./openapi-sales";
 import {
@@ -56,6 +57,11 @@ import {
   jsonSchema,
   tooMany,
 } from "./openapi-helpers";
+import {
+  dailySummarySentSchema,
+  financialReportSchema,
+  reportSalesPageSchema,
+} from "./reports";
 import { createSaleSchema, saleReceiptSchema } from "./sales";
 import { storeResponseSchema, updateStoreSchema } from "./store";
 import { THEME_COOKIE, themeSchema } from "./theme";
@@ -115,6 +121,9 @@ export function buildOpenApiDocument() {
         CloseCashRequest: jsonSchema(closeCashSchema, "input"),
         ClosedCash: jsonSchema(closedCashSchema),
         CashSessionsPage: jsonSchema(cashSessionsPageSchema),
+        FinancialReport: jsonSchema(financialReportSchema),
+        ReportSalesPage: jsonSchema(reportSalesPageSchema),
+        DailySummarySent: jsonSchema(dailySummarySentSchema),
         CreateProductRequest: jsonSchema(createProductSchema, "input"),
         UpdateProductRequest: jsonSchema(updateProductSchema, "input"),
         BatchRow: jsonSchema(batchRowSchema),
@@ -284,6 +293,7 @@ export function buildOpenApiDocument() {
       ...inventoryPaths,
       ...salesPaths,
       ...cashPaths,
+      ...reportsPaths,
       "/api/admin/activity": {
         get: {
           summary:

@@ -37,6 +37,7 @@ src/
 │   │   ├── produtos/         # catálogo: lista paginada com busca, diálogos de produto e categoria
 │   │   ├── estoque/          # lotes por produto com o semáforo e os diálogos de entrada de lote e de baixa
 │   │   ├── caixa/            # histórico e conciliação dos caixas: esperado, contado, quebra e movimentações
+│   │   ├── relatorios/       # relatório financeiro: período, DRE resumida, formas de pagamento, ranking e vendas
 │   │   ├── usuarios/         # abas Equipe (convites, perfil, desativar) e Registro de atividade
 │   │   └── configuracoes/    # dados da loja, tema, inatividade da sessão, alterar senha, encerrar outras sessões
 │   ├── design-system/        # vitrine pública: componentes, estados e temas (dados fictícios)
@@ -54,8 +55,9 @@ src/
 │       ├── sales             # registra a venda e dá baixa PVPS, para qualquer sessão
 │       ├── cash/open, cash/movements, cash/close # caixa diário, para qualquer sessão; nunca devolvem o esperado
 │       └── admin/users, admin/users/[id], admin/activity, admin/categories, admin/products, admin/products/[id],
-│                             # admin/products/[id]/batches, admin/inventory, admin/inventory/out, admin/cash-sessions
-├── contracts/                # schemas Zod por área (auth, users, store, account, activity, theme, inventory, sales, cash) + openapi*.ts
+│                             # admin/products/[id]/batches, admin/inventory, admin/inventory/out, admin/cash-sessions,
+│                             # admin/reports, admin/reports/sales, admin/reports/daily-email
+├── contracts/                # schemas Zod por área (auth, users, store, account, activity, theme, inventory, sales, cash, reports) + openapi*.ts
 │   └── openapi.json          # contrato versionado (npm run spec:generate)
 ├── domains/
 │   ├── auth/                 # access.ts (regra única de acesso), sessions*.ts (sessões no banco), password.ts (scrypt),
@@ -67,6 +69,7 @@ src/
 │   │                         # stock-repository.ts (baixa PVPS com lock, usada pela baixa manual e pela venda), service.ts
 │   ├── sales/                # venda: caixa aberto, preços e custo do catálogo, baixa PVPS de todos os itens numa transação, id do cliente
 │   ├── cash/                 # caixa diário: abertura única, sangria/suprimento, fechamento cego, esperado (expected.ts) e relatório
+│   ├── reports/              # relatórios: period.ts (períodos), finance.ts (margem, ticket), consultas no fuso da loja, resumo por e-mail
 │   └── activity/             # registro de atividade (quem fez o quê)
 ├── lib/                      # env (Zod, server-only), logger Pino, `cn`, `document.ts` (máscara e dígitos de CPF/CNPJ)
 └── infrastructure/
@@ -131,6 +134,13 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 - O comprovante sai por `window.print()` (só o comprovante vai ao papel, na largura que o driver da bobina informa) ou por link `wa.me` com o texto pronto.
 - Atalhos: F1 busca, F2 pagamento, Esc limpa a busca ou fecha a janela, Enter confirma.
 - Sem caixa aberto, a tela mostra só a abertura (troco inicial), e `POST /api/sales` responde 422 com `fields.cash` ("Não é possível realizar vendas com o caixa fechado."). O botão "Caixa" do cabeçalho e os atalhos F8 (sangria), F9 (suprimento) e F4 (fechamento) abrem as operações; o fechamento recusa uma venda em andamento.
+
+**Relatórios** (`src/domains/reports`, só `ADMIN`):
+
+- O período vira dias de calendário da loja (`period.ts`): hoje, hoje e os 6 dias anteriores, hoje e os 29 anteriores, do dia 1 até hoje, ou datas livres (até 366 dias). As consultas filtram `created_at` entre a meia-noite local do primeiro dia e a do dia seguinte ao último, com `AT TIME ZONE 'America/Sao_Paulo'` no PostgreSQL, que trata o horário de verão se ele voltar. O fuso é uma constante única (`src/lib/store-time.ts`).
+- Faturamento é a soma de `sales.total`; CMV, a soma de `sale_items.cost` (custo × quantidade arredondado na hora da venda). Lucro bruto = faturamento − CMV; margem = lucro ÷ faturamento, com uma casa (`finance.ts`); a faixa de cor (`marginLevel` em `contracts/reports.ts`) é verde a partir de 20%, amarela de 10% a menos de 20%, vermelha abaixo.
+- Os rankings agrupam por produto; o de quantidade compara kg e L com unidades (3 kg pesam como 3 unidades, não 3.000).
+- `POST /api/admin/reports/daily-email` envia o resumo de hoje ao e-mail da sessão, em HTML (sem estilos, com nomes escapados) e texto, até 5 vezes por hora por usuário. Falha do provedor vira 502 com mensagem, sem detalhes do Resend.
 
 **Caixa diário** (`src/domains/cash`):
 
