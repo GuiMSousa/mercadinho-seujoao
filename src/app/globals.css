@@ -29,3 +29,25 @@
     }
   }
 }
+
+/* Sale receipt: printing from the sale screen puts only the receipt on paper, as wide as the
+   roll (58 or 80 mm) the printer driver reports. Black text, because the dark theme would print
+   light text on white paper. */
+@media print {
+  @page {
+    margin: 2mm;
+  }
+  body:has([data-receipt]) * {
+    visibility: hidden;
+  }
+  /* Same prefix plus the attribute: more specific than the rule above, so it wins. */
+  body:has([data-receipt]) [data-receipt],
+  body:has([data-receipt]) [data-receipt] * {
+    visibility: visible;
+    color: var(--neutral-950);
+  }
+  [data-receipt] {
+    position: absolute;
+    inset: 0 0 auto;
+  }
+}

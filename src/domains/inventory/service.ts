@@ -12,11 +12,11 @@ import { ServiceError } from "@/domains/auth/errors";
 import { uniqueViolation } from "@/infrastructure/db/errors";
 import {
   categoryExists,
-  consumeBatches,
   countProducts,
   insertBatchWithMovement,
   insertCategory,
   insertProduct,
+  searchActiveProducts,
   selectActiveProductByBarcode,
   selectCategories,
   selectBatchesWithStock,
@@ -24,6 +24,7 @@ import {
   selectProductsPage,
   updateProductRow,
 } from "./repository";
+import { consumeBatches } from "./stock-repository";
 import {
   daysUntil,
   expirySignal,
@@ -187,11 +188,20 @@ export async function updateProduct(
 }
 
 /** The product as the sale screen sees it: active only, and without cost. */
-export async function findProductForSale(barcode: string) {
-  const product = await selectActiveProductByBarcode(barcode);
+export async function findProductForSale(
+  barcode: string,
+  today = todayInStore(),
+) {
+  const product = await selectActiveProductByBarcode(barcode, today);
   if (!product) throw productNotFound();
   return product;
 }
+
+const SALE_SEARCH_LIMIT = 12;
+
+/** Active products whose name or barcode contains `search`, for the sale screen. */
+export const searchProductsForSale = (search: string, today = todayInStore()) =>
+  searchActiveProducts(search, today, SALE_SEARCH_LIMIT);
 
 /** Records a received batch; its IN movement names who received it. */
 export async function receiveBatch(
@@ -211,7 +221,7 @@ export async function receiveBatch(
 
 /**
  * Takes stock out by PVPS: the batch that expires first goes first, spilling into the next ones.
- * shortcut: expired batches are consumed like any other, block them in the sale flow when the PDV exists.
+ * A write-off takes expired batches too (that is how they leave the shelf); sales refuse them.
  */
 export async function consumeStock(input: {
   productId: string;

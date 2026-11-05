@@ -11,6 +11,10 @@ export const SIGNUP_COOKIE = "mkt_signup";
 export const SIGNUP_COOKIE_PATH = "/api/auth/signup";
 export const SIGNUP_COOKIE_MAX_AGE_SECONDS = 600;
 
+/** Where each profile works: the owner in the panel, the operator at the sale screen. */
+export const homePath = (role: (typeof USER_ROLES)[number]) =>
+  role === "ADMIN" ? "/painel" : "/caixa";
+
 const PASSWORD_MESSAGE = "Use 8 caracteres ou mais, com letras e números.";
 
 /** Rule for choosing a new password; login keeps a lenient schema so old passwords still work. */

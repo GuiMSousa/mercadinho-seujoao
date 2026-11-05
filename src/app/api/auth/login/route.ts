@@ -17,11 +17,6 @@ const DENIED = {
     status: 403,
     message: "Este acesso está desativado. Fale com o administrador da loja.",
   },
-  not_admin: {
-    status: 403,
-    message:
-      "Este painel é exclusivo para administradores. Operadores usam o PDV.",
-  },
 } as const;
 
 export function POST(request: NextRequest) {

@@ -31,11 +31,13 @@ import {
   inventoryPageSchema,
   productLookupSchema,
   productRowSchema,
+  productSearchResponseSchema,
   productsPageSchema,
   updateProductSchema,
 } from "./inventory";
 import { adminPaths } from "./openapi-admin";
 import { inventoryPaths } from "./openapi-inventory";
+import { salesPaths } from "./openapi-sales";
 import {
   body,
   error,
@@ -44,6 +46,7 @@ import {
   jsonSchema,
   tooMany,
 } from "./openapi-helpers";
+import { createSaleSchema, saleReceiptSchema } from "./sales";
 import { storeResponseSchema, updateStoreSchema } from "./store";
 import { THEME_COOKIE, themeSchema } from "./theme";
 import {
@@ -92,6 +95,9 @@ export function buildOpenApiDocument() {
         ProductsPage: jsonSchema(productsPageSchema),
         InventoryPage: jsonSchema(inventoryPageSchema),
         ProductLookup: jsonSchema(productLookupSchema),
+        ProductSearchResponse: jsonSchema(productSearchResponseSchema),
+        CreateSaleRequest: jsonSchema(createSaleSchema, "input"),
+        SaleReceipt: jsonSchema(saleReceiptSchema),
         CreateProductRequest: jsonSchema(createProductSchema, "input"),
         UpdateProductRequest: jsonSchema(updateProductSchema, "input"),
         BatchRow: jsonSchema(batchRowSchema),
@@ -146,9 +152,7 @@ export function buildOpenApiDocument() {
             "400": error("Corpo inválido."),
             "401": error("E-mail ou senha incorretos."),
             "422": formError("E-mail inválido (fields)."),
-            "403": error(
-              "Acesso desativado, perfil sem acesso ao painel (CASHIER) ou origem diferente do servidor.",
-            ),
+            "403": error("Acesso desativado ou origem diferente do servidor."),
             "429": tooMany("Limite de tentativas excedido."),
           },
         },
@@ -261,6 +265,7 @@ export function buildOpenApiDocument() {
       },
       ...adminPaths,
       ...inventoryPaths,
+      ...salesPaths,
       "/api/admin/activity": {
         get: {
           summary:

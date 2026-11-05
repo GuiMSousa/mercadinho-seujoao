@@ -6,6 +6,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@ds/components/button";
 import { Checkbox } from "@ds/components/checkbox";
 import { Input } from "@ds/components/input";
+import { homePath, type AuthUser } from "@/contracts/auth";
 import { postJson, useFocusOnError, type FormErrors } from "../auth-client";
 import { FormAlert } from "../form-alert";
 import { PasswordField } from "../password-field";
@@ -40,13 +41,13 @@ export function LoginForm({
     if (Object.keys(fields).length) return setErrors({ fields });
     setPending(true);
     setErrors(null);
-    const result = await postJson("/api/auth/login", {
+    const result = await postJson<{ user: AuthUser }>("/api/auth/login", {
       email,
       password,
       remember,
     });
     if (result.ok) {
-      router.replace("/painel");
+      router.replace(homePath(result.data.user.role));
       router.refresh();
       return;
     }
@@ -67,9 +68,11 @@ export function LoginForm({
     >
       <div className="flex flex-col gap-1.5">
         <h1 className="text-h2 font-medium tracking-tight text-strong">
-          Entrar no painel
+          Entrar
         </h1>
-        <p className="text-sub">Acesso do administrador da loja.</p>
+        <p className="text-sub">
+          Acesso da equipe da loja: painel ou frente de caixa.
+        </p>
       </div>
       <Input
         name="email"

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { errorResponse, guard, setSessionCookies } from "@/app/api/_lib/guard";
-import { CSRF_COOKIE, SESSION_COOKIE } from "@/contracts/auth";
+import { CSRF_COOKIE, SESSION_COOKIE, homePath } from "@/contracts/auth";
 import {
   REMEMBER_MAX_AGE_SECONDS,
   type AuthSession,
@@ -16,8 +16,8 @@ function respond(
 ) {
   if (denial === null) {
     if (request.nextUrl.pathname !== "/") return NextResponse.next();
-    // The home path is the public landing page; the owner lands on the panel.
-    if (session?.user.role === "ADMIN") return redirectTo("/painel", request);
+    // The home path is the public landing page; a signed-in person lands on their screen.
+    if (session) return redirectTo(homePath(session.user.role), request);
     return NextResponse.next();
   }
   // The route answers 401 itself and clears the stale cookies, which the proxy cannot do for it.
@@ -30,6 +30,10 @@ function respond(
   if (request.nextUrl.pathname.startsWith("/api/"))
     return errorResponse(denial);
   if (denial === 401) return redirectTo("/login", request);
+  // An operator who opens a panel link belongs at the sale screen, not on an error page.
+  // Only page reads: a refused POST must stay refused, never bounce.
+  if (session?.user.role === "CASHIER" && request.method === "GET")
+    return redirectTo(homePath("CASHIER"), request);
   return new NextResponse("Acesso negado.", { status: 403 });
 }
 

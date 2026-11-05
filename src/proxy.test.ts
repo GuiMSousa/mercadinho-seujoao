@@ -37,11 +37,27 @@ async function request(
   );
 }
 
-it("blocks a CASHIER on ADMIN-only API routes and pages with 403", async () => {
+it("blocks a CASHIER on ADMIN-only API routes and sends the pages to the sale screen", async () => {
   const api = await request("/api/admin/users", "CASHIER");
   expect(api.status).toBe(403);
   await expect(api.json()).resolves.toEqual({ error: "Acesso negado." });
-  expect((await request("/painel", "CASHIER")).status).toBe(403);
+  const page = await request("/painel/produtos", "CASHIER");
+  expect(page.status).toBe(307);
+  expect(page.headers.get("location")).toBe("http://localhost:3000/caixa");
+  // A refused POST is not bounced to another page.
+  expect((await request("/painel/produtos", "CASHIER", "POST")).status).toBe(
+    403,
+  );
+});
+
+it("opens the sale screen to both profiles", async () => {
+  for (const role of ["ADMIN", "CASHIER"] as const)
+    expect(
+      (await request("/caixa", role)).headers.get("x-middleware-next"),
+    ).toBe("1");
+  expect((await request("/caixa")).headers.get("location")).toBe(
+    "http://localhost:3000/login",
+  );
 });
 
 it("reads the session cookie on page navigation after login", async () => {
@@ -66,7 +82,8 @@ it("routes the home path by session", async () => {
   expect(anonymous.headers.get("x-middleware-next")).toBe("1");
 
   const cashier = await request("/", "CASHIER");
-  expect(cashier.headers.get("x-middleware-next")).toBe("1");
+  expect(cashier.status).toBe(307);
+  expect(cashier.headers.get("location")).toBe("http://localhost:3000/caixa");
 });
 
 it("sends anonymous visitors to the login page and anonymous API calls a 401", async () => {

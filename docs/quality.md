@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-03): 250 testes em 65 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service) e 98 testes em 13 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 5 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-05): 266 testes em 69 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 107 testes em 14 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 6 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -39,7 +39,9 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
   - Design system: contrato `DESIGN.md` ↔ `design-system/tokens.css` (todo token documentado, com o mesmo valor nos dois temas, e `globals.css` sem cor crua nem px), `cn` com as escalas do DS, centavos em pt-BR e teclado numérico.
   - Os dois critérios do produto têm testes próprios:
     - `CASHIER` bloqueado em rotas `ADMIN`: `src/proxy.test.ts` e `src/app/api/admin/users/route.test.ts`;
-    - 429 no 11º login: `src/app/api/auth/login/route.test.ts`.
+    - 429 no 11º login: `src/app/api/auth/login/route.test.ts`;
+    - venda com dois lotes baixa primeiro o de validade mais próxima, e o total com item pesável é a soma dos itens arredondados: `src/domains/sales/sales.db.test.ts` e `src/app/caixa/cart.test.ts`.
+  - **Checagem por mutação** (2026-11-05): sem o `FOR UPDATE` da baixa PVPS, o teste de duas vendas concorrentes pelas últimas unidades falhou (a perdedora quebrava o CHECK de quantidade, um 500); restaurado o lock, voltou a passar.
   - **Checagem por mutação** (2026-10-28): com o limite trocado para 11 e a regra de perfil desligada, esses 3 testes falharam; restaurado o código, voltaram a passar.
 - **Contrato:** as rotas devolvem DTOs parseados pelos schemas de `src/contracts`, e os testes de rota validam as respostas com os mesmos schemas. O `spec:check` garante que a spec cobre todas as rotas.
 - **Por fluxo:** cada feature testa a regra de negócio no service, em Node puro (PVPS, total igual à soma dos itens arredondados, caixa único, sigilo de custo).
@@ -51,7 +53,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
   | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                      |
   | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                   |
-  | SQL           | Migrations `0000` a `0004` geradas, revisadas e aplicadas no PostgreSQL local e no banco de testes                                                                                                  |
+  | SQL           | Migrations `0000` a `0005` geradas e revisadas; `0005` (vendas) aplicada nos bancos de teste e de E2E, e no de desenvolvimento com `npm run db:migrate`                                             |
   | CI            | Configurado, sem execução remota                                                                                                                                                                    |
   | Segurança     | Ciclos de revisão de segurança da autenticação concluídos (resumo abaixo)                                                                                                                           |
   | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404 |
@@ -100,6 +102,33 @@ Executado em 2026-11-03 com o Playwright (MCP), contra `npm run dev -- -p 3100` 
 | 10  | Resposta perdida na entrada de lote: reenviar igual não soma estoque de novo; reenviar com outra quantidade é recusado | Passou    |
 
 Desempenho medido com `EXPLAIN ANALYZE` em 5.000 produtos e 50.000 lotes: 12,7 ms para a primeira página e 5,5 ms para uma busca.
+
+### Frente de caixa
+
+Executado em 2026-11-05 com o Playwright (Edge, script local), contra o build de produção (`next build` e `next start -p 3100`) no banco `mkt_control_e2e`. Os produtos de teste cobrem um item normal, um pesável, um com lote vencido e um sem estoque. Em `next dev` o CSS da impressão chegou desatualizado (cache do Turbopack), por isso a conferência final usou o build.
+
+| #   | Passo                                                                                                              | Resultado |
+| --- | ------------------------------------------------------------------------------------------------------------------ | --------- |
+| 1   | Login de `CASHIER` vai para `/caixa`, com o foco na busca                                                          | Passou    |
+| 2   | Código digitado rápido com Enter (leitor) adiciona; o mesmo código de novo soma na linha                           | Passou    |
+| 3   | Próximo lote vencido e produto sem saldo são recusados com toast de perigo                                         | Passou    |
+| 4   | Pesável abre o teclado numérico; dígitos do teclado físico viram 1,250 kg e Enter confirma                         | Passou    |
+| 5   | Total 2 × R$ 18,49 + 1,250 kg × R$ 6,99 = R$ 45,72 (item arredondado ao centavo)                                   | Passou    |
+| 6   | Leitura com o foco num botão do carrinho vai para a busca e não clica o botão                                      | Passou    |
+| 7   | "+" não passa do saldo e avisa                                                                                     | Passou    |
+| 8   | Busca por nome lista os produtos com saldo, "Sem estoque" e "Lote vencido"; Esc limpa                              | Passou    |
+| 9   | Preço alterado pelo administrador durante a venda: o servidor recusa, a tela mostra o novo total, e Enter finaliza | Passou    |
+| 10  | Troco de R$ 31,29 sobre R$ 100,00; foco em "Nova venda"; link do WhatsApp com o comprovante                        | Passou    |
+| 11  | Na impressão só o comprovante aparece                                                                              | Passou    |
+| 12  | "Nova venda" esvazia a venda e devolve o foco à busca; F2 sem itens avisa                                          | Passou    |
+| 13  | Botão de finalizar com 60 px e busca com texto de 22 px                                                            | Passou    |
+| 14  | Baixa manual no painel vem preenchida com a quantidade vencida e "Lote vencido"; depois, o produto vende           | Passou    |
+| 15  | Cancelar a venda pede confirmação e esvazia                                                                        | Passou    |
+| 16  | `CASHIER` em `/painel/estoque` vai para `/caixa`; `/api/admin` responde 403                                        | Passou    |
+| 17  | Em 375 px, sem rolagem lateral; tema escuro conferido na captura                                                   | Passou    |
+| 18  | Console sem erros, fora o 409 e o 403 provocados pelo roteiro                                                      | Passou    |
+
+Não verificado: leitor físico, impressora térmica real, WhatsApp aberto de fato e leitor de tela. O 11º login seguido do mesmo IP recebeu 429 durante as repetições do roteiro, como esperado.
 
 ## Harness (método nativo inspirado no Harness2)
 

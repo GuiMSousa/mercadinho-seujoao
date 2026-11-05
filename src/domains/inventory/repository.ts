@@ -12,7 +12,6 @@ import {
   inventoryMovements,
   products,
 } from "@/infrastructure/db/schema";
-import { allocatePvps } from "./pvps";
 
 const categoryRow = { id: categories.id, name: categories.name };
 
@@ -32,6 +31,10 @@ const productColumns = {
 const stock = sql`coalesce(sum(${inventoryBatches.quantity}), 0)`.mapWith(
   Number,
 );
+
+/** Whether a batch with stock is past its date on `today`; such a batch is always the first PVPS takes. */
+const hasExpired = (today: string) =>
+  sql<boolean>`coalesce(bool_or(${inventoryBatches.quantity} > 0 AND ${inventoryBatches.expirationDate} < ${today}), false)`;
 
 // Batches are never deleted, so this also tells whether the product has any history.
 const hasBatches = sql<boolean>`count(${inventoryBatches.id}) > 0`;
@@ -65,13 +68,15 @@ type ProductScope = {
   inUseOnly: boolean;
 };
 
-function inScope({ search, inUseOnly }: ProductScope) {
+function matches(search: string) {
   // What the person typed is literal text, not LIKE wildcards.
   const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`;
+  return or(ilike(products.name, pattern), ilike(products.barcode, pattern));
+}
+
+function inScope({ search, inUseOnly }: ProductScope) {
   return and(
-    search
-      ? or(ilike(products.name, pattern), ilike(products.barcode, pattern))
-      : undefined,
+    search ? matches(search) : undefined,
     inUseOnly
       ? or(
           eq(products.active, true),
@@ -146,9 +151,9 @@ export async function selectProduct(id: string) {
   return row as typeof row | undefined;
 }
 
-/** Selects no cost column, so the sale screen cannot leak it. */
-export async function selectActiveProductByBarcode(barcode: string) {
-  const [row] = await getDb()
+/** Products as the sale screen sees them. Selects no cost column, so it cannot leak. */
+function selectForSale(today: string) {
+  return getDb()
     .select({
       id: products.id,
       barcode: products.barcode,
@@ -156,12 +161,48 @@ export async function selectActiveProductByBarcode(barcode: string) {
       sellPrice: products.sellPrice,
       unit: products.unit,
       stock,
+      expired: hasExpired(today),
     })
     .from(products)
     .leftJoin(inventoryBatches, eq(inventoryBatches.productId, products.id))
-    .where(and(eq(products.barcode, barcode), eq(products.active, true)))
-    .groupBy(products.id);
+    .groupBy(products.id)
+    .$dynamic();
+}
+
+export async function selectActiveProductByBarcode(
+  barcode: string,
+  today: string,
+) {
+  const [row] = await selectForSale(today).where(
+    and(eq(products.barcode, barcode), eq(products.active, true)),
+  );
   return row as typeof row | undefined;
+}
+
+export function searchActiveProducts(
+  search: string,
+  today: string,
+  limit: number,
+) {
+  return selectForSale(today)
+    .where(and(matches(search), eq(products.active, true)))
+    .orderBy(asc(products.name), asc(products.id))
+    .limit(limit);
+}
+
+/** What a sale records for each product: price and cost now, so later edits leave it alone. */
+export function selectProductsForSale(ids: string[]) {
+  return getDb()
+    .select({
+      id: products.id,
+      name: products.name,
+      unit: products.unit,
+      sellPrice: products.sellPrice,
+      costPrice: products.costPrice,
+      active: products.active,
+    })
+    .from(products)
+    .where(inArray(products.id, ids));
 }
 
 export async function insertProduct(values: CreateProduct) {
@@ -231,58 +272,5 @@ export function insertBatchWithMovement(
       userId,
     });
     return batch;
-  });
-}
-
-/**
- * Takes `quantity` from the batches by PVPS and records one OUT movement per batch.
- * Locking the rows makes concurrent sales queue up, so two of them cannot spend the same stock.
- * Returns null, changing nothing, when the stock does not cover it.
- */
-export function consumeBatches(input: {
-  productId: string;
-  quantity: number;
-  reason: string;
-  userId: string;
-}) {
-  return getDb().transaction(async (tx) => {
-    const batches = await tx
-      .select({
-        id: inventoryBatches.id,
-        expirationDate: inventoryBatches.expirationDate,
-        createdAt: inventoryBatches.createdAt,
-        quantity: inventoryBatches.quantity,
-      })
-      .from(inventoryBatches)
-      .where(
-        and(
-          eq(inventoryBatches.productId, input.productId),
-          gt(inventoryBatches.quantity, 0),
-        ),
-      )
-      // A fixed lock order keeps concurrent sales of the same product from deadlocking.
-      .orderBy(asc(inventoryBatches.id))
-      .for("update");
-
-    const allocations = allocatePvps(batches, input.quantity);
-    if (!allocations) return null;
-
-    for (const { batchId, quantity } of allocations) {
-      await tx
-        .update(inventoryBatches)
-        .set({ quantity: sql`${inventoryBatches.quantity} - ${quantity}` })
-        .where(eq(inventoryBatches.id, batchId));
-    }
-    await tx.insert(inventoryMovements).values(
-      allocations.map(({ batchId, quantity }) => ({
-        productId: input.productId,
-        batchId,
-        type: "OUT" as const,
-        quantity,
-        reason: input.reason,
-        userId: input.userId,
-      })),
-    );
-    return allocations;
   });
 }

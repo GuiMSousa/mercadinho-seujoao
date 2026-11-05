@@ -57,7 +57,7 @@ it("reports no_password for an invited user that has not set one", async () => {
   });
 });
 
-it("tells inactive and non-admin users apart only after the password is right", async () => {
+it("tells an inactive account apart only after the password is right, and lets a CASHIER in", async () => {
   vi.mocked(findUserByEmail).mockResolvedValue(stored({ active: false }));
   await expect(authenticate("ana@loja.com", "senha1234")).resolves.toEqual({
     ok: false,
@@ -68,9 +68,11 @@ it("tells inactive and non-admin users apart only after the password is right", 
     reason: "invalid",
   });
   vi.mocked(findUserByEmail).mockResolvedValue(stored({ role: "CASHIER" }));
-  await expect(authenticate("ana@loja.com", "senha1234")).resolves.toEqual({
-    ok: false,
-    reason: "not_admin",
+  await expect(
+    authenticate("ana@loja.com", "senha1234"),
+  ).resolves.toMatchObject({
+    ok: true,
+    user: { role: "CASHIER" },
   });
   await expect(authenticate("ana@loja.com", "errada123")).resolves.toEqual({
     ok: false,

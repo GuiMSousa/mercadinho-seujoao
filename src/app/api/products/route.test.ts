@@ -18,6 +18,7 @@ const forSale = {
   sellPrice: 1849,
   unit: "UN" as const,
   stock: 3,
+  expired: false,
 };
 
 it("requires a session", async () => {

@@ -4,7 +4,8 @@
 
 - **Semana 1:** ENTREGUE (Fundação, Autenticação e Landing Page)
 - **Semana 2:** ENTREGUE (Design System & PWA Base)
-- **Semanas 3 a 9:** PLANEJADAS / EM EXECUÇÃO
+- **Semana 3:** EM EXECUÇÃO (PDV e recibos entregues; leitor por câmera pendente)
+- **Semanas 4 a 9:** PLANEJADAS
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
@@ -19,6 +20,17 @@
 > - Instalação como PWA conferida em aparelho: o navegador exige HTTPS, que chega com o domínio fixo da semana 9.
 >
 > **Mudança de ordem (2026-11-03):** o catálogo de produtos e os lotes com PVPS vêm antes do PDV, para o caixa ter itens cadastrados para dar baixa. Por isso a base de lotes e PVPS da semana 6 já está entregue; alertas e relatório de reposição continuam na semana 6.
+>
+> **Entregue em 2026-11-05 (semana 3, em parte):** frente de caixa em `/caixa` para os dois perfis, com o login do operador indo direto para ela.
+>
+> - Leitor USB e busca por nome.
+> - Recusa de produto sem saldo ou com lote vencido.
+> - Itens pesáveis com arredondamento por item.
+> - Pagamento em dinheiro com troco, Pix, débito ou crédito.
+> - Baixa PVPS e custo gravados na venda.
+> - Comprovante para impressão térmica pelo navegador e por WhatsApp.
+>
+> Faltam da semana 3 o leitor por câmera (exige HTTPS) e um layout próprio para cada largura de bobina; o comprovante usa a largura que a impressora informa. A baixa manual de estoque também entrou, para tirar lotes vencidos da prateleira.
 >
 > Conferência anterior em [docs/auditoria-calendario-2026-11-01.md](docs/auditoria-calendario-2026-11-01.md).
 

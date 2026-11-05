@@ -25,6 +25,7 @@ import {
   listInventory,
   listProducts,
   receiveBatch,
+  searchProductsForSale,
   updateProduct,
 } from "./service";
 
@@ -491,7 +492,7 @@ it("reads a product for the sale without cost, and hides inactive ones", async (
       .insert(inventoryBatches)
       .values(batch(product.id, "A", "2026-12-01", 2));
 
-    const forSale = await findProductForSale(product.barcode);
+    const forSale = await findProductForSale(product.barcode, "2026-11-05");
 
     expect(forSale).toEqual({
       id: product.id,
@@ -500,6 +501,7 @@ it("reads a product for the sale without cost, and hides inactive ones", async (
       sellPrice: 450,
       unit: "UN",
       stock: 2,
+      expired: false,
     });
     await updateProduct(user, product.id, { active: false });
     await expect(findProductForSale(product.barcode)).rejects.toMatchObject({
@@ -640,6 +642,65 @@ it("searches by name or barcode, taking wildcards literally", async () => {
     expect(await names("___")).toEqual([]);
     expect(await names(`barra\\invertida ${tag}`)).toEqual([`${tag}-3`]);
     expect(await names(`barrainvertida ${tag}`)).toEqual([]);
+  });
+});
+
+it("flags a product whose batch with stock is past its date, for the sale screen", async () => {
+  await inTest(async (db) => {
+    const { product } = await seed(db);
+    const [old] = await db
+      .insert(inventoryBatches)
+      .values([
+        batch(product.id, "OLD", "2026-11-04", 1),
+        batch(product.id, "NEW", "2027-01-01", 5),
+      ])
+      .returning();
+    const lookup = (today: string) =>
+      findProductForSale(product.barcode, today);
+
+    await expect(lookup("2026-11-04")).resolves.toMatchObject({
+      expired: false,
+      stock: 6,
+    });
+    await expect(lookup("2026-11-05")).resolves.toMatchObject({
+      expired: true,
+    });
+    // Once the expired batch is empty, the product sells again from the next one.
+    await db
+      .update(inventoryBatches)
+      .set({ quantity: 0 })
+      .where(eq(inventoryBatches.id, old.id));
+    await expect(lookup("2026-11-05")).resolves.toMatchObject({
+      expired: false,
+      stock: 5,
+    });
+  });
+});
+
+it("searches active products for the sale by name or code, without cost", async () => {
+  await inTest(async (db) => {
+    const { user, product } = await seed(db);
+    await db
+      .insert(inventoryBatches)
+      .values(batch(product.id, "A", "2027-01-01", 4));
+    const search = (term: string) => searchProductsForSale(term, "2026-11-05");
+
+    expect(await search(product.barcode)).toEqual([
+      {
+        id: product.id,
+        barcode: product.barcode,
+        name: "Iogurte",
+        sellPrice: 450,
+        unit: "UN",
+        stock: 4,
+        expired: false,
+      },
+    ]);
+    expect(await search(product.barcode.slice(0, 13))).toEqual([
+      expect.objectContaining({ id: product.id }),
+    ]);
+    await updateProduct(user, product.id, { active: false });
+    expect(await search(product.barcode)).toEqual([]);
   });
 });
 

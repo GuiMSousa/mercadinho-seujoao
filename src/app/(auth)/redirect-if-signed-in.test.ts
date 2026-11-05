@@ -25,11 +25,14 @@ it("sends a signed-in ADMIN to the panel", async () => {
   await expect(redirectIfSignedIn()).rejects.toThrow("redirect:/painel");
 });
 
-it("leaves signed-out visitors and a CASHIER on the auth screen", async () => {
-  vi.mocked(readSession).mockResolvedValue(null);
-  await expect(redirectIfSignedIn()).resolves.toBeUndefined();
+it("sends a signed-in CASHIER to the sale screen", async () => {
   vi.mocked(readSession).mockResolvedValue({
     user: { role: "CASHIER" },
   } as Awaited<ReturnType<typeof readSession>>);
+  await expect(redirectIfSignedIn()).rejects.toThrow("redirect:/caixa");
+});
+
+it("leaves signed-out visitors on the auth screen", async () => {
+  vi.mocked(readSession).mockResolvedValue(null);
   await expect(redirectIfSignedIn()).resolves.toBeUndefined();
 });

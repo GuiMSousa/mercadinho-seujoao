@@ -2,7 +2,7 @@
 
 Controle de vendas e estoque para pequenos comércios e mercadinhos: validade por lote (PVPS), reposição, caixa diário com fechamento cego e lucro real (faturamento menos CMV). O escopo completo está em [PRODUCT.md](PRODUCT.md).
 
-**Estado atual:** base técnica, autenticação por e-mail (perfis `ADMIN`/`CASHIER`) e painel administrativo (usuários, atividade e configurações) prontos. As demais funcionalidades serão entregues uma por vez.
+**Estado atual:** base técnica, autenticação por e-mail (perfis `ADMIN`/`CASHIER`), painel administrativo, catálogo e estoque por lote (PVPS) e frente de caixa (`/caixa`) prontos. As demais funcionalidades serão entregues uma por vez.
 
 ## Executar
 
@@ -19,7 +19,7 @@ npm run dev                  # http://localhost:3000
 
 Verificação completa (sem banco nem credenciais): `npm run check`.
 
-Primeiro acesso: com o seed, entre em `/login` com `ana@bompreco.com.br` e a senha `mkt12345` (só em desenvolvimento). Numa instalação real, use "Criar conta da loja" em `/login`. Para criar um usuário pela linha de comando: `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` (a senha inicial aparece só nessa hora).
+Primeiro acesso: com o seed, entre em `/login` com `ana@bompreco.com.br` (administrador, vai para o painel) ou `carlos@bompreco.com.br` (operador, vai para a frente de caixa), ambos com a senha `mkt12345` (só em desenvolvimento). Numa instalação real, use "Criar conta da loja" em `/login`. Para criar um usuário pela linha de comando: `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` (a senha inicial aparece só nessa hora).
 
 Imagem de produção: `docker build -t mkt-control .` e depois `docker run -p 3000:3000 -e DATABASE_URL=... -e RESEND_API_KEY=... -e MAIL_FROM=... mkt-control` (`RESEND_API_KEY` e `MAIL_FROM` são obrigatórios em produção).
 
@@ -36,4 +36,4 @@ Imagem de produção: `docker build -t mkt-control .` e depois `docker run -p 30
 
 ## Próxima entrega
 
-Cadastro de produtos (unitários e pesáveis) e entrada de estoque com lote e validade. Critério: um `CASHIER` consulta produtos sem receber o preço de custo, e uma entrada sem lote ou validade é recusada pelo servidor. A autenticação e o painel administrativo já estão entregues.
+Caixa diário: abertura com troco, sangria, suprimento e fechamento cego. Critério: sem caixa aberto, o servidor recusa a venda mesmo que o cliente envie a requisição.

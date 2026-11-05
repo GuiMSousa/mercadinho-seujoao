@@ -17,6 +17,8 @@ type DialogProps = {
   className?: string;
   /** Field that takes the focus on opening; without it, the focus lands on the close button. */
   initialFocus?: DialogPrimitive.Popup.Props["initialFocus"];
+  /** Element that takes the focus on closing; by default, the one that had it before opening. */
+  finalFocus?: DialogPrimitive.Popup.Props["finalFocus"];
 };
 
 /** Modal dialog: focus trap, Escape, backdrop click and focus return come from Base UI. */
@@ -29,6 +31,7 @@ function Dialog({
   children,
   className,
   initialFocus,
+  finalFocus,
 }: DialogProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -37,6 +40,7 @@ function Dialog({
         <DialogPrimitive.Popup
           data-slot="dialog"
           initialFocus={initialFocus}
+          finalFocus={finalFocus}
           className={cn(
             "fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-120 -translate-x-1/2 -translate-y-1/2 flex-col overflow-auto rounded-dialog bg-surface-card text-body shadow-(--shadow-xl) transition-[opacity,scale] duration-(--dur-base) data-ending-style:scale-98 data-ending-style:opacity-0 data-starting-style:scale-98 data-starting-style:opacity-0",
             className,

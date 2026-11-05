@@ -29,11 +29,11 @@ const as = (role?: "ADMIN" | "CASHIER") =>
 
 beforeEach(() => vi.mocked(readSession).mockReset());
 
-it("sends an ADMIN to the panel and shows the landing to everyone else", async () => {
+it("sends each profile to its screen and shows the landing to visitors", async () => {
   as("ADMIN");
   await expect(Home()).rejects.toThrow("redirect:/painel");
   as("CASHIER");
-  expect((await Home()).type).toBe(Landing);
+  await expect(Home()).rejects.toThrow("redirect:/caixa");
   as();
   expect((await Home()).type).toBe(Landing);
 });

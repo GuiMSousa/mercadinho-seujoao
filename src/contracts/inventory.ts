@@ -2,7 +2,7 @@ import { z } from "zod";
 import { PRODUCT_UNITS } from "./enums";
 
 // Largest value of a PostgreSQL integer column.
-const MAX_INTEGER = 2_147_483_647;
+export const MAX_INTEGER = 2_147_483_647;
 
 // PostgreSQL text cannot hold NUL, so it must be refused here and not become a 500.
 const hasNoNul = (value: string) => !value.includes("\0");
@@ -34,7 +34,7 @@ const positiveQuantitySchema = z
 export const UNIT_LOCKED_MESSAGE =
   "A unidade não muda depois da primeira entrada de lote. Cadastre outro produto.";
 
-const unitSchema = z.enum(PRODUCT_UNITS, "Escolha a unidade.");
+export const unitSchema = z.enum(PRODUCT_UNITS, "Escolha a unidade.");
 
 export const categoryRowSchema = z.object({ id: z.uuid(), name: z.string() });
 export const categoriesListResponseSchema = z.object({
@@ -130,6 +130,14 @@ export const productLookupSchema = z.object({
   sellPrice: z.int(),
   unit: unitSchema,
   stock: z.int(),
+  // The batch PVPS would sell first is past its date: the sale screen refuses the product.
+  expired: z.boolean(),
+});
+export const productSearchSchema = z.object({
+  q: z.string().trim().min(2).max(120).refine(hasNoNul),
+});
+export const productSearchResponseSchema = z.object({
+  products: z.array(productLookupSchema),
 });
 
 export const EARLIEST_EXPIRATION = "2000-01-01";
@@ -175,6 +183,7 @@ export const consumeStockResponseSchema = z.object({
   allocations: z.array(z.object({ batchId: z.uuid(), quantity: z.int() })),
 });
 
+export type ProductLookup = z.infer<typeof productLookupSchema>;
 export type CategoryRow = z.infer<typeof categoryRowSchema>;
 export type ProductRow = z.infer<typeof productRowSchema>;
 export type ListQuery = z.output<typeof listQuerySchema>;

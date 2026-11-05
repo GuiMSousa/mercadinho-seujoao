@@ -53,7 +53,7 @@ Ordem de entrega, uma funcionalidade por vez:
 
 1. Autenticação com perfis `ADMIN` e `CASHIER` — **entregue em 2026-10-28** (ver abaixo).
 2. Cadastro de produtos (unitários e pesáveis) e entrada de estoque com lote e validade — **entregue em 2026-11-03** (ver abaixo).
-3. PDV com baixa PVPS, pagamentos múltiplos e recibo.
+3. PDV com baixa PVPS, pagamentos múltiplos e recibo — **entregue em parte em 2026-11-05** (ver abaixo).
 4. Caixa diário: abertura, sangria, suprimento e fechamento cego/analítico.
 5. Alertas de validade e estoque mínimo, e relatório de reposição.
 6. Painel financeiro com CMV histórico.
@@ -90,7 +90,7 @@ Ordem de entrega, uma funcionalidade por vez:
 - **Túnel e HTTPS:** Cloudflare Tunnels (`cloudflared`) publica o servidor com HTTPS, exigido pela câmera do celular e pela instalação do PWA. Pela rede local em HTTP o sistema funciona no PC, mas sem leitor por câmera no celular. O atalho do PWA precisa de um túnel nomeado com domínio fixo; um túnel rápido gera URL temporária.
 - **E-mail:** Resend, chamado por `fetch` na API HTTP (sem SDK), usado hoje nos códigos de cadastro, recuperação de senha e convite e, depois, no alerta diário de reposição. A chave (`RESEND_API_KEY`) fica só no servidor. Sem chave e fora de produção, o e-mail só vai para o log.
 - **Uma loja por instalação:** o servidor atende uma única loja, criada no cadastro inicial (`/cadastro`), que só existe enquanto não há loja. Usuários novos entram por convite de um `ADMIN`.
-- **Login por e-mail:** o e-mail identifica o usuário (trim e minúsculas). O painel é exclusivo de `ADMIN`; `CASHIER` é recusado no login do painel e usará o PDV.
+- **Login por e-mail:** o e-mail identifica o usuário (trim e minúsculas). O mesmo login leva o `ADMIN` ao painel e o `CASHIER` à frente de caixa (`/caixa`); o painel continua exclusivo de `ADMIN`.
 - **Demonstração só em desenvolvimento:** `npm run db:seed` e os botões de login de demonstração não funcionam em produção.
 - **Organização:** features em `src/domains`, integrações em `src/infrastructure`, contratos em `src/contracts`. Rotas finas, serviços independentes do Next.js e acesso a dados por repositories. Detalhes em [docs/architecture.md](docs/architecture.md).
 
@@ -128,7 +128,7 @@ Ordem de entrega, uma funcionalidade por vez:
 
 - Tabela `users` (papéis `ADMIN`/`CASHIER`, senha com hash scrypt) na primeira migration.
 - Login por cookie HTTP-only com sessão no banco (30 dias deslizantes com "Manter conectado"; senão cookie de navegador e 12 h) com token anti-CSRF exigido em toda requisição autenticada que altera estado, e recusa de requisições de outra origem.
-- Proxy e cada rota aplicam a mesma regra. Só são públicos `/`, `/login`, `/cadastro`, `/recuperar`, `/design-system`, `/api/setup`, `/api/theme` e as rotas de login, cadastro (início, verificação, reenvio) e redefinição de senha (pedido, confirmação) em `/api/auth`; sair (`/api/auth/logout`) exige sessão e todo o resto exige sessão, e `/painel`, `/api/admin`, `/api/account` e `/api/store` são exclusivos de `ADMIN`.
+- Proxy e cada rota aplicam a mesma regra. Desde 2026-11-05 o `CASHIER` entra pelo mesmo login e vai para `/caixa`. Só são públicos `/`, `/login`, `/cadastro`, `/recuperar`, `/design-system`, `/api/setup`, `/api/theme` e as rotas de login, cadastro (início, verificação, reenvio) e redefinição de senha (pedido, confirmação) em `/api/auth`; sair (`/api/auth/logout`) exige sessão e todo o resto exige sessão, e `/painel`, `/api/admin`, `/api/account` e `/api/store` são exclusivos de `ADMIN`.
 - Limite de 10 logins por IP a cada 15 minutos; a 11ª tentativa recebe 429 com `Retry-After`.
 - Contrato OpenAPI em `src/contracts/openapi.json`, verificado por `npm run spec:check`.
 - Primeiro usuário pelo "Criar conta da loja" em `/login` (cadastro em 3 etapas com código por e-mail), ou, em desenvolvimento, por `npm run db:seed`; `npm run user:create -- <email> "<Nome>" <ADMIN|CASHIER>` cria usuários pela linha de comando.
@@ -136,7 +136,7 @@ Ordem de entrega, uma funcionalidade por vez:
 
 **Critério verificado:**
 
-- Um `CASHIER` tem o login do painel recusado (403) e, mesmo com sessão, recebe 403 em `/painel` e em `/api/admin`, `/api/account` e `/api/store`.
+- Um `CASHIER` recebe 403 em `/api/admin`, `/api/account` e `/api/store`; ao abrir uma página de `/painel`, vai para `/caixa`. Até 2026-11-05 o login dele era recusado; agora ele entra e cai na frente de caixa.
 - O 11º login do mesmo IP recebe 429.
 
 Comprovado por testes automatizados e contra o servidor real (ver docs/setup.md).
@@ -151,11 +151,26 @@ Telas `/painel/produtos` e `/painel/estoque`:
 
 Critério atendido: a busca do caixa (`GET /api/products`) não devolve o preço de custo, e uma entrada sem lote ou sem validade é recusada pelo servidor (ver docs/quality.md).
 
-Ficam para depois: baixa manual e perdas, ajustes, extrato de movimentações e importação por planilha.
+Desde 2026-11-05, `/painel/estoque` também dá baixa manual (quantidade e motivo, por PVPS), que é como um lote vencido sai da prateleira. Ficam para depois: ajustes, extrato de movimentações e importação por planilha.
+
+## Frente de caixa (entregue em parte em 2026-11-05)
+
+Tela `/caixa`, aberta a `ADMIN` e `CASHIER`:
+
+- leitor USB ou busca por nome, com atalhos F1, F2, Esc e Enter e botões de 60 px;
+- recusa, no cliente e no servidor, do produto sem saldo ou com o próximo lote vencido;
+- itens unitários e pesáveis (peso no teclado numérico), com o total de cada item arredondado ao centavo;
+- pagamento em dinheiro (com troco), Pix, débito ou crédito, uma forma por venda;
+- baixa PVPS de todos os itens numa transação, com preço e custo (CMV) gravados na venda;
+- comprovante impresso pelo navegador (bobina de 58 ou 80 mm) ou enviado por link do WhatsApp.
+
+Critério atendido: uma venda com dois lotes do mesmo produto baixa primeiro o de validade mais próxima, e o total de uma venda com item pesável é a soma dos itens arredondados (ver docs/quality.md).
+
+Ficam para depois: exigir caixa aberto (próxima entrega), pagamentos combinados e leitor por câmera (exige HTTPS).
 
 ## Próxima entrega
 
-**PDV com baixa PVPS** (MVP item 3), conforme o calendário em [ROADMAP.md](ROADMAP.md).
+**Caixa diário** (MVP item 4): abertura com troco, sangria, suprimento e fechamento cego/analítico. Com ele, o servidor passa a recusar vendas sem caixa aberto. Calendário em [ROADMAP.md](ROADMAP.md).
 
 **Endurecimento pendente:** CSP com nonce (scripts só do próprio servidor), numa tarefa própria de segurança.
 

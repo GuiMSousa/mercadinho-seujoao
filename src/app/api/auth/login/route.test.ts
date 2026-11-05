@@ -206,15 +206,7 @@ it("gives wrong credentials and password-less invitees the same 401", async () =
   expect(logActivity).not.toHaveBeenCalled();
 });
 
-it("refuses CASHIER and inactive users with 403 and the exact messages", async () => {
-  vi.mocked(authenticate).mockResolvedValue({ ok: false, reason: "not_admin" });
-  const cashier = await login("198.51.100.30");
-  expect(cashier.status).toBe(403);
-  await expect(cashier.json()).resolves.toEqual({
-    error:
-      "Este painel é exclusivo para administradores. Operadores usam o PDV.",
-  });
-
+it("refuses inactive users with 403 and the exact message", async () => {
   vi.mocked(authenticate).mockResolvedValue({ ok: false, reason: "inactive" });
   const inactive = await login("198.51.100.31");
   expect(inactive.status).toBe(403);

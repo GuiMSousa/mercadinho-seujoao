@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Package,
   Settings,
+  ShoppingCart,
   Warehouse,
   Users,
   type LucideIcon,
@@ -12,6 +13,8 @@ export type NavItem = { href: string; label: string; icon: LucideIcon };
 /** Future subprojects add their entries here. */
 export const NAV_ITEMS: NavItem[] = [
   { href: "/painel", label: "Painel", icon: LayoutDashboard },
+  // Outside the panel shell: the sale screen is full-screen and open to operators too.
+  { href: "/caixa", label: "Frente de caixa", icon: ShoppingCart },
   { href: "/painel/produtos", label: "Produtos", icon: Package },
   { href: "/painel/estoque", label: "Estoque", icon: Warehouse },
   { href: "/painel/usuarios", label: "Usuários", icon: Users },
