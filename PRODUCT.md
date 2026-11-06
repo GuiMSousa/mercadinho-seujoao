@@ -230,7 +230,25 @@ No balcão, todo controle tem 60 px ou mais. Os campos usam 16 px em qualquer ta
 
 Critérios atendidos: o fiado acima do limite é recusado sem gravar nada, inclusive com duas vendas simultâneas, e o saldo devedor sobe com a venda e desce com a quitação de forma atômica (ver docs/quality.md).
 
-Ficam para depois: VR/VA como forma de pagamento, desconto por item, limite de desconto por perfil e cobrança automática de fiado vencido.
+Fica para depois a cobrança automática de fiado vencido. VR/VA, desconto por item e limite de desconto por perfil entraram em 2026-11-06 (seção abaixo).
+
+## Evolução operacional (semana 10, 2026-11-06)
+
+- **VR e VA:** vale-refeição e vale-alimentação são formas de pagamento próprias. Como cartão, pagam a parte exata, sem troco, e não entram no caixa em dinheiro. Os relatórios os mostram em linhas próprias. No pagamento, cada forma tem uma tecla: D (dinheiro), P (Pix), B (débito), C (crédito), F (fiado), R (VR) e A (VA).
+- **Desconto por item:** o botão % de cada linha do carrinho dá desconto em R$ ou em % só naquele item. O desconto da venda (F3) incide sobre os itens já descontados. Um valor em R$ maior que o item, depois de diminuir a quantidade, deixa o item de graça, nunca negativo. O comprovante mostra o desconto de cada item.
+- **Limite por perfil:** o operador (`CASHIER`) dá no máximo 5% do valor dos itens, contados antes de qualquer desconto e somando os descontos dos itens e o da venda. O administrador dá até 100%. Acima do limite, a tela recusa com a mensagem e o servidor também. Não há aprovação de supervisor: o administrador faz a venda no próprio `/caixa`.
+- **Histórico de estoque** (`/painel/estoque/historico`):
+  - cada entrada de lote, saída por venda (PVPS) ou por baixa manual, e ajuste, da mais nova para a mais antiga, com produto, quantidade, lote, motivo e quem registrou;
+  - filtros por produto, tipo e período, nos dias do fuso da loja;
+  - o tipo Ajuste já existe, mas ainda não há tela que o registre.
+- **Importação de produtos** (`/painel/produtos/importar`):
+  - arquivo CSV com separador ; ou , e as colunas nome, código de barras, categoria, preço de custo, preço de venda, unidade (UN, KG ou L) e estoque mínimo; aceita UTF-8 ou o formato do Excel antigo;
+  - o código de barras decide: o que já existe atualiza o produto, o resto vira produto novo, e as categorias que faltam são criadas;
+  - tudo ou nada: com qualquer linha errada, nada é gravado, e a tela lista o problema de cada linha;
+  - a unidade de um produto que já teve lote não muda.
+- **Alerta no painel:** o sino no cabeçalho conta os produtos ativos sem estoque, no mínimo ou abaixo, ou com lote vencido ou vencendo em até 7 dias, e leva à reposição.
+
+Critérios atendidos: o limite de desconto vale por perfil no servidor; VR e VA ficam gravados como formas próprias; e a importação em lote grava tudo ou nada (ver docs/quality.md).
 
 ## Produção (v1.0.0, 2026-11-06)
 

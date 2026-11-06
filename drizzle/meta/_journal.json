@@ -71,6 +71,13 @@
       "when": 1793937517665,
       "tag": "0009_drop_sale_payment_method",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793991037594,
+      "tag": "0010_vouchers_item_discount",
+      "breakpoints": true
     }
   ]
 }

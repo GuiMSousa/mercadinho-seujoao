@@ -14,7 +14,7 @@ vi.mock("@/domains/auth/sessions", async (importOriginal) => ({
 const productId = "8c3f1f7a-3c1e-4a3b-9f0e-2f6a1d7c5b01";
 const input = {
   id: "8c3f1f7a-3c1e-4a3b-9f0e-2f6a1d7c5b09",
-  items: [{ productId, quantity: 2 }],
+  items: [{ productId, quantity: 2, discount: 0 }],
   discount: 0,
   total: 3698,
   payments: [{ method: "CASH", amount: 5000 }],
@@ -37,6 +37,7 @@ const receipt = {
       unit: "UN" as const,
       quantity: 2,
       unitPrice: 1849,
+      discount: 0,
       total: 3698,
     },
   ],

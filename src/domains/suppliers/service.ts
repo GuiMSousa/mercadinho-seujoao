@@ -22,6 +22,8 @@ type Actor = { id: string; name: string };
 const SUPPLIERS_PER_PAGE = 20;
 // Products expiring within this many days enter the replenishment list (the yellow band).
 const EXPIRY_HORIZON_DAYS = 30;
+// The header's alert counts only what needs attention now: expiring within a week.
+const ALERT_HORIZON_DAYS = 7;
 
 const FIELD_LABELS: Record<keyof UpdateSupplier, string> = {
   name: "nome",
@@ -102,6 +104,15 @@ export async function requireActiveSupplier(id: string) {
   throw new ServiceError(422, message, {
     fields: { defaultSupplierId: message },
   });
+}
+
+/**
+ * Active products needing attention now: no stock, at or below the minimum, or a batch in stock
+ * expired or expiring within 7 days. The panel header shows this count.
+ */
+export async function countStockAlerts(today = todayInStore()) {
+  return (await selectReplenishmentRows(addDays(today, ALERT_HORIZON_DAYS)))
+    .length;
 }
 
 /**

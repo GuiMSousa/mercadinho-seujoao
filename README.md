@@ -43,12 +43,14 @@ O app aplica as migrações pendentes ao iniciar. Backup diário: `pwsh -NoProfi
 | ----- | ---------------------------------------------------------------------------------- |
 | F1    | Ir para a busca (código de barras, etiqueta de balança ou nome)                    |
 | F2    | Pagamento                                                                          |
-| F3    | Desconto em R$ ou %                                                                |
+| F3    | Desconto na venda, em R$ ou % (o botão % de cada linha dá desconto só no item)     |
 | F4    | Fechar o caixa (fechamento cego)                                                   |
 | F8    | Sangria                                                                            |
 | F9    | Suprimento                                                                         |
 | Enter | Confirmar o item, o valor ou a opção; no pagamento, o campo vazio paga o que falta |
 | Esc   | Limpar a busca ou fechar a janela                                                  |
+
+No pagamento, uma letra escolhe a forma: D dinheiro, P Pix, B débito, C crédito, F fiado, R vale-refeição e A vale-alimentação. O operador dá no máximo 5% de desconto na venda; acima disso, chame um administrador.
 
 O leitor USB funciona como teclado: basta bipar, mesmo com o foco num botão do carrinho.
 

@@ -10,7 +10,14 @@ import { newId } from "@/app/painel/_lib/new-id";
 import { parseScaleLabel } from "@/lib/barcode-scale";
 import { Input } from "@ds/components/input";
 import { useToast } from "@ds/components/toast";
-import { cartTotal, removeLine, setQuantity } from "./cart";
+import {
+  cartTotal,
+  discountScope,
+  removeLine,
+  setLineDiscount,
+  setQuantity,
+  type DiscountTarget,
+} from "./cart";
 import { CartList } from "./cart-list";
 import { CashDialogs, type CashDialogKind } from "./cash-dialogs";
 import { CheckoutDialog } from "./checkout-dialog";
@@ -54,7 +61,7 @@ export function PdvView({
   const [query, setQuery] = useState("");
   const [weighing, setWeighing] = useState<Weighing | null>(null);
   const [checkout, setCheckout] = useState(false);
-  const [discounting, setDiscounting] = useState(false);
+  const [discounting, setDiscounting] = useState<DiscountTarget | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [receipt, setReceipt] = useState<SaleReceipt | null>(null);
   // One id per sale, kept across failed attempts: a retry after a lost answer cannot sell twice.
@@ -74,7 +81,7 @@ export function PdvView({
   const dialogOpen =
     weighing !== null ||
     checkout ||
-    discounting ||
+    discounting !== null ||
     cancelling ||
     receipt !== null ||
     cashDialog !== null;
@@ -154,7 +161,7 @@ export function PdvView({
     active: !dialogOpen && cash !== null,
     searchRef,
     onCheckout: openCheckout,
-    onDiscount: () => cartRef.current.length > 0 && setDiscounting(true),
+    onDiscount: () => cartRef.current.length > 0 && setDiscounting("sale"),
     onCash: openCash,
     onType: (key) => setQuery((current) => current + key),
     onClear: () => setQuery(""),
@@ -231,6 +238,7 @@ export function PdvView({
             onIncrease={(line) => add(line, 1)}
             onEdit={(line) => setWeighing({ product: line, mode: "set" })}
             onRemove={(line) => commit(removeLine(cartRef.current, line.id))}
+            onDiscount={setDiscounting}
           />
         </div>
         <SaleTotal
@@ -238,7 +246,7 @@ export function PdvView({
           discount={discountOff}
           hasItems={cart.length > 0}
           onFinish={openCheckout}
-          onDiscount={() => setDiscounting(true)}
+          onDiscount={() => setDiscounting("sale")}
           onCancel={() => setCancelling(true)}
         />
       </main>
@@ -296,13 +304,13 @@ export function PdvView({
       )}
       {discounting && (
         <DiscountDialog
-          subtotal={subtotal}
-          current={discount}
+          {...discountScope(cart, discount, discounting, isAdmin)}
           finalFocus={searchRef}
-          onClose={() => setDiscounting(false)}
+          onClose={() => setDiscounting(null)}
           onApply={(next) => {
-            setDiscount(next);
-            setDiscounting(false);
+            if (discounting === "sale") setDiscount(next);
+            else commit(setLineDiscount(cartRef.current, discounting.id, next));
+            setDiscounting(null);
           }}
         />
       )}

@@ -3,7 +3,12 @@ import { lineTotal } from "@/contracts/sales";
 import {
   addToCart,
   cartTotal,
+  discountScope,
+  lineDiscount,
+  lineGross,
+  linePrice,
   refusal,
+  setLineDiscount,
   removeLine,
   setQuantity,
   type CartLine,
@@ -68,4 +73,60 @@ it("refuses an expired next batch, a product without stock and more than the sto
   expect(refusal([], banana, 5001)?.message).toBe(
     "Banana prata: restam 5,000 kg em estoque.",
   );
+});
+
+it("takes a line's discount off that line, an amount never past what the line is worth", () => {
+  // 3 cafés = R$ 55,47; 10% = R$ 5,55 off.
+  const percent = {
+    ...coffee,
+    quantity: 3,
+    discount: { kind: "percent" as const, value: 1000 },
+  };
+  expect(lineGross(percent)).toBe(5547);
+  expect(lineDiscount(percent)).toBe(555);
+  expect(linePrice(percent)).toBe(4992);
+  // R$ 20,00 off a line now worth R$ 18,49: the line is free, not negative.
+  const amount = {
+    ...coffee,
+    quantity: 1,
+    discount: { kind: "amount" as const, value: 2000 },
+  };
+  expect(linePrice(amount)).toBe(0);
+  expect(cartTotal([percent, { ...banana, quantity: 1000 }])).toBe(4992 + 699);
+  // Adding more of the product keeps the line's discount.
+  expect(addToCart([percent], coffee, 1)[0]).toMatchObject({
+    quantity: 4,
+    discount: percent.discount,
+  });
+  expect(setLineDiscount([percent], coffee.id, null)[0].discount).toBeNull();
+});
+
+it("leaves an operator what is left of 5% of the items for each discount, and an ADMIN the whole amount", () => {
+  // R$ 55,47 + R$ 6,99 of items = R$ 62,46: an operator may give R$ 3,12 in all.
+  const lines = [
+    {
+      ...coffee,
+      quantity: 3,
+      discount: { kind: "amount" as const, value: 100 },
+    },
+    { ...banana, quantity: 1000 },
+  ];
+  const sale = { kind: "amount" as const, value: 50 };
+  expect(discountScope(lines, sale, "sale", false)).toMatchObject({
+    title: "Desconto na venda",
+    // The sale's discount comes off the items after theirs: R$ 62,46 − R$ 1,00.
+    subtotal: 6146,
+    current: sale,
+    limit: 312 - 100,
+    cap: 312,
+  });
+  expect(discountScope(lines, sale, lines[0], false)).toMatchObject({
+    title: "Desconto em Café 500 g",
+    subtotal: 5547,
+    limit: 312 - 50,
+  });
+  expect(discountScope(lines, sale, lines[1], true)).toMatchObject({
+    subtotal: 699,
+    limit: 699,
+  });
 });

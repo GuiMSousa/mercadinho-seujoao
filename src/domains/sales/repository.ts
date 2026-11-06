@@ -19,6 +19,7 @@ export type SaleLine = {
   quantity: number;
   unitPrice: number;
   unitCost: number;
+  discount: number;
   total: number;
   cost: number;
 };
@@ -146,6 +147,7 @@ export async function selectSale(id: string) {
       unit: saleItems.unit,
       quantity: saleItems.quantity,
       unitPrice: saleItems.unitPrice,
+      discount: saleItems.discount,
       total: saleItems.total,
     })
     .from(saleItems)

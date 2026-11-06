@@ -116,6 +116,9 @@ export const replenishmentSchema = z.object({
   ),
 });
 
+// ADMIN only: products needing attention now, for the panel header.
+export const stockAlertsSchema = z.object({ count: z.int() });
+
 export type CreateSupplier = z.output<typeof createSupplierSchema>;
 export type UpdateSupplier = z.output<typeof updateSupplierSchema>;
 export type SupplierRow = z.infer<typeof supplierRowSchema>;
@@ -124,3 +127,4 @@ export type SupplierOption = Pick<SupplierRow, "id" | "name" | "active">;
 export type SuppliersPage = z.infer<typeof suppliersPageSchema>;
 export type Replenishment = z.infer<typeof replenishmentSchema>;
 export type ReplenishmentGroup = Replenishment["groups"][number];
+export type StockAlerts = z.infer<typeof stockAlertsSchema>;

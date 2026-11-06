@@ -320,7 +320,7 @@ it("refuses a sale that waited on a closing, once the closing commits", async ()
           user,
           {
             id: randomUUID(),
-            items: [{ productId: coffee.id, quantity: 1 }],
+            items: [{ productId: coffee.id, quantity: 1, discount: 0 }],
             discount: 0,
             total: 1849,
             payments: [{ method: "CASH", amount: 1849 }],

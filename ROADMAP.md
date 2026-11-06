@@ -9,17 +9,17 @@
 - **Semana 3:** CONCLUÍDA (PDV, comprovante térmico e por WhatsApp, arredondamento por item); falta o leitor por câmera, que depende do HTTPS
 - **Semana 4:** CONCLUÍDA (caixa diário, 2026-11-05)
 - **Semana 5:** CONCLUÍDA (relatórios financeiros, 2026-11-05)
-- **Semana 6:** CONCLUÍDA (fornecedores, reposição e pedido por WhatsApp, 2026-11-05); fica para depois o indicador de alerta no topo do painel
+- **Semana 6:** CONCLUÍDA (fornecedores, reposição e pedido por WhatsApp, 2026-11-05); o indicador de alerta no topo do painel chegou na semana 10
 - **Semana 7:** CONCLUÍDA (etiqueta de balança no PDV e revisão de toque, campos, 375 px e contraste, 2026-11-06)
-- **Semana 8:** CONCLUÍDA EM PARTE (fiado com limite de crédito, quitação, desconto e pagamento dividido, 2026-11-06); ficam para depois VR/VA, histórico de pedidos de compra e previsão de compras
+- **Semana 8:** CONCLUÍDA EM PARTE (fiado com limite de crédito, quitação, desconto e pagamento dividido, 2026-11-06); VR/VA chegou na semana 10; ficam para depois o histórico de pedidos de compra e a previsão de compras
 - **Semana 9:** CONCLUÍDA (produção, 2026-11-06); o túnel com domínio fixo e a entrada em produção são passos da loja, descritos no guia de implantação
+- **Semana 10:** CONCLUÍDA (VR/VA, limite de desconto por perfil, desconto por item, histórico de estoque, importação CSV e alerta no painel, 2026-11-06)
 
 **Pendências depois da v1.0.0:**
 
 - Leitor por câmera e PWA instalado num aparelho (dependem do HTTPS).
-- VR/VA como forma de pagamento.
 - Histórico de pedidos de compra e previsão de compras.
-- Indicador de alerta no topo do painel.
+- Ajuste de estoque pela tela (o histórico já lista o tipo, mas nada o registra ainda).
 - Layout próprio por largura de bobina (hoje o comprovante usa a largura que a impressora informa).
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
@@ -120,6 +120,14 @@ Clientes em `/painel/clientes` com limite de crédito, saldo devedor, extrato e 
 - Campo de desconto em valor (R$) ou percentual (%) na tela de checkout do PDV.
 - Múltiplos pagamentos (VR/VA, PIX, Cartão). A leitura de etiquetas de balança foi entregue na semana 7.
 - Cadastro de fornecedores, histórico de pedidos e previsão de compras.
+
+### Semana 10 — Evolução Operacional & Gestão Avançada de Estoque (CONCLUÍDA em 2026-11-06)
+
+- **PDV:** vale-refeição (VR) e vale-alimentação (VA) como formas de pagamento, com teclas no pagamento (D, P, B, C, F, R e A); desconto por item (botão % na linha) além do desconto da venda (F3).
+- **Limite de desconto:** o operador (`CASHIER`) dá no máximo 5% do valor dos itens, somando os descontos dos itens e o da venda; o administrador, até 100%. A trava vale na tela e no servidor; acima dela, a venda é bloqueada e o operador chama um administrador.
+- **Estoque:** histórico de movimentações em `/painel/estoque/historico`, com filtros de produto, tipo e período.
+- **Produtos:** importação por planilha CSV em `/painel/produtos/importar`, tudo ou nada, com relatório por linha.
+- **Painel:** sino no cabeçalho com os produtos que pedem atenção agora (sem estoque, no mínimo ou abaixo, ou vencendo em até 7 dias).
 
 ### Semana 9 — Produção, Domínio Fixo & Infraestrutura Final (CONCLUÍDA em 2026-11-06)
 

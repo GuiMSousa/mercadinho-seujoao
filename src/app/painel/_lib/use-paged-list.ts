@@ -6,7 +6,10 @@ import { apiFetch } from "./api";
 
 const SEARCH_DELAY_MS = 250;
 
-/** A server-paginated list searched as the person types; `initial` is the server-rendered first page. */
+/**
+ * A server-paginated list searched as the person types; `initial` is the server-rendered first page.
+ * `filter` adds other query parameters (a type, a period) to every later load.
+ */
 export function usePagedList<T extends { page: number }>(
   path: string,
   initial: T,
@@ -21,6 +24,7 @@ export function usePagedList<T extends { page: number }>(
   const firstData = useRef(initial);
   const latest = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const filters = useRef<Record<string, string>>({});
   useEffect(() => () => clearTimeout(timer.current), []);
   // A reload can remove the row whose button held the focus; keep the keyboard inside the list.
   useEffect(() => {
@@ -33,7 +37,11 @@ export function usePagedList<T extends { page: number }>(
     latest.current += 1;
     const request = latest.current;
     setLoading(true);
-    const query = new URLSearchParams({ search: term, page: String(page) });
+    const query = new URLSearchParams({
+      ...filters.current,
+      search: term,
+      page: String(page),
+    });
     const result = await apiFetch<T>(`${path}?${query}`);
     // A slower, older response must not overwrite what the person asked for last.
     if (request !== latest.current) return;
@@ -62,6 +70,10 @@ export function usePagedList<T extends { page: number }>(
       timer.current = setTimeout(() => void load(term, 1), SEARCH_DELAY_MS);
     },
     goTo: (page: number) => load(search, page),
+    filter(params: Record<string, string>) {
+      filters.current = params;
+      return load(search, 1);
+    },
     reload: () => load(search, data.page),
   };
 }

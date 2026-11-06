@@ -1,17 +1,18 @@
 "use client";
 
-import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { Minus, Percent, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { formatQuantity } from "@/app/painel/produtos/product-form";
 import { Button, IconButton } from "@ds/components/button";
 import { Card } from "@ds/components/card";
 import { Money } from "@ds/components/money";
-import { linePrice, priceLabel, type CartLine } from "./cart";
+import { lineDiscount, linePrice, priceLabel, type CartLine } from "./cart";
+import { brl } from "./receipt-text";
 
 type LineAction = (line: CartLine) => void;
 
 /**
  * The lines of the sale. Units change one at a time with − and +; any quantity, and every
- * weight, is typed on the keypad by pressing the quantity itself.
+ * weight, is typed on the keypad by pressing the quantity itself. % gives a discount on the line.
  */
 export function CartList({
   cart,
@@ -19,12 +20,14 @@ export function CartList({
   onIncrease,
   onEdit,
   onRemove,
+  onDiscount,
 }: {
   cart: CartLine[];
   onDecrease: LineAction;
   onIncrease: LineAction;
   onEdit: LineAction;
   onRemove: LineAction;
+  onDiscount: LineAction;
 }) {
   return (
     <Card
@@ -45,6 +48,7 @@ export function CartList({
           {cart.map((line) => {
             const quantity = formatQuantity(line.quantity, line.unit);
             const single = line.unit === "UN" && line.quantity === 1;
+            const discount = lineDiscount(line);
             return (
               <li
                 key={line.id}
@@ -57,6 +61,11 @@ export function CartList({
                   <p className="text-body-lg text-sub tabular-nums">
                     {priceLabel(line)}
                   </p>
+                  {discount > 0 && (
+                    <p className="text-body-lg text-success-fg tabular-nums">
+                      Desconto de {brl(discount)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   {line.unit === "UN" && (
@@ -94,6 +103,13 @@ export function CartList({
                       onClick={() => onRemove(line)}
                     />
                   )}
+                  <IconButton
+                    size="counter"
+                    variant={discount > 0 ? "primary" : "secondary"}
+                    icon={Percent}
+                    label={`Desconto em ${line.name}`}
+                    onClick={() => onDiscount(line)}
+                  />
                 </div>
                 <Money
                   cents={linePrice(line)}

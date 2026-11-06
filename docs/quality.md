@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-06): 334 testes em 92 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 131 testes em 20 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 12 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-06): 351 testes em 98 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 137 testes em 22 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 12 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -56,7 +56,15 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
     - a baixa manual repetida com o mesmo id, em sequência ou ao mesmo tempo, tira o estoque uma vez: `src/domains/inventory/write-off.db.test.ts`;
     - etiqueta de balança por peso (`21`) e por valor (`20`): leitura com dígito verificador, EAN comum ignorado, peso por valor nunca acima do valor impresso, e a venda no banco ao preço do catálogo com baixa PVPS em gramas: `src/lib/barcode-scale.test.ts`, `src/app/caixa/sale-api.test.ts` e `src/domains/sales/sales.db.test.ts`;
     - fiado acima do limite (ou de cliente inativo) recusado sem gravar nada, também com duas vendas simultâneas; saldo devedor que sobe com a venda e desce com a quitação parcial ou total, nunca abaixo de zero, também com dois pagamentos simultâneos; pagamento repetido com o mesmo id registrado uma vez; venda dividida entre dinheiro (com troco), Pix e fiado após desconto, e desconto acima dos itens recusado: `src/domains/sales/payments.db.test.ts`, `src/domains/customers/customers.db.test.ts` e `src/app/caixa/checkout-payments.test.ts`;
-    - o caixa conta só a parte em dinheiro de uma venda dividida, e os relatórios mostram cada forma com a sua parte: `src/domains/cash/cash.db.test.ts` e `src/domains/reports/reports.db.test.ts`.
+    - o caixa conta só a parte em dinheiro de uma venda dividida, e os relatórios mostram cada forma com a sua parte: `src/domains/cash/cash.db.test.ts` e `src/domains/reports/reports.db.test.ts`;
+    - trava de desconto por perfil: o `CASHIER` dá até 5% do valor bruto dos itens, somando os descontos dos itens e o da venda (o desconto de item conta no teto), e o `ADMIN` dá até 100%; desconto de item acima do valor da linha recusado; venda paga com VR e VA gravada com as duas formas: `src/domains/sales/payments.db.test.ts`, `src/app/caixa/cart.test.ts` e `src/app/caixa/payment-methods.test.ts`;
+    - importação CSV: ponto e vírgula ou vírgula, aspas, BOM e cabeçalhos com acento; uma linha errada não grava nada e o erro vem com o número da linha; o mesmo arquivo de novo atualiza pelo código de barras; a unidade não muda em produto com lote: `src/lib/csv.test.ts`, `src/domains/inventory/import-rows.test.ts` e `src/domains/inventory/import.db.test.ts`;
+    - extrato de estoque filtrado por produto, tipo e período no fuso da loja, e o contador do sino igual às linhas da reposição com vencimento em 7 dias: `src/domains/inventory/history.db.test.ts` e `src/domains/suppliers/suppliers.db.test.ts`.
+  - **Checagem por mutação** (2026-11-06, semana 10): os testes mataram 4 mutantes, e o código voltou ao original depois de cada um:
+    - desligar a trava de desconto do `CASHIER` no service;
+    - dar 100% de teto a qualquer perfil em `maxDiscount`;
+    - gravar as linhas válidas de um arquivo com erro (fim do tudo ou nada da importação);
+    - aceitar desconto de item acima do valor da linha.
   - **Checagem por mutação** (2026-11-06, fiado): os testes mataram 4 mutantes, e o código voltou ao original depois de cada um:
     - tirar a condição de limite do `UPDATE` do fiado (o teste das duas vendas simultâneas e o do limite falharam);
     - aceitar fiado de cliente inativo;
@@ -75,14 +83,14 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 - **`test:e2e`:** automatizado ainda não existe e não é simulado. O fluxo de telas tem um roteiro manual com resultados em [Roteiro E2E no navegador](#roteiro-e2e-no-navegador).
 - **Capacidades adotadas e evidência atual** (detalhes em [setup.md](setup.md)):
 
-  | Capacidade    | Evidência atual                                                                                                                                                                                      |
-  | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                       |
-  | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                    |
-  | SQL           | Migrations `0000` a `0009` geradas e revisadas; `0008` (clientes, pagamentos e cópia das formas antigas) e `0009` aplicadas nos bancos de teste, de E2E e de desenvolvimento (este com backup antes) |
-  | CI            | Configurado, sem execução remota                                                                                                                                                                     |
-  | Segurança     | Ciclos de revisão de segurança da autenticação concluídos (resumo abaixo)                                                                                                                            |
-  | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404  |
+  | Capacidade    | Evidência atual                                                                                                                                                                                     |
+  | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                      |
+  | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                   |
+  | SQL           | Migrations `0000` a `0010` geradas e revisadas; `0010` (VR, VA e desconto por item) aplicada nos bancos de teste, de E2E e de desenvolvimento (este com backup antes)                               |
+  | CI            | Configurado, sem execução remota                                                                                                                                                                    |
+  | Segurança     | Ciclos de revisão de segurança da autenticação concluídos (resumo abaixo)                                                                                                                           |
+  | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404 |
 
 ## Roteiro E2E no navegador
 
@@ -291,6 +299,34 @@ Executado em 2026-11-06 contra o `compose.prod.yaml`, num projeto isolado (`mkt-
 Achado e corrigido: o Zod 4 testa `new Function` para ligar o modo JIT, e a CSP reportava isso como violação em várias páginas. A correção foi `z.config({ jitless: true })` em `src/instrumentation-client.ts`, que roda antes da hidratação. Ao fim, o projeto de homologação, o volume e a imagem de teste foram removidos, um a um.
 
 Não verificado: o túnel nomeado de verdade (depende da conta Cloudflare da loja) e uma tarefa agendada registrada no Agendador.
+
+### Evolução operacional (semana 10)
+
+Executado em 2026-11-06 com o Playwright (Edge, script local), contra o build de produção no banco `mkt_control_e2e`. O servidor rodou sem `RESEND_API_KEY`. O roteiro usou 3 cafés de R$ 18,49 (bruto R$ 55,47, teto do operador R$ 2,77).
+
+| #   | Passo                                                                                                                         | Resultado |
+| --- | ----------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | O botão % da linha abre o desconto do item; R$ 3,00 é recusado para o operador; R$ 2,00 deixa o total em R$ 53,47             | Passou    |
+| 2   | Mais 2% na venda passa do teto do operador e é recusado; 1% cabe: total R$ 52,94                                              | Passou    |
+| 3   | Botões do carrinho (o % incluído) e do pagamento com 7 formas têm 60 px ou mais                                               | Passou    |
+| 4   | As teclas R e A escolhem VR e VA; a venda fecha com VR R$ 20,00 e VA R$ 32,94, e o comprovante mostra os dois descontos       | Passou    |
+| 5   | O `ADMIN` dá 50% (R$ 18,49 vira R$ 9,24)                                                                                      | Passou    |
+| 6   | O sino do cabeçalho conta os produtos que precisam de atenção e leva à reposição                                              | Passou    |
+| 7   | O extrato mostra a saída da venda; o filtro de tipo, a busca por produto e o período invertido (apontado, sem buscar) atendem | Passou    |
+| 8   | Um arquivo com linha errada não importa nada e aponta a linha 3 com os três problemas                                         | Passou    |
+| 9   | O arquivo válido importa 3 produtos e 2 categorias; enviado de novo, atualiza os 3 pelo código de barras; o modelo baixa      | Passou    |
+| 10  | Em 375 px, sem rolagem lateral e campos com 16 px: extrato, importação, painel com o sino, caixa e pagamento                  | Passou    |
+| 11  | Console sem erros, CSP incluída                                                                                               | Passou    |
+
+Depois dos 5 ciclos de revisão, o roteiro foi repetido inteiro. Os ciclos corrigiram o plural do registro de atividade da importação, puseram o anel de foco na área de soltar o arquivo (o campo de arquivo ficou dentro dela) e trocaram o BOM invisível no código pelo escape `﻿`.
+
+Limites conhecidos:
+
+- O tipo `ADJUSTMENT` aparece no filtro do extrato, mas nada grava ajuste ainda.
+- Uma entrada de lote não trava a linha do produto, então uma troca de unidade ao mesmo tempo que o primeiro lote é possível em tese. A mesma corrida já existia na edição de produto.
+- A cobertura de linhas não é medida (não há ferramenta de cobertura no projeto). As regras novas têm testes próprios e checagem por mutação.
+
+Não verificado: arrastar um arquivo de verdade sobre a área (o roteiro usa o campo de arquivo), leitor de tela e planilhas exportadas por outros sistemas além do Excel.
 
 ## Harness (método nativo inspirado no Harness2)
 

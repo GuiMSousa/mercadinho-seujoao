@@ -18,6 +18,7 @@ const receipt = {
       unit: "UN" as const,
       quantity: 2,
       unitPrice: 1849,
+      discount: 0,
       total: 3698,
     },
     {
@@ -26,6 +27,7 @@ const receipt = {
       unit: "KG" as const,
       quantity: 1250,
       unitPrice: 699,
+      discount: 0,
       total: 874,
     },
   ],
@@ -101,4 +103,26 @@ it("puts the whole text in one encoded parameter", () => {
   expect(whatsappLink("Total: R$ 1,00 & obrigado")).toBe(
     "https://wa.me/?text=Total%3A%20R%24%201%2C00%20%26%20obrigado",
   );
+});
+
+it("shows a line's own discount next to it, and vouchers by name", () => {
+  const text = receiptText(store, {
+    ...receipt,
+    total: 4372,
+    amountReceived: 4372,
+    change: 0,
+    payments: [
+      { method: "MEAL_VOUCHER", amount: 2000 },
+      { method: "FOOD_VOUCHER", amount: 2372 },
+    ],
+    items: [
+      { ...receipt.items[0], discount: 200, total: 3498 },
+      receipt.items[1],
+    ],
+  });
+  expect(text).toContain(
+    "2 un × R$\u00a018,49 − R$\u00a02,00 de desconto = R$\u00a034,98",
+  );
+  expect(text).toContain("Vale-refeição (VR): R$\u00a020,00");
+  expect(text).toContain("Vale-alimentação (VA): R$\u00a023,72");
 });

@@ -30,6 +30,11 @@ function ReceiptLines({ receipt }: { receipt: SaleReceipt }) {
             <div className="min-w-0">
               <p className="font-medium text-strong">{item.name}</p>
               <p className="text-sub tabular-nums">{itemDetail(item)}</p>
+              {item.discount > 0 && (
+                <p className="text-sub tabular-nums">
+                  Desconto de {brl(item.discount)}
+                </p>
+              )}
             </div>
             <span className="text-strong tabular-nums">{brl(item.total)}</span>
           </li>

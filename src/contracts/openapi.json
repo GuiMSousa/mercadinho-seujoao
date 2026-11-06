@@ -929,6 +929,12 @@
                   "type": "integer",
                   "minimum": 1,
                   "maximum": 1000000
+                },
+                "discount": {
+                  "default": 0,
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2147483647
                 }
               },
               "required": [
@@ -949,7 +955,7 @@
             "maximum": 2147483647
           },
           "payments": {
-            "maxItems": 5,
+            "maxItems": 7,
             "type": "array",
             "items": {
               "type": "object",
@@ -961,7 +967,9 @@
                     "PIX",
                     "DEBIT",
                     "CREDIT",
-                    "ON_ACCOUNT"
+                    "ON_ACCOUNT",
+                    "MEAL_VOUCHER",
+                    "FOOD_VOUCHER"
                   ]
                 },
                 "amount": {
@@ -1039,7 +1047,9 @@
                     "PIX",
                     "DEBIT",
                     "CREDIT",
-                    "ON_ACCOUNT"
+                    "ON_ACCOUNT",
+                    "MEAL_VOUCHER",
+                    "FOOD_VOUCHER"
                   ]
                 },
                 "amount": {
@@ -1092,6 +1102,11 @@
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
                 },
+                "discount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
                 "total": {
                   "type": "integer",
                   "minimum": -9007199254740991,
@@ -1104,6 +1119,7 @@
                 "unit",
                 "quantity",
                 "unitPrice",
+                "discount",
                 "total"
               ],
               "additionalProperties": false
@@ -1564,7 +1580,9 @@
                     "PIX",
                     "DEBIT",
                     "CREDIT",
-                    "ON_ACCOUNT"
+                    "ON_ACCOUNT",
+                    "MEAL_VOUCHER",
+                    "FOOD_VOUCHER"
                   ]
                 },
                 "count": {
@@ -1809,7 +1827,9 @@
                       "PIX",
                       "DEBIT",
                       "CREDIT",
-                      "ON_ACCOUNT"
+                      "ON_ACCOUNT",
+                      "MEAL_VOUCHER",
+                      "FOOD_VOUCHER"
                     ]
                   }
                 },
@@ -2703,6 +2723,162 @@
           "status",
           "timestamp",
           "db"
+        ],
+        "additionalProperties": false
+      },
+      "MovementsPage": {
+        "type": "object",
+        "properties": {
+          "movements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "productId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "productName": {
+                  "type": "string"
+                },
+                "barcode": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "UN",
+                    "KG",
+                    "L"
+                  ]
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "IN",
+                    "OUT",
+                    "ADJUSTMENT"
+                  ]
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "batchCode": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "userName": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "createdAt",
+                "productId",
+                "productName",
+                "barcode",
+                "unit",
+                "type",
+                "quantity",
+                "reason",
+                "batchCode",
+                "userName"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "movements",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "additionalProperties": false
+      },
+      "StockAlerts": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "additionalProperties": false
+      },
+      "ProductImportRequest": {
+        "type": "object",
+        "properties": {
+          "csv": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000000
+          }
+        },
+        "required": [
+          "csv"
+        ]
+      },
+      "ProductImportResult": {
+        "type": "object",
+        "properties": {
+          "inserted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "updated": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "categoriesCreated": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "inserted",
+          "updated",
+          "categoriesCreated"
         ],
         "additionalProperties": false
       },
@@ -5126,7 +5302,7 @@
     "/api/sales": {
       "post": {
         "summary": "Registra uma venda e dá baixa no estoque por PVPS",
-        "description": "Aberta a qualquer sessão. Usa os preços atuais do catálogo e grava preço e custo de cada item. Tudo na mesma transação: sem estoque, com o próximo lote vencido ou com produto inativo, nada é gravado. O total enviado deve ser o que o operador viu; se um preço mudou, a venda é recusada (409 com fields.total). O id é gerado pelo cliente: repetir a mesma venda com o mesmo id devolve a já registrada. O desconto (centavos) sai da soma dos itens e não pode passar dela; total = itens − desconto. payments traz o que foi entregue em cada forma, uma linha por forma; a soma deve cobrir o total, e só o dinheiro pode passar da sua parte (o excesso é o troco). Com total zero, payments vem vazio. Fiado (ON_ACCOUNT) exige customerId, e customerId só vale com fiado: o saldo devedor do cliente sobe na mesma transação, e a venda é recusada se ele estiver inativo ou se saldo + fiado passar do limite (422 com fields.customerId).",
+        "description": "Aberta a qualquer sessão. Usa os preços atuais do catálogo e grava preço e custo de cada item. Tudo na mesma transação: sem estoque, com o próximo lote vencido ou com produto inativo, nada é gravado. O total enviado deve ser o que o operador viu; se um preço mudou, a venda é recusada (409 com fields.total). O id é gerado pelo cliente: repetir a mesma venda com o mesmo id devolve a já registrada. Cada item pode ter seu desconto (centavos, até o valor do item); o desconto da venda (centavos) sai da soma dos itens já descontados e não pode passar dela; total = itens − desconto. Um operador (CASHIER) dá no máximo 5% do valor dos itens antes de qualquer desconto, somando itens e venda; um ADMIN, até tudo (acima disso, 422 com fields.discount). Vale-refeição (MEAL_VOUCHER) e vale-alimentação (FOOD_VOUCHER), como cartões, pagam a sua parte exata. payments traz o que foi entregue em cada forma, uma linha por forma; a soma deve cobrir o total, e só o dinheiro pode passar da sua parte (o excesso é o troco). Com total zero, payments vem vazio. Fiado (ON_ACCOUNT) exige customerId, e customerId só vale com fiado: o saldo devedor do cliente sobe na mesma transação, e a venda é recusada se ele estiver inativo ou se saldo + fiado passar do limite (422 com fields.customerId).",
         "security": [
           {
             "session": [],
@@ -6613,6 +6789,235 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/inventory/movements": {
+      "get": {
+        "summary": "Histórico de movimentações de estoque (somente ADMIN)",
+        "description": "Entradas de lote (IN), saídas por venda PVPS ou baixa manual (OUT) e ajustes (ADJUSTMENT), das mais novas para as mais antigas, 20 por página. Os dias são os do fuso da loja.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Parte do nome ou do código de barras do produto.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "IN, OUT ou ADJUSTMENT; vazio para todos.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "Primeiro dia (AAAA-MM-DD).",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Último dia (AAAA-MM-DD), não antes de from.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de movimentações.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovementsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros inválidos (período invertido, data ou tipo).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Perfil sem permissão (CASHIER).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/inventory/alerts": {
+      "get": {
+        "summary": "Produtos que precisam de atenção (somente ADMIN)",
+        "description": "Quantos produtos ativos estão sem estoque, no mínimo ou abaixo, ou com lote em estoque vencido ou vencendo em até 7 dias. É o número do sino no cabeçalho do painel.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contagem.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAlerts"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Perfil sem permissão (CASHIER).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/products/import": {
+      "post": {
+        "summary": "Importa produtos de uma planilha CSV (somente ADMIN)",
+        "description": "Colunas nome, codigo_barras, categoria, preco_custo, preco_venda, unidade (UN, KG ou L) e estoque_minimo; separador ; ou ,; até 5.000 linhas. Código existente atualiza o produto; os outros são criados, e categorias que faltam também. Tudo ou nada: com qualquer linha inválida, nada é gravado e fields traz o problema de cada linha, pela linha do arquivo.",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductImportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Importação concluída.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Corpo inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Perfil sem permissão (CASHIER) ou cabeçalho anti-CSRF ausente ou inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Um código de barras foi cadastrado ao mesmo tempo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Arquivo inválido; fields traz cada linha com problema (chave = número da linha).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormError"
                 }
               }
             }

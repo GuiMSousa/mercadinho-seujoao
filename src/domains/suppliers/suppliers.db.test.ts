@@ -11,6 +11,7 @@ import {
 } from "@/infrastructure/db/schema";
 import { withTestDb, type TestDb } from "@/infrastructure/db/test-db";
 import {
+  countStockAlerts,
   createSupplier,
   getReplenishment,
   listSuppliers,
@@ -260,5 +261,45 @@ it("suggests what to buy for low or expiring products, grouped by default suppli
     expect(
       groups.flatMap((group) => group.items).map((item) => item.productId),
     ).toContain(banana.id);
+  });
+});
+
+it("counts for the header the products needing attention now: low stock or expiring within 7 days", async () => {
+  await inTest(async (db) => {
+    const { category, unique } = await seed(db);
+    const product = async (
+      name: string,
+      minStock: number,
+      batches: [string | null, number][],
+    ) => {
+      const [row] = await db
+        .insert(products)
+        .values({
+          barcode: `${unique}-${name}`,
+          name: `${name} ${unique}`,
+          categoryId: category.id,
+          costPrice: 100,
+          sellPrice: 200,
+          unit: "UN",
+          minStock,
+        })
+        .returning();
+      for (const [expirationDate, quantity] of batches)
+        await db.insert(inventoryBatches).values({
+          productId: row.id,
+          batchCode: "L",
+          expirationDate,
+          quantity,
+        });
+    };
+    const before = await countStockAlerts(TODAY);
+    // Empty; at the minimum; a batch expiring in 5 days: three alerts.
+    await product("Vazio", 0, []);
+    await product("Minimo", 5, [["2027-06-01", 5]]);
+    await product("Iogurte", 1, [["2026-11-10", 9]]);
+    // Expiring in 20 days, with plenty of stock: in the replenishment list, not in the alert.
+    await product("Queijo", 1, [["2026-11-25", 9]]);
+    await product("Arroz", 1, [["2027-06-01", 9]]);
+    expect((await countStockAlerts(TODAY)) - before).toBe(3);
   });
 });

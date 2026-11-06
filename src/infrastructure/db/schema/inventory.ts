@@ -11,15 +11,17 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { PRODUCT_UNITS } from "../../../contracts/enums";
+import {
+  INVENTORY_MOVEMENT_TYPES,
+  PRODUCT_UNITS,
+} from "../../../contracts/enums";
 import { users } from "./users";
 
 export const productUnit = pgEnum("product_unit", PRODUCT_UNITS);
-export const inventoryMovementType = pgEnum("inventory_movement_type", [
-  "IN",
-  "OUT",
-  "ADJUSTMENT",
-]);
+export const inventoryMovementType = pgEnum(
+  "inventory_movement_type",
+  INVENTORY_MOVEMENT_TYPES,
+);
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),

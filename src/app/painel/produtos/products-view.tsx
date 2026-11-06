@@ -1,6 +1,7 @@
 "use client";
 
-import { PackagePlus, Pencil, Plus, Search, Tags } from "lucide-react";
+import { FileUp, PackagePlus, Pencil, Plus, Search, Tags } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import type {
   CategoryRow,
@@ -10,7 +11,7 @@ import type {
 import type { SupplierOption } from "@/contracts/suppliers";
 import { stockSignal } from "@/domains/inventory/semaphore";
 import { Badge } from "@ds/components/badge";
-import { Button, IconButton } from "@ds/components/button";
+import { Button, IconButton, buttonVariants } from "@ds/components/button";
 import { Card } from "@ds/components/card";
 import { Input } from "@ds/components/input";
 import { Money } from "@ds/components/money";
@@ -172,6 +173,13 @@ export function ProductsView({
           className="w-full max-w-sm"
         />
         <div className="flex flex-wrap gap-2">
+          <Link
+            href="/painel/produtos/importar"
+            className={buttonVariants({ variant: "secondary" })}
+          >
+            <FileUp aria-hidden="true" />
+            Importar planilha
+          </Link>
           <Button
             variant="secondary"
             onClick={() => setDialog({ kind: "category" })}

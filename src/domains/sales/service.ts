@@ -1,7 +1,13 @@
 import "server-only";
 import { CASH_CLOSED_MESSAGE } from "@/contracts/cash";
 import { MAX_INTEGER } from "@/contracts/inventory";
-import { lineTotal, settlePayments, type CreateSale } from "@/contracts/sales";
+import {
+  discountTooHigh,
+  lineTotal,
+  maxDiscount,
+  settlePayments,
+  type CreateSale,
+} from "@/contracts/sales";
 import { ServiceError } from "@/domains/auth/errors";
 import { selectOpenSession } from "@/domains/cash/repository";
 import { selectCustomer } from "@/domains/customers/repository";
@@ -17,7 +23,7 @@ import {
   type SaleLine,
 } from "./repository";
 
-type Actor = { id: string };
+type Actor = { id: string; role: "ADMIN" | "CASHIER" };
 
 // fields.cash tells the sale screen to show the opening of the cash instead.
 const cashClosed = () =>
@@ -52,7 +58,9 @@ async function recordedSale(actor: Actor, input: CreateSale) {
     input.items.every((item) =>
       sale.items.some(
         (line) =>
-          line.productId === item.productId && line.quantity === item.quantity,
+          line.productId === item.productId &&
+          line.quantity === item.quantity &&
+          line.discount === item.discount,
       ),
     );
   if (!same)
@@ -101,29 +109,44 @@ export async function registerSale(
       await selectProductsForSale(input.items.map((item) => item.productId))
     ).map((product) => [product.id, product]),
   );
-  const lines: SaleLine[] = input.items.map(({ productId, quantity }) => {
-    const product = products.get(productId);
-    if (!product?.active)
-      throw new ServiceError(
-        409,
-        `${product?.name ?? "Um dos produtos"} não está mais à venda. Remova-o e finalize de novo.`,
-      );
-    return {
-      productId,
-      name: product.name,
-      unit: product.unit,
-      quantity,
-      unitPrice: product.sellPrice,
-      unitCost: product.costPrice,
-      total: lineTotal(product.sellPrice, quantity, product.unit),
-      cost: lineTotal(product.costPrice, quantity, product.unit),
-    };
-  });
+  let gross = 0;
+  const lines: SaleLine[] = input.items.map(
+    ({ productId, quantity, discount }) => {
+      const product = products.get(productId);
+      if (!product?.active)
+        throw new ServiceError(
+          409,
+          `${product?.name ?? "Um dos produtos"} não está mais à venda. Remova-o e finalize de novo.`,
+        );
+      const lineGross = lineTotal(product.sellPrice, quantity, product.unit);
+      if (discount > lineGross)
+        throw refuse(
+          "discount",
+          `O desconto em ${product.name} não pode passar do valor do item.`,
+        );
+      gross += lineGross;
+      return {
+        productId,
+        name: product.name,
+        unit: product.unit,
+        quantity,
+        unitPrice: product.sellPrice,
+        unitCost: product.costPrice,
+        discount,
+        total: lineGross - discount,
+        cost: lineTotal(product.costPrice, quantity, product.unit),
+      };
+    },
+  );
   const subtotal = lines.reduce((sum, line) => sum + line.total, 0);
-  if (subtotal > MAX_INTEGER || lines.some((line) => line.cost > MAX_INTEGER))
+  if (gross > MAX_INTEGER || lines.some((line) => line.cost > MAX_INTEGER))
     throw new ServiceError(422, "Total acima do limite. Divida a venda.");
   if (input.discount > subtotal)
     throw refuse("discount", "O desconto não pode passar do total da venda.");
+  // Items and sale together, against the items' value before any discount.
+  const limit = maxDiscount(gross, actor.role);
+  if (gross - subtotal + input.discount > limit)
+    throw refuse("discount", discountTooHigh(limit));
   const total = subtotal - input.discount;
   if (total !== input.total)
     throw new ServiceError(409, PRICE_CHANGED, {

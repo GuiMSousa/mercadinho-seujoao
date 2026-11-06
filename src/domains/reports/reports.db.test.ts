@@ -172,6 +172,8 @@ it("sums revenue, CMV, gross profit, margin, ticket and items by the store's cal
       { method: "DEBIT", count: 1, total: 300, percent: 4.7 },
       { method: "CREDIT", count: 0, total: 0, percent: 0 },
       { method: "ON_ACCOUNT", count: 1, total: 500, percent: 7.8 },
+      { method: "MEAL_VOUCHER", count: 0, total: 0, percent: 0 },
+      { method: "FOOD_VOUCHER", count: 0, total: 0, percent: 0 },
     ]);
     const names = (list: { name: string }[]) => list.map((p) => p.name);
     // 6 waters, 2 coffees, then 1,25 kg of banana.

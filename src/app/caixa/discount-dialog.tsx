@@ -6,8 +6,10 @@ import { Button } from "@ds/components/button";
 import { Dialog } from "@ds/components/dialog";
 import { Money } from "@ds/components/money";
 import { keypadCents } from "@ds/lib/keypad";
+import { discountTooHigh } from "@/contracts/sales";
 import { discountCents, type Discount } from "./checkout-payments";
 import { KeypadField } from "./keypad-field";
+import { brl } from "./receipt-text";
 
 const FORM_ID = "discount-form";
 const KINDS: { kind: Discount["kind"]; label: string }[] = [
@@ -15,15 +17,26 @@ const KINDS: { kind: Discount["kind"]; label: string }[] = [
   { kind: "percent", label: "Em %" },
 ];
 
-/** The sale's discount, in reais or in percent of the subtotal; never above the subtotal. */
+/**
+ * A discount on the sale or on one line, in reais or in percent of `subtotal`: never above it, nor
+ * above `limit`, what the profile may still give (`cap`, an operator's 5%, is in the message).
+ */
 export function DiscountDialog({
+  title,
+  description,
   subtotal,
+  limit,
+  cap,
   current,
   onApply,
   onClose,
   finalFocus,
 }: {
+  title: string;
+  description: string;
   subtotal: number;
+  limit: number;
+  cap: number;
   current: Discount | null;
   /** Null removes the discount. */
   onApply: (discount: Discount | null) => void;
@@ -41,7 +54,8 @@ export function DiscountDialog({
     event.preventDefault();
     if (kind === "percent" && value > 10000) return setError("Use até 100%.");
     if (cents > subtotal)
-      return setError("O desconto não pode passar do total da venda.");
+      return setError(`O desconto não pode passar de ${brl(subtotal)}.`);
+    if (cents > limit) return setError(discountTooHigh(cap));
     onApply(value === 0 ? null : { kind, value });
   }
 
@@ -51,8 +65,8 @@ export function DiscountDialog({
       onOpenChange={(open) => !open && onClose()}
       initialFocus={field}
       finalFocus={finalFocus}
-      title="Desconto"
-      description="Sobre o total dos itens."
+      title={title}
+      description={description}
       footer={
         <>
           {current && (

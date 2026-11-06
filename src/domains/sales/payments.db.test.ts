@@ -77,7 +77,7 @@ const sale = (
     Partial<Pick<CreateSale, "discount">>,
 ): CreateSale => ({
   id: randomUUID(),
-  items: [{ productId: coffee.id, quantity }],
+  items: [{ productId: coffee.id, quantity, discount: 0 }],
   discount: 0,
   ...rest,
 });
@@ -115,7 +115,9 @@ it("splits a discounted sale among cash, Pix and fiado, raising the customer's d
       customerId: customer.id,
     });
 
-    const receipt = await registerSale(user, input, TODAY);
+    // R$ 5,47 is above an operator's 5%: an ADMIN gives it.
+    const admin = { id: user.id, role: "ADMIN" as const };
+    const receipt = await registerSale(admin, input, TODAY);
 
     expect(receipt).toMatchObject({
       discount: 547,
@@ -144,7 +146,7 @@ it("splits a discounted sale among cash, Pix and fiado, raising the customer's d
     expect(row).toMatchObject({ customerId: customer.id, discount: 547 });
 
     // A retry after a lost answer charges nothing twice.
-    await expect(registerSale(user, input, TODAY)).resolves.toEqual(receipt);
+    await expect(registerSale(admin, input, TODAY)).resolves.toEqual(receipt);
     expect(await debtOf(db, customer.id)).toBe(1500);
     expect(await stockOf(db, coffee.id)).toBe(7);
   });
@@ -232,9 +234,9 @@ it("refuses a discount above the subtotal and payments that do not settle the to
     });
     expect(await stockOf(db, coffee.id)).toBe(10);
 
-    // A discount of the whole sale leaves nothing to pay.
+    // A discount of the whole sale (an ADMIN's) leaves nothing to pay.
     const free = await registerSale(
-      user,
+      { id: user.id, role: "ADMIN" },
       sale(coffee, 1, { discount: 1849, total: 0, payments: [] }),
       TODAY,
     );
@@ -317,3 +319,133 @@ it("lets only one of two concurrent fiado sales fit the credit limit", async () 
     }
   });
 }, 30_000);
+
+it("lets an operator give at most 5% of the items, items and sale together; an ADMIN all", async () => {
+  await withTestDb(async (db) => {
+    current = db;
+    const { user, category, coffee } = await seed(db);
+    const cashier = { id: user.id, role: "CASHIER" as const };
+    const admin = { id: user.id, role: "ADMIN" as const };
+    // 3 × R$ 18,49 = R$ 55,47 of items: an operator may give up to R$ 2,77.
+    const discounted = (itemDiscount: number, saleDiscount: number) => {
+      const total = 5547 - itemDiscount - saleDiscount;
+      return {
+        id: randomUUID(),
+        items: [{ productId: coffee.id, quantity: 3, discount: itemDiscount }],
+        discount: saleDiscount,
+        total,
+        payments: total > 0 ? [{ method: "PIX" as const, amount: total }] : [],
+      };
+    };
+
+    await expect(
+      registerSale(cashier, discounted(200, 78), TODAY),
+    ).rejects.toMatchObject({
+      status: 422,
+      message: expect.stringContaining("até 5%"),
+      options: { fields: { discount: expect.any(String) } },
+    });
+    expect(await stockOf(db, coffee.id)).toBe(10);
+    await expect(
+      registerSale(cashier, discounted(200, 77), TODAY),
+    ).resolves.toMatchObject({
+      discount: 77,
+      total: 5270,
+      items: [{ quantity: 3, unitPrice: 1849, discount: 200, total: 5347 }],
+    });
+
+    // Nobody takes more than an item is worth; an ADMIN may give it all.
+    await expect(
+      registerSale(admin, discounted(5548, 0), TODAY),
+    ).rejects.toMatchObject({
+      status: 422,
+      options: { fields: { discount: expect.any(String) } },
+    });
+    await expect(
+      registerSale(admin, discounted(5547, 0), TODAY),
+    ).resolves.toMatchObject({
+      total: 0,
+      items: [{ discount: 5547, total: 0 }],
+    });
+    expect(await stockOf(db, coffee.id)).toBe(4);
+
+    // A line's discount cannot spill onto another line, even with the sale still above zero.
+    const [tea] = await db
+      .insert(products)
+      .values({
+        barcode: `${randomUUID()}-cha`,
+        name: "Chá",
+        categoryId: category.id,
+        costPrice: 300,
+        sellPrice: 500,
+        unit: "UN",
+      })
+      .returning();
+    await db
+      .insert(inventoryBatches)
+      .values({ productId: tea.id, batchCode: "T", quantity: 5 });
+    await expect(
+      registerSale(
+        admin,
+        {
+          id: randomUUID(),
+          items: [
+            { productId: coffee.id, quantity: 1, discount: 2000 },
+            { productId: tea.id, quantity: 1, discount: 0 },
+          ],
+          discount: 0,
+          total: 349,
+          payments: [{ method: "PIX", amount: 349 }],
+        },
+        TODAY,
+      ),
+    ).rejects.toMatchObject({
+      status: 422,
+      message: "O desconto em Café não pode passar do valor do item.",
+    });
+  });
+});
+
+it("records vale-refeição and vale-alimentação as methods of their own, without change", async () => {
+  await withTestDb(async (db) => {
+    current = db;
+    const { user, coffee } = await seed(db);
+    // 2 × R$ 18,49 = R$ 36,98: R$ 20,00 on VR, R$ 16,98 on VA.
+    const input = sale(coffee, 2, {
+      total: 3698,
+      payments: [
+        { method: "MEAL_VOUCHER", amount: 2000 },
+        { method: "FOOD_VOUCHER", amount: 1698 },
+      ],
+    });
+    const receipt = await registerSale(user, input, TODAY);
+    expect(receipt).toMatchObject({
+      amountReceived: 3698,
+      change: 0,
+      payments: [
+        { method: "MEAL_VOUCHER", amount: 2000 },
+        { method: "FOOD_VOUCHER", amount: 1698 },
+      ],
+    });
+    expect(
+      await db
+        .select({ method: salePayments.method, amount: salePayments.amount })
+        .from(salePayments)
+        .where(eq(salePayments.saleId, input.id)),
+    ).toHaveLength(2);
+    // Like a card, a voucher pays its exact share: no change from it.
+    await expect(
+      registerSale(
+        user,
+        sale(coffee, 1, {
+          total: 1849,
+          payments: [{ method: "MEAL_VOUCHER", amount: 2000 }],
+        }),
+        TODAY,
+      ),
+    ).rejects.toMatchObject({
+      status: 422,
+      options: { fields: { payments: expect.any(String) } },
+    });
+  });
+});

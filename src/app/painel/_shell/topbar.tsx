@@ -5,11 +5,13 @@ import { ThemeControl } from "@/app/_components/theme-control";
 import { MobileDrawer } from "./mobile-drawer";
 import { NAV_ITEMS, isActive } from "./nav-items";
 import type { ShellProps } from "./sidebar";
+import { StockAlertsLink } from "./stock-alerts";
 
 export function Topbar({
   initialTheme,
+  stockAlerts,
   ...shell
-}: ShellProps & { initialTheme?: "light" | "dark" }) {
+}: ShellProps & { initialTheme?: "light" | "dark"; stockAlerts: number }) {
   const pathname = usePathname();
   const title =
     NAV_ITEMS.find((item) => isActive(item.href, pathname))?.label ?? "Painel";
@@ -19,6 +21,7 @@ export function Topbar({
       <h1 className="min-w-0 flex-1 truncate text-h3 font-medium tracking-tight text-strong">
         {title}
       </h1>
+      <StockAlertsLink initial={stockAlerts} />
       <ThemeControl variant="icon" initialTheme={initialTheme} />
     </header>
   );

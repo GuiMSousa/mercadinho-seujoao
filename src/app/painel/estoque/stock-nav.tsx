@@ -4,9 +4,10 @@ import { cn } from "@ds/lib/cn";
 const LINKS = [
   { href: "/painel/estoque", label: "Lotes e validade" },
   { href: "/painel/estoque/reposicao", label: "Reposição" },
+  { href: "/painel/estoque/historico", label: "Histórico" },
 ] as const;
 
-/** The two views of the stock: batches by product, and what to buy. */
+/** The views of the stock: batches by product, what to buy, and every movement. */
 export function StockNav({
   current,
 }: {
@@ -14,7 +15,7 @@ export function StockNav({
 }) {
   return (
     <nav aria-label="Estoque" className="flex">
-      <ul className="inline-flex gap-1 rounded-lg bg-surface-sunken p-1">
+      <ul className="inline-flex flex-wrap gap-1 rounded-lg bg-surface-sunken p-1">
         {LINKS.map((link) => (
           <li key={link.href}>
             <Link

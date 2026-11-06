@@ -99,17 +99,22 @@ async function quantities(db: Db, productId: string) {
 const saleCount = async (db: Db, id: string) =>
   (await db.select().from(sales).where(eq(sales.id, id))).length;
 
-// Paid in full by Pix unless the payments are given.
+type Item = { productId: string; quantity: number; discount?: number };
+
+// Paid in full by Pix unless the payments are given; items without a discount of their own.
 const sale = ({
   total = 0,
+  items = [],
   ...overrides
-}: Partial<CreateSale> = {}): CreateSale => ({
+}: Omit<Partial<CreateSale>, "items"> & {
+  items?: Item[];
+} = {}): CreateSale => ({
   id: randomUUID(),
-  items: [],
   discount: 0,
   total,
   payments: total > 0 ? [{ method: "PIX", amount: total }] : [],
   ...overrides,
+  items: items.map((item) => ({ discount: 0, ...item })),
 });
 
 it("refuses a sale with the cash closed, before and inside the transaction", async () => {
@@ -454,14 +459,14 @@ it("answers a repeated sale with the one recorded, and refuses the id for anothe
         user,
         {
           ...input,
-          items: [{ productId: coffee.id, quantity: 1 }],
+          items: [{ productId: coffee.id, quantity: 1, discount: 0 }],
           total: 1849,
         },
         TODAY,
       ),
     ).rejects.toMatchObject({ status: 409 });
     await expect(
-      registerSale({ id: randomUUID() }, input, TODAY),
+      registerSale({ id: randomUUID(), role: "CASHIER" }, input, TODAY),
     ).rejects.toMatchObject({ status: 409 });
     expect(await quantities(db, coffee.id)).toEqual([3]);
   });

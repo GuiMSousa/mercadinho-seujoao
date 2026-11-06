@@ -24,6 +24,7 @@ export const ACTIVITY_ACTIONS = [
   "Cliente cadastrado",
   "Cliente alterado",
   "Fiado recebido",
+  "Produtos importados",
 ] as const;
 
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];

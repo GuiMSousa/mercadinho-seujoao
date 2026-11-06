@@ -60,7 +60,8 @@ export function receiptText(store: ReceiptStore, receipt: SaleReceipt) {
     `Venda nº ${receipt.number} · ${formatDateTime(receipt.createdAt)}`,
     "",
     ...receipt.items.map(
-      (item) => `${item.name}\n${itemDetail(item)} = ${brl(item.total)}`,
+      (item) =>
+        `${item.name}\n${itemDetail(item)}${item.discount > 0 ? ` − ${brl(item.discount)} de desconto` : ""} = ${brl(item.total)}`,
     ),
     "",
     ...receiptTotals(receipt).map(([label, amount]) =>

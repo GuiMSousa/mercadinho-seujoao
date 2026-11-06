@@ -48,6 +48,7 @@ import { adminPaths } from "./openapi-admin";
 import { cashPaths } from "./openapi-cash";
 import { customersPaths, customersSchemas } from "./openapi-customers";
 import { healthPaths, healthSchemas } from "./openapi-health";
+import { stockPaths, stockSchemas } from "./openapi-stock";
 import { reportsPaths } from "./openapi-reports";
 import { suppliersPaths } from "./openapi-suppliers";
 import { inventoryPaths } from "./openapi-inventory";
@@ -141,6 +142,7 @@ export function buildOpenApiDocument() {
         Replenishment: jsonSchema(replenishmentSchema),
         ...customersSchemas,
         ...healthSchemas,
+        ...stockSchemas,
         CreateProductRequest: jsonSchema(createProductSchema, "input"),
         UpdateProductRequest: jsonSchema(updateProductSchema, "input"),
         BatchRow: jsonSchema(batchRowSchema),
@@ -314,6 +316,7 @@ export function buildOpenApiDocument() {
       ...suppliersPaths,
       ...customersPaths,
       ...healthPaths,
+      ...stockPaths,
       "/api/admin/activity": {
         get: {
           summary:

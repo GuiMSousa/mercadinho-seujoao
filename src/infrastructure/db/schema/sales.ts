@@ -87,6 +87,8 @@ export const saleItems = pgTable(
     quantity: integer("quantity").notNull(),
     unitPrice: integer("unit_price").notNull(),
     unitCost: integer("unit_cost").notNull(),
+    // Taken off this line only; `total` is the line after it (unit price × quantity − discount).
+    discount: integer("discount").notNull().default(0),
     total: integer("total").notNull(),
     cost: integer("cost").notNull(),
   },
@@ -94,7 +96,7 @@ export const saleItems = pgTable(
     primaryKey({ columns: [table.saleId, table.line] }),
     check(
       "sale_items_values_valid",
-      sql`${table.quantity} > 0 AND ${table.unitPrice} >= 0 AND ${table.unitCost} >= 0 AND ${table.total} >= 0 AND ${table.cost} >= 0`,
+      sql`${table.quantity} > 0 AND ${table.unitPrice} >= 0 AND ${table.unitCost} >= 0 AND ${table.total} >= 0 AND ${table.cost} >= 0 AND ${table.discount} >= 0`,
     ),
   ],
 );

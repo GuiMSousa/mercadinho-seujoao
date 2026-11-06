@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { PAYMENT_METHODS, PRODUCT_UNITS } from "./enums";
+import { formatBrl } from "@ds/lib/money";
+import { PAYMENT_METHODS, PRODUCT_UNITS, USER_ROLES } from "./enums";
 import { MAX_INTEGER, unitSchema } from "./inventory";
 
 type Unit = (typeof PRODUCT_UNITS)[number];
@@ -21,6 +22,22 @@ export function lineTotal(price: number, quantity: number, unit: Unit) {
 
 const amountSchema = (message: string) =>
   z.int(message).min(0, message).max(MAX_INTEGER, "Valor acima do limite.");
+
+// An operator (CASHIER) gives at most this share of the items' value in discounts, items and
+// sale together; an ADMIN may give it all.
+export const CASHIER_MAX_DISCOUNT_PERCENT = 5;
+
+/** The most discount, in cents, a profile may give on items worth `gross` before any discount. */
+export const maxDiscount = (
+  gross: number,
+  role: (typeof USER_ROLES)[number],
+) =>
+  role === "ADMIN"
+    ? gross
+    : Math.floor((gross * CASHIER_MAX_DISCOUNT_PERCENT) / 100);
+
+export const discountTooHigh = (limit: number) =>
+  `Operador pode dar até ${CASHIER_MAX_DISCOUNT_PERCENT}% de desconto na venda (${formatBrl(limit)}). Peça a um administrador.`;
 
 export const paymentMethodSchema = z.enum(
   PAYMENT_METHODS,
@@ -83,6 +100,10 @@ export const createSaleSchema = z
             .int("Informe uma quantidade inteira maior que zero.")
             .min(1, "Informe uma quantidade inteira maior que zero.")
             .max(MAX_SALE_QUANTITY, "Quantidade acima do limite."),
+          // In cents, off this line only; a percentage is worked out on the screen.
+          discount: amountSchema(
+            "Informe o desconto do item em centavos.",
+          ).default(0),
         }),
         "Adicione ao menos um item.",
       )
@@ -147,6 +168,8 @@ export const saleReceiptSchema = z.object({
       unit: unitSchema,
       quantity: z.int(),
       unitPrice: z.int(),
+      // Off this line; `total` already has it taken off.
+      discount: z.int(),
       total: z.int(),
     }),
   ),
@@ -161,6 +184,8 @@ export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   DEBIT: "Cartão de débito",
   CREDIT: "Cartão de crédito",
   ON_ACCOUNT: "Fiado",
+  MEAL_VOUCHER: "Vale-refeição (VR)",
+  FOOD_VOUCHER: "Vale-alimentação (VA)",
 };
 export type CreateSale = z.output<typeof createSaleSchema>;
 export type SaleReceipt = z.infer<typeof saleReceiptSchema>;

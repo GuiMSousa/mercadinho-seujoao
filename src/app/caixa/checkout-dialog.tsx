@@ -1,14 +1,5 @@
 "use client";
 
-import {
-  Banknote,
-  CreditCard,
-  NotebookPen,
-  QrCode,
-  Trash2,
-  WalletCards,
-  type LucideIcon,
-} from "lucide-react";
 import { useRef, useState, type FormEvent, type RefObject } from "react";
 import type { CustomerOption } from "@/contracts/customers";
 import {
@@ -21,52 +12,20 @@ import { FormAlert } from "@/app/(auth)/form-alert";
 import type { FormErrors } from "@/app/(auth)/auth-client";
 import { apiFetch } from "@/app/painel/_lib/api";
 import { centsToInput } from "@/app/painel/produtos/product-form";
+import { Trash2 } from "lucide-react";
 import { Button, IconButton } from "@ds/components/button";
 import { Dialog } from "@ds/components/dialog";
 import { Money } from "@ds/components/money";
 import { useToast } from "@ds/components/toast";
 import { keypadCents } from "@ds/lib/keypad";
-import { cartTotal, type CartLine } from "./cart";
+import { cartTotal, lineDiscount, type CartLine } from "./cart";
 import { nextStep, paidSoFar } from "./checkout-payments";
 import { availableCredit, CustomerPicker } from "./customer-picker";
 import { KeypadField } from "./keypad-field";
+import { METHODS, methodForKey } from "./payment-methods";
 import { brl } from "./receipt-text";
 
 const FORM_ID = "checkout-form";
-
-const METHODS: {
-  value: PaymentMethod;
-  label: string;
-  icon: LucideIcon;
-  /** The amount field's label with this method chosen. */
-  field: string;
-}[] = [
-  {
-    value: "CASH",
-    label: "Dinheiro",
-    icon: Banknote,
-    field: "Valor recebido em dinheiro",
-  },
-  { value: "PIX", label: "Pix", icon: QrCode, field: "Valor no Pix" },
-  {
-    value: "DEBIT",
-    label: "Débito",
-    icon: WalletCards,
-    field: "Valor no débito",
-  },
-  {
-    value: "CREDIT",
-    label: "Crédito",
-    icon: CreditCard,
-    field: "Valor no crédito",
-  },
-  {
-    value: "ON_ACCOUNT",
-    label: "Fiado",
-    icon: NotebookPen,
-    field: "Valor no fiado",
-  },
-];
 
 /**
  * Payment of the sale, split among methods if needed: each confirmed amount below what is left
@@ -170,6 +129,7 @@ export function CheckoutDialog({
         items: cart.map((line) => ({
           productId: line.id,
           quantity: line.quantity,
+          discount: lineDiscount(line),
         })),
         discount,
         total,
@@ -233,6 +193,19 @@ export function CheckoutDialog({
         id={FORM_ID}
         noValidate
         onSubmit={(event) => void submit(event)}
+        // Letters pick a method (D, P, B, C, F, R, A); the customer search keeps them for typing.
+        onKeyDown={(event) => {
+          const target = event.target as HTMLElement;
+          const typing =
+            target instanceof HTMLInputElement && target.inputMode !== "none";
+          const next =
+            typing || event.ctrlKey || event.altKey || event.metaKey
+              ? undefined
+              : methodForKey(event.key);
+          if (!next || pending) return;
+          event.preventDefault();
+          choose(next);
+        }}
         className="grid gap-6 md:grid-cols-2"
       >
         <div className="flex min-w-0 flex-col gap-5">
@@ -293,17 +266,21 @@ export function CheckoutDialog({
               Forma de pagamento
             </legend>
             <div className="grid grid-cols-2 gap-2">
-              {METHODS.map(({ value, label, icon: Icon }) => (
+              {METHODS.map(({ value, label, icon: Icon, key }) => (
                 <Button
                   key={value}
                   variant={method === value ? "primary" : "secondary"}
                   size="counter"
                   aria-pressed={method === value}
+                  aria-keyshortcuts={key}
                   disabled={pending}
                   onClick={() => choose(value)}
                 >
                   <Icon aria-hidden="true" />
                   {label}
+                  <kbd className="rounded-xs border border-current px-1.5 text-body-lg font-normal max-sm:hidden">
+                    {key}
+                  </kbd>
                 </Button>
               ))}
             </div>
