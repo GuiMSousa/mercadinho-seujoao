@@ -6,7 +6,8 @@ import { Table, type TableColumn } from "@ds/components/table";
 import { formatBrl } from "@ds/lib/money";
 import { formatDateTime } from "../_lib/format";
 import { Pagination } from "../_lib/pagination";
-import { formatPercent, marginBadge } from "./report-format";
+import { formatPercent } from "@/lib/formatters";
+import { marginBadge } from "./report-format";
 
 type Sale = ReportSalesPage["sales"][number];
 

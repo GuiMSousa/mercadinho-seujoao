@@ -3,6 +3,7 @@ import { inventoryPageSchema } from "@/contracts/inventory";
 import { listInventory } from "@/domains/inventory/service";
 import { requireAdmin } from "../_lib/require-admin";
 import { InventoryView } from "./inventory-view";
+import { StockNav } from "./stock-nav";
 
 export const metadata: Metadata = { title: "Estoque — Mkt Control" };
 
@@ -12,5 +13,10 @@ export default async function InventoryPage() {
   const initial = inventoryPageSchema.parse(
     await listInventory({ search: "", page: 1 }),
   );
-  return <InventoryView initial={initial} />;
+  return (
+    <div className="mx-auto flex max-w-350 flex-col gap-6">
+      <StockNav current="/painel/estoque" />
+      <InventoryView initial={initial} />
+    </div>
+  );
 }

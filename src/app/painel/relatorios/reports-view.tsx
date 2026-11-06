@@ -8,7 +8,7 @@ import { useToast } from "@ds/components/toast";
 import { apiFetch } from "../_lib/api";
 import { PaymentBars } from "./payment-bars";
 import { PeriodFilter, type PeriodQuery } from "./period-filter";
-import { formatDay } from "./report-format";
+import { formatDay } from "@/lib/formatters";
 import { SalesHistory } from "./sales-history";
 import { SummaryCards } from "./summary-cards";
 import { TopProducts } from "./top-products";

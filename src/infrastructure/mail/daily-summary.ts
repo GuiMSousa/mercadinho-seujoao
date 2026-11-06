@@ -1,12 +1,8 @@
 import type { FinancialReport } from "@/contracts/reports";
 import { PAYMENT_LABELS } from "@/contracts/sales";
+import { formatDay, formatPercent } from "@/lib/formatters";
 import { formatBrl } from "@ds/lib/money";
 import type { MailContent } from "./templates";
-
-const percent = new Intl.NumberFormat("pt-BR", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
 
 /** Store and product names come from people: never let them become markup. */
 export const escapeHtml = (value: string) =>
@@ -16,12 +12,6 @@ export const escapeHtml = (value: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
-
-/** "2026-11-05" → "05/11/2026". */
-const localDate = (date: string) => date.split("-").reverse().join("/");
-
-const percentText = (value: number | null) =>
-  value === null ? "—" : `${percent.format(value)}%`;
 
 type Row = [label: string, value: string];
 
@@ -43,12 +33,12 @@ export function dailySummaryMail(input: {
 }): MailContent & { html: string } {
   const { storeName, report } = input;
   const { summary } = report;
-  const day = localDate(report.period.from);
+  const day = formatDay(report.period.from);
   const figures: Row[] = [
     ["Faturamento bruto", formatBrl(summary.revenue)],
     ["CMV", formatBrl(summary.cogs)],
     ["Lucro bruto", formatBrl(summary.grossProfit)],
-    ["Margem bruta", percentText(summary.marginPercent)],
+    ["Margem bruta", formatPercent(summary.marginPercent)],
     [
       "Ticket médio",
       summary.averageTicket === null ? "—" : formatBrl(summary.averageTicket),
@@ -60,7 +50,7 @@ export function dailySummaryMail(input: {
     PAYMENT_LABELS[payment.method],
     String(payment.count),
     formatBrl(payment.total),
-    percentText(payment.percent),
+    formatPercent(payment.percent),
   ]);
   const top = report.top.byRevenue.map((product) => [
     product.name,

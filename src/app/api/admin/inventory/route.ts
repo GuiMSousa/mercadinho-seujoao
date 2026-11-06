@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { inventoryPageSchema, listQuerySchema } from "@/contracts/inventory";
 import { listInventory } from "@/domains/inventory/service";
-import { adminRoute } from "../../_lib/admin";
+import { sessionRoute } from "../../_lib/session-route";
 import { errorResponse } from "../../_lib/guard";
 
 export function GET(request: NextRequest) {
-  return adminRoute(request, async () => {
+  return sessionRoute(request, async () => {
     const query = listQuerySchema.safeParse(
       Object.fromEntries(request.nextUrl.searchParams),
     );

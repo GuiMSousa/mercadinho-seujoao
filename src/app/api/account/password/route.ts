@@ -2,11 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { changePasswordSchema } from "@/contracts/account";
 import { passwordCheckRateLimiter } from "@/domains/auth/login-rate-limit";
 import { changePassword } from "@/domains/users/service";
-import { adminBodyRoute } from "../../_lib/admin";
+import { sessionBodyRoute } from "../../_lib/session-route";
 import { tooManyResponse } from "../../_lib/public";
 
 export function POST(request: NextRequest) {
-  return adminBodyRoute(
+  return sessionBodyRoute(
     request,
     changePasswordSchema,
     async ({ current, next }, session) => {

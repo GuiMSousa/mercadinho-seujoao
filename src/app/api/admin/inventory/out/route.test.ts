@@ -37,6 +37,18 @@ it("takes stock out in the name of the session user", async () => {
   });
 });
 
+it("passes the client id on, so a retry takes the stock once", async () => {
+  vi.mocked(consumeStock).mockResolvedValue([]);
+  const id = "8c3f1f7a-3c1e-4a3b-9f0e-2f6a1d7c5b40";
+  expect((await post({ ...input, id })).status).toBe(200);
+  expect(consumeStock).toHaveBeenCalledWith({
+    ...input,
+    id,
+    userId: SESSION_USER.id,
+  });
+  expect((await post({ ...input, id: "x" })).status).toBe(422);
+});
+
 it("refuses a CASHIER, a missing CSRF token and invalid input", async () => {
   expect((await post(input, "CASHIER")).status).toBe(403);
   expect((await post(input, "ADMIN", false)).status).toBe(403);

@@ -7,7 +7,8 @@
 - **Semana 3:** EM EXECUÇÃO (PDV e recibos entregues; leitor por câmera pendente)
 - **Semana 4:** ENTREGUE (caixa diário, 2026-11-05)
 - **Semana 5:** ENTREGUE (relatórios financeiros, 2026-11-05)
-- **Semanas 6 a 9:** PLANEJADAS
+- **Semana 6:** ENTREGUE (fornecedores, reposição e pedido por WhatsApp, 2026-11-05)
+- **Semanas 7 a 9:** PLANEJADAS
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
@@ -76,7 +77,9 @@ Em `/painel/relatorios`: períodos no fuso da loja, faturamento, CMV, lucro, mar
 - Margem de Lucro (%) com destaque de cor e Ticket Médio.
 - Gravação do custo histórico da mercadoria na venda e fuso horário local.
 
-### Semana 6 — Estoque, Lotes e Alerta de Reposição
+### Semana 6 — Estoque, Lotes e Alerta de Reposição (ENTREGUE em 2026-11-05)
+
+Fornecedores em `/painel/fornecedores`, fornecedor padrão no produto, reposição em `/painel/estoque/reposicao` (2 × mínimo − estoque, agrupada por fornecedor) e pedido por WhatsApp. Junto, a blindagem da auditoria: backup do banco (`scripts/backup-db.*`), baixa manual idempotente, leitura do relatório num só instante e o atalho de rota renomeado para `sessionRoute`. Fica para depois o indicador de alerta no topo do painel.
 
 - Campo `estoque_minimo` no cadastro e edição de produtos.
 - Controle de produtos por lote e validade com regra PVPS (Primeiro que Vence, Primeiro que Sai).

@@ -5,11 +5,11 @@ import {
   usersListResponseSchema,
 } from "@/contracts/users";
 import { inviteUser, listUsers } from "@/domains/users/service";
-import { adminBodyRoute, adminRoute } from "../../_lib/admin";
+import { sessionBodyRoute, sessionRoute } from "../../_lib/session-route";
 
 // ADMIN only: the shared access rule refuses CASHIER here as well as in the proxy.
 export function GET(request: NextRequest) {
-  return adminRoute(request, async () =>
+  return sessionRoute(request, async () =>
     NextResponse.json(
       usersListResponseSchema.parse({ users: await listUsers() }),
     ),
@@ -17,7 +17,7 @@ export function GET(request: NextRequest) {
 }
 
 export function POST(request: NextRequest) {
-  return adminBodyRoute(request, inviteUserSchema, async (input, session) =>
+  return sessionBodyRoute(request, inviteUserSchema, async (input, session) =>
     NextResponse.json(
       userRowSchema.parse(await inviteUser(session.user, input)),
       { status: 201 },

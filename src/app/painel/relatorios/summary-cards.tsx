@@ -2,7 +2,8 @@ import type { FinancialReport } from "@/contracts/reports";
 import { Badge } from "@ds/components/badge";
 import { Card } from "@ds/components/card";
 import { Money } from "@ds/components/money";
-import { formatPercent, marginBadge } from "./report-format";
+import { formatPercent } from "@/lib/formatters";
+import { marginBadge } from "./report-format";
 
 const count = new Intl.NumberFormat("pt-BR");
 

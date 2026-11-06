@@ -20,6 +20,3 @@ export function expiryLabel(daysLeft: number | null) {
   if (daysLeft === 1) return "Vence amanhã";
   return `Vence em ${daysLeft} dias`;
 }
-
-/** "2026-12-01" to "01/12/2026"; a calendar date, so no time zone is involved. */
-export const formatDate = (date: string) => date.split("-").reverse().join("/");

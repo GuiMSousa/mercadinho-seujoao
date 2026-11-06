@@ -15,15 +15,11 @@ import { Input } from "@ds/components/input";
 import { Table, type TableColumn } from "@ds/components/table";
 import { Pagination } from "../_lib/pagination";
 import { usePagedList } from "../_lib/use-paged-list";
+import { formatDay } from "@/lib/formatters";
 import { formatQuantity } from "../produtos/product-form";
 import { BatchDialog } from "./batch-dialog";
 import { OutDialog } from "./out-dialog";
-import {
-  expiryLabel,
-  formatDate,
-  SIGNAL_LABEL,
-  SIGNAL_TONE,
-} from "./signal-labels";
+import { expiryLabel, SIGNAL_LABEL, SIGNAL_TONE } from "./signal-labels";
 
 function Legend() {
   return (
@@ -81,7 +77,7 @@ function ProductBatches({
       // On phones the badge already says how long is left.
       className: "hidden sm:table-cell",
       render: (batch) =>
-        batch.expirationDate ? formatDate(batch.expirationDate) : "—",
+        batch.expirationDate ? formatDay(batch.expirationDate) : "—",
     },
     {
       key: "quantity",

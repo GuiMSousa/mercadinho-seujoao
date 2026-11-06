@@ -1,7 +1,7 @@
 import "server-only";
 import { and, desc, eq, gte, lt, sql, type SQLWrapper } from "drizzle-orm";
 import type { ReportPeriod } from "@/contracts/reports";
-import { getDb } from "@/infrastructure/db";
+import { getDb, type Tx } from "@/infrastructure/db";
 import { products, saleItems, sales, users } from "@/infrastructure/db/schema";
 import { STORE_TIME_ZONE } from "@/lib/store-time";
 
@@ -21,19 +21,29 @@ const inPeriod = ({ from, to }: ReportPeriod) =>
     ),
   );
 
+/**
+ * Runs a report's reads on one snapshot (repeatable read): a sale committed halfway cannot count in
+ * the CMV and miss the revenue. Read only, so nothing in a report can ever write.
+ */
+export const readReport = <T>(read: (tx: Tx) => Promise<T>) =>
+  getDb().transaction(read, {
+    isolationLevel: "repeatable read",
+    accessMode: "read only",
+  });
+
 // Sums are bigint in PostgreSQL; the amounts of one store fit a JS number exactly.
 const total = (column: SQLWrapper) =>
   sql`coalesce(sum(${column}), 0)`.mapWith(Number);
 
-export async function selectTotals(period: ReportPeriod) {
-  const [salesTotals] = await getDb()
+export async function selectTotals(db: Tx, period: ReportPeriod) {
+  const [salesTotals] = await db
     .select({
       revenue: total(sales.total),
       salesCount: sql`count(*)`.mapWith(Number),
     })
     .from(sales)
     .where(inPeriod(period));
-  const [itemTotals] = await getDb()
+  const [itemTotals] = await db
     .select({
       cogs: total(saleItems.cost),
       // Units of UN products; a weighed line (grams or milliliters) is one item.
@@ -47,8 +57,8 @@ export async function selectTotals(period: ReportPeriod) {
   return { ...salesTotals, ...itemTotals };
 }
 
-export function selectPaymentTotals(period: ReportPeriod) {
-  return getDb()
+export function selectPaymentTotals(db: Tx, period: ReportPeriod) {
+  return db
     .select({
       method: sales.paymentMethod,
       count: sql`count(*)`.mapWith(Number),
@@ -71,10 +81,11 @@ const RANKINGS = {
 
 /** The five products that sold most in the period by `ranking`, with what each brought in. */
 export function selectTopProducts(
+  db: Tx,
   period: ReportPeriod,
   ranking: keyof typeof RANKINGS,
 ) {
-  return getDb()
+  return db
     .select({
       productId: saleItems.productId,
       name: products.name,
@@ -92,15 +103,16 @@ export function selectTopProducts(
     .limit(5);
 }
 
-export const countSales = (period: ReportPeriod) =>
-  getDb().$count(sales, inPeriod(period));
+export const countSales = (db: Tx, period: ReportPeriod) =>
+  db.$count(sales, inPeriod(period));
 
 /** One page of the period's sales, newest first, with the CMV recorded on each. */
 export function selectSalesPage(
+  db: Tx,
   period: ReportPeriod,
   page: { limit: number; offset: number },
 ) {
-  return getDb()
+  return db
     .select({
       id: sales.id,
       number: sales.number,

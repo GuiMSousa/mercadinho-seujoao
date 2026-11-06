@@ -4,10 +4,10 @@ import {
   consumeStockSchema,
 } from "@/contracts/inventory";
 import { consumeStock } from "@/domains/inventory/service";
-import { adminBodyRoute } from "../../../_lib/admin";
+import { sessionBodyRoute } from "../../../_lib/session-route";
 
 export function POST(request: NextRequest) {
-  return adminBodyRoute(request, consumeStockSchema, async (input, session) =>
+  return sessionBodyRoute(request, consumeStockSchema, async (input, session) =>
     NextResponse.json(
       consumeStockResponseSchema.parse({
         allocations: await consumeStock({

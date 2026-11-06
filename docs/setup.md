@@ -164,6 +164,20 @@ Resultados contra o servidor real:
 
 Os usuários temporários (`teste.admin`, `teste.caixa`) e os arquivos com suas senhas foram removidos; a tabela `users` ficou vazia.
 
+## Backup do banco
+
+Os scripts `scripts/backup-db.ps1` (Windows) e `scripts/backup-db.sh` (Linux, macOS ou Git Bash) rodam `pg_dump` dentro do contêiner do Compose (serviço `postgres`) e gravam um arquivo comprimido em `backups/<banco>-<data-hora>.dump`. A pasta fica fora do Git (`.gitignore`), porque guarda dados pessoais e financeiros.
+
+- **Como funciona:** o dump é feito dentro do contêiner, conferido com `pg_restore --list` e copiado com `docker cp`, para nenhum shell alterar os bytes. Só o usuário e o nome do banco são lidos do `.env.local`; nenhuma senha passa pelo script ou pela tela. Os dumps com mais de 30 dias são apagados (`-KeepDays 30` / primeiro argumento do `.sh`).
+- **Rodar à mão:** `pwsh -NoProfile -File scripts/backup-db.ps1` ou `sh scripts/backup-db.sh`. Exige o banco no ar (`npm run db:up`).
+- **Agendar no Windows** (todo dia às 22h30, como o usuário logado):
+  `schtasks /Create /SC DAILY /ST 22:30 /TN "Mkt Control - backup" /TR "pwsh -NoProfile -File C:\mercadinho-seujoao\mercadinho-seujoao\scripts\backup-db.ps1"`
+- **Agendar no Linux:** `crontab -e` com `30 22 * * * cd /caminho/do/projeto && sh scripts/backup-db.sh >> backups/backup.log 2>&1`.
+- **Fora do PC:** copie `backups/` para outro disco ou nuvem; um backup no mesmo disco não sobrevive a uma falha dele.
+- **Restaurar** (substitui os dados do banco; faça só com o app parado e depois de um backup novo):
+  `docker cp backups/<arquivo>.dump <contêiner>:/tmp/restore.dump` e `docker exec <contêiner> pg_restore -U <usuário> -d <banco> --clean --if-exists /tmp/restore.dump`. O contêiner sai de `docker compose --env-file .env.local ps -q postgres`.
+- **Verificado em 2026-11-05:** os dois scripts geraram dumps válidos do banco de desenvolvimento (14 tabelas com dados listadas pelo `pg_restore --list`).
+
 ## Pendências e próxima entrega
 
 - **Externas ou do usuário:**

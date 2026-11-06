@@ -92,6 +92,8 @@ export const inventoryMovements = pgTable(
     type: inventoryMovementType("type").notNull(),
     quantity: integer("quantity").notNull(),
     reason: text("reason").notNull().default(""),
+    // The write-off these movements belong to, chosen by the client: a repeated id is a retry.
+    operationId: uuid("operation_id"),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
@@ -104,5 +106,6 @@ export const inventoryMovements = pgTable(
       table.productId,
       table.createdAt.desc(),
     ),
+    index("inventory_movements_operation_idx").on(table.operationId),
   ],
 );

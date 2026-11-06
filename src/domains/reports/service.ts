@@ -13,6 +13,7 @@ import { marginPercent, share, summarize } from "./finance";
 import { resolvePeriod } from "./period";
 import {
   countSales,
+  readReport,
   selectPaymentTotals,
   selectSalesPage,
   selectTopProducts,
@@ -34,14 +35,15 @@ export async function getFinancialReport(
   today = todayInStore(),
 ) {
   const period = resolvePeriod(query, today);
-  const [totals, paymentRows, byQuantity, byRevenue, byProfit] =
-    await Promise.all([
-      selectTotals(period),
-      selectPaymentTotals(period),
-      selectTopProducts(period, "quantity"),
-      selectTopProducts(period, "revenue"),
-      selectTopProducts(period, "profit"),
-    ]);
+  // One snapshot, read in order: a transaction has a single connection.
+  const { totals, paymentRows, byQuantity, byRevenue, byProfit } =
+    await readReport(async (tx) => ({
+      totals: await selectTotals(tx, period),
+      paymentRows: await selectPaymentTotals(tx, period),
+      byQuantity: await selectTopProducts(tx, period, "quantity"),
+      byRevenue: await selectTopProducts(tx, period, "revenue"),
+      byProfit: await selectTopProducts(tx, period, "profit"),
+    }));
   const summary = summarize(totals);
   return {
     period,
@@ -67,14 +69,21 @@ export async function listReportSales(
   today = todayInStore(),
 ) {
   const period = resolvePeriod(query, today);
-  const total = await countSales(period);
-  const page = Math.min(
-    query.page,
-    Math.max(1, Math.ceil(total / SALES_PER_PAGE)),
-  );
-  const rows = await selectSalesPage(period, {
-    limit: SALES_PER_PAGE,
-    offset: (page - 1) * SALES_PER_PAGE,
+  // Count and page from one snapshot, so the pager agrees with the rows it shows.
+  const { total, page, rows } = await readReport(async (tx) => {
+    const count = await countSales(tx, period);
+    const current = Math.min(
+      query.page,
+      Math.max(1, Math.ceil(count / SALES_PER_PAGE)),
+    );
+    return {
+      total: count,
+      page: current,
+      rows: await selectSalesPage(tx, period, {
+        limit: SALES_PER_PAGE,
+        offset: (current - 1) * SALES_PER_PAGE,
+      }),
+    };
   });
   return {
     period,

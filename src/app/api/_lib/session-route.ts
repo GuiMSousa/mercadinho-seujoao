@@ -10,10 +10,12 @@ import {
 } from "./public";
 
 /**
- * Shared shape of the ADMIN routes: guard (session, role and CSRF), then `run` with the session.
+ * Shared shape of the routes that need a session: guard (session, CSRF and the shared access rule),
+ * then `run` with the session. It does not restrict a profile by itself: only the ADMIN prefixes
+ * of `accessDenial` (`/painel`, `/api/admin`, `/api/account`, `/api/store`) are ADMIN-only.
  * A ServiceError becomes `{ error, fields? }` with its status.
  */
-export async function adminRoute(
+export async function sessionRoute(
   request: NextRequest,
   run: (session: AuthSession) => Promise<NextResponse>,
 ) {
@@ -27,13 +29,13 @@ export async function adminRoute(
   }
 }
 
-/** Like `adminRoute` for a JSON body: not JSON is 400, a body that fails the schema is 422 with `fields`. */
-export function adminBodyRoute<S extends z.ZodType>(
+/** Like `sessionRoute` for a JSON body: not JSON is 400, a body that fails the schema is 422 with `fields`. */
+export function sessionBodyRoute<S extends z.ZodType>(
   request: NextRequest,
   schema: S,
   run: (input: z.output<S>, session: AuthSession) => Promise<NextResponse>,
 ) {
-  return adminRoute(request, async (session) => {
+  return sessionRoute(request, async (session) => {
     const body: unknown = await request.json().catch(() => undefined);
     if (body === undefined) return errorResponse(400);
     const input = schema.safeParse(body);

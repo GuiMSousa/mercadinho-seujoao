@@ -20,8 +20,8 @@ const daysBetween = (from: string, to: string) =>
 export const reportQuerySchema = z
   .object({
     period: z.enum(REPORT_PERIODS).default("today"),
-    from: z.iso.date().optional(),
-    to: z.iso.date().optional(),
+    from: z.iso.date("Informe a data no formato AAAA-MM-DD.").optional(),
+    to: z.iso.date("Informe a data no formato AAAA-MM-DD.").optional(),
     page: z.coerce.number().int().min(1).default(1),
   })
   .superRefine((query, context) => {

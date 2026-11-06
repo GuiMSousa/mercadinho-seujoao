@@ -7,6 +7,7 @@ import type {
   ProductRow,
   ProductsPage,
 } from "@/contracts/inventory";
+import type { SupplierOption } from "@/contracts/suppliers";
 import { stockSignal } from "@/domains/inventory/semaphore";
 import { Badge } from "@ds/components/badge";
 import { Button, IconButton } from "@ds/components/button";
@@ -54,9 +55,11 @@ type OpenDialog =
 export function ProductsView({
   initial,
   categories,
+  suppliers,
 }: {
   initial: ProductsPage;
   categories: CategoryRow[];
+  suppliers: SupplierOption[];
 }) {
   const {
     data,
@@ -213,6 +216,7 @@ export function ProductsView({
         <ProductDialog
           product={dialog.product}
           categories={categories}
+          suppliers={suppliers}
           onClose={close}
           onSaved={() => void reload()}
         />

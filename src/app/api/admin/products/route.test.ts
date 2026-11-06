@@ -31,6 +31,8 @@ const row = {
   active: true,
   stock: 0,
   hasBatches: false,
+  defaultSupplierId: null,
+  supplierCode: "",
 };
 const post = (role: "ADMIN" | "CASHIER" = "ADMIN", body: unknown = input) =>
   callRoute(POST, { url, method: "POST", role, body });
@@ -72,6 +74,8 @@ it("creates a product with the defaults and trimmed values", async () => {
     barcode: "7890000123457",
     minStock: 0,
     active: true,
+    defaultSupplierId: null,
+    supplierCode: "",
   });
 });
 

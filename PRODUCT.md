@@ -194,9 +194,20 @@ Tela `/painel/relatorios`, só `ADMIN`:
 
 Critério atendido: o total de cada período é a soma das vendas do período, e o CMV é o custo gravado na venda, não o custo atual do catálogo (ver docs/quality.md).
 
+## Fornecedores e reposição (entregue em 2026-11-05)
+
+- `/painel/fornecedores` (só `ADMIN`): cadastro com busca, edição e inativação; CNPJ/CPF opcional e único, WhatsApp com DDD, contato e e-mail.
+- `/painel/produtos`: cada produto pode ter um fornecedor padrão e o código que esse fornecedor usa. Um fornecedor inativo não pode ser escolhido de novo.
+- `/painel/estoque/reposicao`: produtos ativos no estoque mínimo ou abaixo, ou com lote vencido ou vencendo em até 30 dias (semáforo amarelo e vermelho), com a sugestão de compra 2 × mínimo − estoque (nunca negativa), agrupados pelo fornecedor padrão ativo.
+- Botão "Enviar pedido" por fornecedor: link `wa.me` para o WhatsApp dele (com 55 quando falta), com os dados da loja, os itens a comprar, o código no fornecedor e as quantidades. O envio é feito pela pessoa no WhatsApp; nenhuma API paga.
+
+Critério atendido: produtos com estoque igual ou abaixo do mínimo aparecem em amarelo (vermelho com o estoque zerado) e entram na lista de reposição (ver docs/quality.md).
+
+Ficam para depois: alerta diário de reposição por e-mail, histórico de pedidos e previsão de compras (semana 8).
+
 ## Próxima entrega
 
-**Alertas de validade e estoque mínimo e relatório de reposição** (MVP item 5). Calendário em [ROADMAP.md](ROADMAP.md).
+**PWA instalável e leitor por câmera** (MVP item 7), que dependem do HTTPS do túnel. Calendário em [ROADMAP.md](ROADMAP.md).
 
 **Endurecimento pendente:** CSP com nonce (scripts só do próprio servidor), numa tarefa própria de segurança.
 

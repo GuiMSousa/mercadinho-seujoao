@@ -41,6 +41,8 @@ const product = {
   active: true,
   stock: 3,
   hasBatches: true,
+  defaultSupplierId: null,
+  supplierCode: "",
 };
 
 it("changes only the fields sent, and never resets the defaults", async () => {

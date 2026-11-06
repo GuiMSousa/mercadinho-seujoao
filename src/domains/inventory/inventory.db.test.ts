@@ -522,6 +522,8 @@ it("creates products and categories, refusing repeats and unknown categories", a
       minStock: 6,
       unit: "UN" as const,
       active: true,
+      defaultSupplierId: null,
+      supplierCode: "",
     };
 
     await expect(createProduct(user, input)).resolves.toMatchObject({

@@ -1,10 +1,6 @@
 import "server-only";
 import { and, asc, eq, exists, gt, ilike, inArray, or, sql } from "drizzle-orm";
-import type {
-  CreateBatch,
-  CreateProduct,
-  UpdateProduct,
-} from "@/contracts/inventory";
+import type { CreateBatch, CreateProduct } from "@/contracts/inventory";
 import { getDb } from "@/infrastructure/db";
 import {
   categories,
@@ -35,6 +31,16 @@ const stock = sql`coalesce(sum(${inventoryBatches.quantity}), 0)`.mapWith(
 /** Whether a batch with stock is past its date on `today`; such a batch is always the first PVPS takes. */
 const hasExpired = (today: string) =>
   sql<boolean>`coalesce(bool_or(${inventoryBatches.quantity} > 0 AND ${inventoryBatches.expirationDate} < ${today}), false)`;
+
+// The default supplier and its code. Explicit names: the subquery must read the outer product.
+const defaultSupplier = (column: "supplier_id" | "supplier_code") =>
+  sql.raw(
+    `(SELECT ps.${column} FROM product_suppliers ps WHERE ps.product_id = "products"."id" AND ps.is_default)`,
+  );
+const supplierColumns = {
+  defaultSupplierId: sql<string | null>`${defaultSupplier("supplier_id")}`,
+  supplierCode: sql<string>`coalesce(${defaultSupplier("supplier_code")}, '')`,
+};
 
 // Batches are never deleted, so this also tells whether the product has any history.
 const hasBatches = sql<boolean>`count(${inventoryBatches.id}) > 0`;
@@ -68,9 +74,12 @@ type ProductScope = {
   inUseOnly: boolean;
 };
 
+/** ILIKE pattern for "contains": what the person typed is literal text, not LIKE wildcards. */
+export const containsPattern = (search: string) =>
+  `%${search.replace(/[\\%_]/g, "\\$&")}%`;
+
 function matches(search: string) {
-  // What the person typed is literal text, not LIKE wildcards.
-  const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`;
+  const pattern = containsPattern(search);
   return or(ilike(products.name, pattern), ilike(products.barcode, pattern));
 }
 
@@ -105,7 +114,7 @@ export function selectProductsPage(
   page: { limit: number; offset: number },
 ) {
   return getDb()
-    .select({ ...productColumns, stock, hasBatches })
+    .select({ ...productColumns, stock, hasBatches, ...supplierColumns })
     .from(products)
     .leftJoin(inventoryBatches, eq(inventoryBatches.productId, products.id))
     .where(inScope(scope))
@@ -143,7 +152,7 @@ export function selectBatchesWithStock(productIds: string[]) {
 
 export async function selectProduct(id: string) {
   const [row] = await getDb()
-    .select({ ...productColumns, stock, hasBatches })
+    .select({ ...productColumns, stock, hasBatches, ...supplierColumns })
     .from(products)
     .leftJoin(inventoryBatches, eq(inventoryBatches.productId, products.id))
     .where(eq(products.id, id))
@@ -205,7 +214,9 @@ export function selectProductsForSale(ids: string[]) {
     .where(inArray(products.id, ids));
 }
 
-export async function insertProduct(values: CreateProduct) {
+type ProductValues = Omit<CreateProduct, "defaultSupplierId" | "supplierCode">;
+
+export async function insertProduct(values: ProductValues) {
   const [row] = await getDb()
     .insert(products)
     .values(values)
@@ -213,7 +224,10 @@ export async function insertProduct(values: CreateProduct) {
   return row;
 }
 
-export async function updateProductRow(id: string, values: UpdateProduct) {
+export async function updateProductRow(
+  id: string,
+  values: Partial<ProductValues>,
+) {
   const [row] = await getDb()
     .update(products)
     .set(values)

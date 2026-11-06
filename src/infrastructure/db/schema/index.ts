@@ -7,3 +7,4 @@ export * from "./activity-log";
 export * from "./inventory";
 export * from "./cash";
 export * from "./sales";
+export * from "./suppliers";

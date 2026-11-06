@@ -46,3 +46,6 @@ graphify-out/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database backups (scripts/backup-db.*): personal data, never versioned
+/backups/

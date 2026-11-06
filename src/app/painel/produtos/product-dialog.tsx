@@ -6,6 +6,7 @@ import {
   type CategoryRow,
   type ProductRow,
 } from "@/contracts/inventory";
+import type { SupplierOption } from "@/contracts/suppliers";
 import { FormAlert } from "@/app/(auth)/form-alert";
 import { useFocusOnError, type FormErrors } from "@/app/(auth)/auth-client";
 import { Button } from "@ds/components/button";
@@ -36,11 +37,13 @@ const unitOptions = [
 export function ProductDialog({
   product,
   categories,
+  suppliers,
   onClose,
   onSaved,
 }: {
   product: ProductRow | null;
   categories: CategoryRow[];
+  suppliers: SupplierOption[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -61,12 +64,26 @@ export function ProductDialog({
     product ? quantityToInput(product.minStock, product.unit) : "0",
   );
   const [active, setActive] = useState(product?.active ?? true);
+  const [supplierId, setSupplierId] = useState(
+    product?.defaultSupplierId ?? "",
+  );
+  const [supplierCode, setSupplierCode] = useState(product?.supplierCode ?? "");
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [pending, setPending] = useState(false);
   useFocusOnError(formRef, errors);
 
   const lockedUnit = product?.hasBatches ?? false;
   const perUnit = unit === "UN" ? undefined : `/${unitSuffix(unit)}`;
+  // Inactive suppliers take no new products; the product's current one stays listed.
+  const supplierOptions = [
+    { value: "", label: "Sem fornecedor padrão" },
+    ...suppliers
+      .filter((s) => s.active || s.id === product?.defaultSupplierId)
+      .map((s) => ({
+        value: s.id,
+        label: s.active ? s.name : `${s.name} (inativo)`,
+      })),
+  ];
 
   function changeUnit(next: Unit) {
     // "0,000" would not fit a whole unit, on a field the person did not touch.
@@ -105,6 +122,9 @@ export function ProductDialog({
       minStock: minimum,
       unit,
       active,
+      defaultSupplierId: supplierId || null,
+      // A code means nothing without the supplier it belongs to.
+      supplierCode: supplierId ? supplierCode.trim() : "",
     };
     const patch = product && productPatch(product, values);
     // Nothing changed: the server would refuse an empty edit, so there is nothing to send.
@@ -243,6 +263,34 @@ export function ProductDialog({
           onChange={(event) => setMinStock(event.target.value)}
           error={errors?.fields.minStock}
         />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Select
+            label="Fornecedor padrão"
+            name="defaultSupplierId"
+            options={supplierOptions}
+            hint="Recebe o pedido de reposição deste produto."
+            value={supplierId}
+            onChange={(event) => {
+              const next = event.target.value;
+              setSupplierId(next);
+              // A code belongs to its supplier: another supplier starts without one.
+              setSupplierCode(
+                next === product?.defaultSupplierId ? product.supplierCode : "",
+              );
+            }}
+            error={errors?.fields.defaultSupplierId}
+          />
+          <Input
+            label="Código no fornecedor"
+            name="supplierCode"
+            autoComplete="off"
+            maxLength={60}
+            disabled={!supplierId}
+            value={supplierCode}
+            onChange={(event) => setSupplierCode(event.target.value)}
+            error={errors?.fields.supplierCode}
+          />
+        </div>
         {product && (
           <Checkbox
             label="Produto ativo"

@@ -61,6 +61,8 @@ const product: ProductRow = {
   active: true,
   stock: 3,
   hasBatches: true,
+  defaultSupplierId: null,
+  supplierCode: "",
 };
 
 it("sends only the fields that changed", () => {
@@ -74,11 +76,17 @@ it("sends only the fields that changed", () => {
     minStock,
     unit: product.unit,
     active: product.active,
+    defaultSupplierId: product.defaultSupplierId,
+    supplierCode: product.supplierCode,
   };
   expect(productPatch(product, same)).toEqual({});
   expect(productPatch(product, { ...same, sellPrice: 1999 })).toEqual({
     sellPrice: 1999,
   });
+  const supplierId = "7f1d8c1e-0d2b-4a8e-9c3f-2b6a1e5d4c3d";
+  expect(
+    productPatch(product, { ...same, defaultSupplierId: supplierId }),
+  ).toEqual({ defaultSupplierId: supplierId });
   // Between kg and L the stored minimum can stay equal; the server still asks for it.
   expect(productPatch(product, { ...same, unit: "KG" })).toEqual({
     unit: "KG",

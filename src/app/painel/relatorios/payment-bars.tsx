@@ -2,7 +2,7 @@ import type { FinancialReport } from "@/contracts/reports";
 import { PAYMENT_LABELS } from "@/contracts/sales";
 import { Card } from "@ds/components/card";
 import { formatBrl } from "@ds/lib/money";
-import { formatPercent } from "./report-format";
+import { formatPercent } from "@/lib/formatters";
 
 /**
  * Share of the revenue by payment method. One series in one color, every bar labeled with its

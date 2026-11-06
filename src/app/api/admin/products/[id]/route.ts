@@ -3,13 +3,13 @@ import { z } from "zod";
 import { productRowSchema, updateProductSchema } from "@/contracts/inventory";
 import { ServiceError } from "@/domains/auth/errors";
 import { updateProduct } from "@/domains/inventory/service";
-import { adminBodyRoute } from "../../../_lib/admin";
+import { sessionBodyRoute } from "../../../_lib/session-route";
 
 export function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  return adminBodyRoute(
+  return sessionBodyRoute(
     request,
     updateProductSchema,
     async (input, session) => {

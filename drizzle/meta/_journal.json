@@ -50,6 +50,13 @@
       "when": 1793909625793,
       "tag": "0006_cash_register",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793929148506,
+      "tag": "0007_suppliers",
+      "breakpoints": true
     }
   ]
 }

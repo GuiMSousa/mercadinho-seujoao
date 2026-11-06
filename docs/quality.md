@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-05): 290 testes em 77 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 117 testes em 16 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 8 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-05): 302 testes em 81 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 123 testes em 18 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 10 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -42,7 +42,9 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
     - 429 no 11º login: `src/app/api/auth/login/route.test.ts`;
     - venda com dois lotes baixa primeiro o de validade mais próxima, e o total com item pesável é a soma dos itens arredondados: `src/domains/sales/sales.db.test.ts` e `src/app/caixa/cart.test.ts`;
     - sem caixa aberto o servidor recusa a venda, e o fechamento cego não devolve o esperado, que o administrador vê com a quebra: `src/domains/sales/sales.db.test.ts`, `src/domains/cash/cash.db.test.ts` e `src/app/api/cash/close/route.test.ts`;
-    - faturamento, CMV gravado, lucro bruto, margem, ticket e formas de pagamento por dia do fuso da loja (venda às 23h30 locais no dia certo): `src/domains/reports/reports.db.test.ts` e `src/domains/reports/finance.test.ts`.
+    - faturamento, CMV gravado, lucro bruto, margem, ticket e formas de pagamento por dia do fuso da loja (venda às 23h30 locais no dia certo), lidos de um único instante: `src/domains/reports/reports.db.test.ts` e `src/domains/reports/finance.test.ts`;
+    - produtos no mínimo ou abaixo (ou vencendo em até 30 dias) entram na reposição com 2 × mínimo − estoque, agrupados pelo fornecedor padrão: `src/domains/suppliers/suppliers.db.test.ts`;
+    - a baixa manual repetida com o mesmo id, em sequência ou ao mesmo tempo, tira o estoque uma vez: `src/domains/inventory/write-off.db.test.ts`.
   - **Checagem por mutação** (2026-11-05): sem o `FOR UPDATE` da baixa PVPS, o teste de duas vendas concorrentes pelas últimas unidades falhou (a perdedora quebrava o CHECK de quantidade, um 500); restaurado o lock, voltou a passar. No caixa diário, sem o `FOR SHARE` da venda o teste da venda que espera o fechamento falhou, e sem o `FOR UPDATE` do fechamento o teste da venda em andamento ficou fora do esperado; restaurados, passaram.
   - **Checagem por mutação** (2026-10-28): com o limite trocado para 11 e a regra de perfil desligada, esses 3 testes falharam; restaurado o código, voltaram a passar.
 - **Contrato:** as rotas devolvem DTOs parseados pelos schemas de `src/contracts`, e os testes de rota validam as respostas com os mesmos schemas. O `spec:check` garante que a spec cobre todas as rotas.
@@ -166,6 +168,23 @@ Executado em 2026-11-05 com o Playwright (Edge, script local), contra o build de
 | 8   | Em 375 px, sem rolagem lateral; tema escuro conferido; console sem erros fora o 502 provocado            | Passou    |
 
 O conteúdo do e-mail (valores, nomes escapados e HTML enviado ao Resend) é coberto por `reports.db.test.ts` e `mail.test.ts`, com o envio simulado.
+
+### Fornecedores e reposição
+
+Executado em 2026-11-05 com o Playwright (Edge, script local), contra o build de produção no banco `mkt_control_e2e`. Os roteiros do caixa (15 passos), dos relatórios e do PDV (31 passos) foram repetidos no mesmo build, sem regressão.
+
+| #   | Passo                                                                                                     | Resultado |
+| --- | --------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | Cadastro de fornecedor recusa CNPJ incompleto, mascara o CNPJ e lista contato e WhatsApp                  | Passou    |
+| 2   | CNPJ repetido é recusado no campo                                                                         | Passou    |
+| 3   | No produto, o código no fornecedor só abre com um fornecedor escolhido; fornecedor padrão e mínimo salvos | Passou    |
+| 4   | Reposição: PDV Café (5 em estoque, mínimo 10) no grupo do fornecedor, comprar 15 un                       | Passou    |
+| 5   | "Enviar pedido" abre `wa.me/5511987654321` com loja, contato, código CF-500 e 15 un                       | Passou    |
+| 6   | Produtos sem fornecedor padrão (iogurte vencido, arroz zerado) ficam num grupo à parte                    | Passou    |
+| 7   | Fornecedor inativado: o café passa para o grupo sem fornecedor                                            | Passou    |
+| 8   | Período livre dos relatórios usa a regra e a mensagem da API                                              | Passou    |
+| 9   | Em 375 px, sem rolagem lateral; `CASHIER` vai para `/caixa` e recebe 403 em `/api/admin/suppliers`        | Passou    |
+| 10  | Console sem erros, fora o 422 e o 409 provocados                                                          | Passou    |
 
 ## Harness (método nativo inspirado no Harness2)
 

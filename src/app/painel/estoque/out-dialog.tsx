@@ -9,6 +9,7 @@ import { Dialog } from "@ds/components/dialog";
 import { Input } from "@ds/components/input";
 import { useToast } from "@ds/components/toast";
 import { apiFetch } from "../_lib/api";
+import { newId } from "../_lib/new-id";
 import {
   formatQuantity,
   parseQuantity,
@@ -35,6 +36,8 @@ export function OutDialog({
   const formRef = useRef<HTMLFormElement>(null);
   const firstField = useRef<HTMLInputElement>(null);
   const attempted = useRef(false);
+  // One id per opening: pressing again after a lost response is the same write-off.
+  const [id] = useState(newId);
   const expired = product.batches
     .filter((batch) => batch.daysLeft !== null && batch.daysLeft < 0)
     .reduce((sum, batch) => sum + batch.quantity, 0);
@@ -70,7 +73,7 @@ export function OutDialog({
     setErrors(null);
     const result = await apiFetch("/api/admin/inventory/out", {
       method: "POST",
-      body: { productId: product.id, quantity: amount, reason },
+      body: { id, productId: product.id, quantity: amount, reason },
     });
     setPending(false);
     if (!result.ok) {

@@ -47,6 +47,7 @@ import {
 import { adminPaths } from "./openapi-admin";
 import { cashPaths } from "./openapi-cash";
 import { reportsPaths } from "./openapi-reports";
+import { suppliersPaths } from "./openapi-suppliers";
 import { inventoryPaths } from "./openapi-inventory";
 import { salesPaths } from "./openapi-sales";
 import {
@@ -64,6 +65,13 @@ import {
 } from "./reports";
 import { createSaleSchema, saleReceiptSchema } from "./sales";
 import { storeResponseSchema, updateStoreSchema } from "./store";
+import {
+  createSupplierSchema,
+  replenishmentSchema,
+  supplierRowSchema,
+  suppliersPageSchema,
+  updateSupplierSchema,
+} from "./suppliers";
 import { THEME_COOKIE, themeSchema } from "./theme";
 import {
   inviteUserSchema,
@@ -124,6 +132,11 @@ export function buildOpenApiDocument() {
         FinancialReport: jsonSchema(financialReportSchema),
         ReportSalesPage: jsonSchema(reportSalesPageSchema),
         DailySummarySent: jsonSchema(dailySummarySentSchema),
+        SupplierRow: jsonSchema(supplierRowSchema),
+        SuppliersPage: jsonSchema(suppliersPageSchema),
+        CreateSupplierRequest: jsonSchema(createSupplierSchema, "input"),
+        UpdateSupplierRequest: jsonSchema(updateSupplierSchema, "input"),
+        Replenishment: jsonSchema(replenishmentSchema),
         CreateProductRequest: jsonSchema(createProductSchema, "input"),
         UpdateProductRequest: jsonSchema(updateProductSchema, "input"),
         BatchRow: jsonSchema(batchRowSchema),
@@ -294,6 +307,7 @@ export function buildOpenApiDocument() {
       ...salesPaths,
       ...cashPaths,
       ...reportsPaths,
+      ...suppliersPaths,
       "/api/admin/activity": {
         get: {
           summary:

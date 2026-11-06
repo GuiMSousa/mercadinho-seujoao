@@ -19,6 +19,8 @@ export const ACTIVITY_ACTIONS = [
   "Suprimento registrado",
   "Caixa fechado",
   "Resumo diário enviado",
+  "Fornecedor cadastrado",
+  "Fornecedor alterado",
 ] as const;
 
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];

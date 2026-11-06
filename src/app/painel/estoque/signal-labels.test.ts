@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
-import { expiryLabel, formatDate } from "./signal-labels";
+import { formatDay } from "@/lib/formatters";
+import { expiryLabel } from "./signal-labels";
 
 it("names the expiry in plain words", () => {
   expect(expiryLabel(null)).toBe("Não vence");
@@ -10,5 +11,5 @@ it("names the expiry in plain words", () => {
 });
 
 it("shows a calendar date as dd/mm/aaaa", () => {
-  expect(formatDate("2026-12-01")).toBe("01/12/2026");
+  expect(formatDay("2026-12-01")).toBe("01/12/2026");
 });

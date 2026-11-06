@@ -8,6 +8,8 @@ import type {
   UpdateProduct,
 } from "@/contracts/inventory";
 import { logActivity } from "@/domains/activity/service";
+import { setDefaultSupplier } from "@/domains/suppliers/repository";
+import { requireActiveSupplier } from "@/domains/suppliers/service";
 import { ServiceError } from "@/domains/auth/errors";
 import { uniqueViolation } from "@/infrastructure/db/errors";
 import {
@@ -45,6 +47,8 @@ const FIELD_LABELS: Record<keyof UpdateProduct, string> = {
   minStock: "estoque mínimo",
   unit: "unidade",
   active: "situação",
+  defaultSupplierId: "fornecedor padrão",
+  supplierCode: "código no fornecedor",
 };
 
 export const listCategories = selectCategories;
@@ -140,17 +144,28 @@ export async function createCategory(actor: Actor, input: CreateCategory) {
 }
 
 export async function createProduct(actor: Actor, input: CreateProduct) {
-  await requireCategory(input.categoryId);
-  const product = await insertProduct(input).catch((error: unknown) => {
+  const { defaultSupplierId, supplierCode, ...values } = input;
+  await requireCategory(values.categoryId);
+  if (defaultSupplierId) await requireActiveSupplier(defaultSupplierId);
+  const product = await insertProduct(values).catch((error: unknown) => {
     throw barcodeTaken(error);
   });
+  if (defaultSupplierId)
+    await setDefaultSupplier(product.id, defaultSupplierId, supplierCode);
   await logActivity({
     user: actor,
     action: "Produto criado",
     detail: product.name,
   });
   // No second read: if it failed, a saved product would answer 500 and the retry 409.
-  return { ...product, stock: 0, hasBatches: false };
+  return {
+    ...product,
+    stock: 0,
+    hasBatches: false,
+    defaultSupplierId,
+    // A code means nothing without the supplier it belongs to.
+    supplierCode: defaultSupplierId ? supplierCode : "",
+  };
 }
 
 export async function updateProduct(
@@ -159,6 +174,7 @@ export async function updateProduct(
   input: UpdateProduct,
 ) {
   const current = await readProduct(id);
+  const { defaultSupplierId, supplierCode, ...values } = input;
   if (input.unit && input.unit !== current.unit) {
     // Batches and movements hold integers in the unit's base, so 14 UN would silently become 0,014 kg.
     if (current.hasBatches) {
@@ -173,10 +189,29 @@ export async function updateProduct(
     }
   }
   if (input.categoryId) await requireCategory(input.categoryId);
-  const row = await updateProductRow(id, input).catch((error: unknown) => {
-    throw barcodeTaken(error);
-  });
-  if (!row) throw productNotFound();
+  // A newly chosen supplier must be active; keeping the current one is fine even if it is not anymore.
+  if (defaultSupplierId && defaultSupplierId !== current.defaultSupplierId)
+    await requireActiveSupplier(defaultSupplierId);
+  let row = { id, name: current.name };
+  if (Object.keys(values).length > 0) {
+    const updated = await updateProductRow(id, values).catch(
+      (error: unknown) => {
+        throw barcodeTaken(error);
+      },
+    );
+    if (!updated) throw productNotFound();
+    row = updated;
+  }
+  if (defaultSupplierId !== undefined || supplierCode !== undefined)
+    await setDefaultSupplier(
+      id,
+      defaultSupplierId === undefined
+        ? current.defaultSupplierId
+        : defaultSupplierId,
+      // Same supplier: keep its code. Another one: its own code for this product, or none yet.
+      supplierCode ??
+        (defaultSupplierId === undefined ? current.supplierCode : undefined),
+    );
   await logActivity({
     user: actor,
     action: "Produto alterado",
@@ -224,6 +259,8 @@ export async function receiveBatch(
  * A write-off takes expired batches too (that is how they leave the shelf); sales refuse them.
  */
 export async function consumeStock(input: {
+  /** Chosen by the client: repeating it after a lost response does not take the stock twice. */
+  id?: string;
   productId: string;
   quantity: number;
   reason: string;
@@ -236,7 +273,13 @@ export async function consumeStock(input: {
       "Informe uma quantidade inteira maior que zero.",
     );
   await readProduct(input.productId);
-  const allocations = await consumeBatches(input);
+  const { id, ...writeOff } = input;
+  const allocations = await consumeBatches({ ...writeOff, operationId: id });
+  if (allocations === "conflict")
+    throw new ServiceError(
+      409,
+      "Esta baixa já foi registrada com outros dados. Feche e confira o estoque.",
+    );
   if (!allocations) throw new ServiceError(409, "Estoque insuficiente.");
   return allocations;
 }

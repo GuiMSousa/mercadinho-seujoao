@@ -6,11 +6,11 @@ import {
   productsPageSchema,
 } from "@/contracts/inventory";
 import { createProduct, listProducts } from "@/domains/inventory/service";
-import { adminBodyRoute, adminRoute } from "../../_lib/admin";
+import { sessionBodyRoute, sessionRoute } from "../../_lib/session-route";
 import { errorResponse } from "../../_lib/guard";
 
 export function GET(request: NextRequest) {
-  return adminRoute(request, async () => {
+  return sessionRoute(request, async () => {
     const query = listQuerySchema.safeParse(
       Object.fromEntries(request.nextUrl.searchParams),
     );
@@ -22,10 +22,13 @@ export function GET(request: NextRequest) {
 }
 
 export function POST(request: NextRequest) {
-  return adminBodyRoute(request, createProductSchema, async (input, session) =>
-    NextResponse.json(
-      productRowSchema.parse(await createProduct(session.user, input)),
-      { status: 201 },
-    ),
+  return sessionBodyRoute(
+    request,
+    createProductSchema,
+    async (input, session) =>
+      NextResponse.json(
+        productRowSchema.parse(await createProduct(session.user, input)),
+        { status: 201 },
+      ),
   );
 }

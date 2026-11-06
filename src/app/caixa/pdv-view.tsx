@@ -54,6 +54,8 @@ export function PdvView({
   const searchRef = useRef<HTMLInputElement>(null);
   // Scans can answer while another is in flight; handlers read the cart here, never a stale render.
   const cartRef = useRef<CartLine[]>([]);
+  // Counts the lookups, so only the last one may hand its text back to the field.
+  const lookups = useRef(0);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [query, setQuery] = useState("");
   const [weighing, setWeighing] = useState<Weighing | null>(null);
@@ -109,6 +111,7 @@ export function PdvView({
     const listed = search.status === "done" ? search.products : [];
     // Cleared at once, so the next scan starts on an empty field while this one is looked up.
     setQuery("");
+    const request = ++lookups.current;
     const result = await lookupBarcode(term);
     if (result.ok) return pick(result.data);
     // 404: no such code; 400: too long to be one (a long name). Either way, try the name.
@@ -120,7 +123,9 @@ export function PdvView({
       });
     // Not a code: a typed name with a single match is that product.
     if (listed.length === 1) return pick(listed[0]);
-    setQuery((current) => (current === "" ? term : current));
+    // A scan that started meanwhile owns the field: an old term would glue onto its code.
+    if (request === lookups.current)
+      setQuery((current) => (current === "" ? term : current));
     if (listed.length === 0)
       toast({
         title: "Produto não encontrado",

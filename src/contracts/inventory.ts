@@ -51,12 +51,22 @@ const productFields = {
   minStock: centsSchema("Informe o estoque mínimo."),
   unit: unitSchema,
   active: z.boolean("Informe se o produto está ativo."),
+  // The supplier its replenishment order goes to; null leaves the product without one.
+  defaultSupplierId: z.uuid("Escolha o fornecedor.").nullable(),
+  // How that supplier calls the product, printed on the order.
+  supplierCode: z
+    .string()
+    .trim()
+    .max(60, "Use até 60 caracteres.")
+    .refine(hasNoNul, NUL_MESSAGE),
 };
 
 export const createProductSchema = z.object({
   ...productFields,
   minStock: productFields.minStock.default(0),
   active: productFields.active.default(true),
+  defaultSupplierId: productFields.defaultSupplierId.default(null),
+  supplierCode: productFields.supplierCode.default(""),
 });
 
 // Built from the fields without defaults, or an absent field would reset the stored value.
@@ -80,6 +90,8 @@ export const productRowSchema = z.object({
   active: z.boolean(),
   stock: z.int(),
   hasBatches: z.boolean(),
+  defaultSupplierId: z.uuid().nullable(),
+  supplierCode: z.string(),
 });
 
 // Search and page of a server-paginated list, read from the query string.
@@ -170,6 +182,8 @@ export const batchRowSchema = z.object({
 });
 
 export const consumeStockSchema = z.object({
+  // Optional, chosen by the client: repeating it after a lost response does not take the stock twice.
+  id: z.uuid("Identificador da baixa inválido.").optional(),
   productId: z.uuid("Escolha o produto."),
   quantity: positiveQuantitySchema,
   reason: z

@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { expect, it, vi } from "vitest";
 import { logActivity } from "@/domains/activity/service";
 import type { MailMessage } from "@/infrastructure/mail";
+import * as schema from "@/infrastructure/db/schema";
 import {
   categories,
   products,
@@ -9,7 +12,12 @@ import {
   sales,
   users,
 } from "@/infrastructure/db/schema";
-import { withTestDb, type TestDb } from "@/infrastructure/db/test-db";
+import {
+  withTestDb,
+  withTestPool,
+  type TestDb,
+} from "@/infrastructure/db/test-db";
+import { readReport, selectTotals } from "./repository";
 import {
   getFinancialReport,
   listReportSales,
@@ -25,7 +33,7 @@ const send = vi.fn(async (message: MailMessage) => {
 vi.mock("@/infrastructure/mail", () => ({ getMailer: () => ({ send }) }));
 
 // The repositories reach the database through getDb(); point it at the test database.
-let current: TestDb;
+let current: TestDb | NodePgDatabase<typeof schema>;
 vi.mock("@/infrastructure/db", () => ({ getDb: () => current }));
 
 const inTest = (fn: (db: TestDb) => Promise<void>) =>
@@ -269,5 +277,49 @@ it("e-mails today's summary to the ADMIN's own address, escaping names, and limi
     await expect(sendDailySummary(admin, DAY)).rejects.toMatchObject({
       status: 429,
     });
+  });
+});
+
+it("reads a whole report from one snapshot, blind to sales committed halfway", async () => {
+  await withTestPool(async (db) => {
+    current = db;
+    const [operator] = await db
+      .insert(users)
+      .values({
+        name: "Carla",
+        email: `${randomUUID()}@example.com`,
+        role: "CASHIER",
+      })
+      .returning();
+    // 1999 keeps this sale out of the periods the other tests read.
+    const period = { from: "1999-01-04", to: "1999-01-04" };
+    const sale = (total: number) =>
+      db.insert(sales).values({
+        userId: operator.id,
+        paymentMethod: "CASH",
+        total,
+        amountReceived: total,
+        change: 0,
+        createdAt: new Date("1999-01-04T15:00:00Z"),
+      });
+    try {
+      await sale(1000);
+      const [before, after] = await readReport(async (tx) => {
+        const first = await selectTotals(tx, period);
+        // Committed on another connection while the report is halfway through.
+        await sale(500);
+        return [first, await selectTotals(tx, period)];
+      });
+
+      expect(after).toEqual(before);
+      expect(before).toMatchObject({ revenue: 1000, salesCount: 1 });
+      // The next report sees it.
+      await expect(
+        readReport((tx) => selectTotals(tx, period)),
+      ).resolves.toMatchObject({ revenue: 1500, salesCount: 2 });
+    } finally {
+      await db.delete(sales).where(eq(sales.userId, operator.id));
+      await db.delete(users).where(eq(users.id, operator.id));
+    }
   });
 });

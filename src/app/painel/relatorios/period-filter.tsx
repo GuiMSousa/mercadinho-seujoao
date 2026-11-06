@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import {
-  MAX_REPORT_DAYS,
   REPORT_PERIODS,
+  reportQuerySchema,
   type ReportPeriod,
 } from "@/contracts/reports";
 import { Button } from "@ds/components/button";
@@ -23,7 +23,6 @@ const LABELS: Record<PeriodQuery["period"], string> = {
   month: "Mês atual",
   custom: "Período livre",
 };
-const DAY_MS = 86_400_000;
 
 /** Quick periods, plus a free one with its first and last day (inclusive). */
 export function PeriodFilter({
@@ -43,18 +42,17 @@ export function PeriodFilter({
 
   function apply(event: FormEvent) {
     event.preventDefault();
+    // The API's own rule, so the screen never accepts a period the server refuses.
+    const parsed = reportQuerySchema.safeParse({
+      period: "custom",
+      from: from || undefined,
+      to: to || undefined,
+    });
     const next: typeof errors = {};
-    if (!from) next.from = "Informe a data inicial.";
-    if (!to) next.to = "Informe a data final.";
-    else if (from && from > to) next.to = "A data final vem depois da inicial.";
-    else if (
-      from &&
-      (Date.parse(to) - Date.parse(from)) / DAY_MS >= MAX_REPORT_DAYS
-    )
-      next.to = `Escolha um período de até ${MAX_REPORT_DAYS} dias.`;
+    for (const issue of parsed.error?.issues ?? [])
+      next[issue.path[0] === "to" ? "to" : "from"] ??= issue.message;
     setErrors(next);
-    if (Object.keys(next).length === 0)
-      onChange({ period: "custom", from, to });
+    if (parsed.success) onChange({ period: "custom", from, to });
   }
 
   return (

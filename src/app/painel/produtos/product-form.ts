@@ -55,6 +55,8 @@ type ProductValues = Pick<
   | "minStock"
   | "unit"
   | "active"
+  | "defaultSupplierId"
+  | "supplierCode"
 >;
 
 /** Only the fields the person changed, so the activity log names just those. */

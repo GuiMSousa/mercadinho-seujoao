@@ -3,7 +3,7 @@ import { expect, it, vi } from "vitest";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { createRateLimiter } from "@/domains/auth/login-rate-limit";
-import { adminBodyRoute } from "./admin";
+import { sessionBodyRoute } from "./session-route";
 import { publicPost } from "./public";
 
 vi.mock("server-only", () => ({}));
@@ -70,7 +70,7 @@ it("does the same on the admin routes", async () => {
     },
     body: JSON.stringify({}),
   });
-  const response = await adminBodyRoute(request, z.object({}), async () => {
+  const response = await sessionBodyRoute(request, z.object({}), async () => {
     throw drizzleError();
   });
   expect(response.status).toBe(500);
