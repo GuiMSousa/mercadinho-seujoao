@@ -38,6 +38,7 @@ it("requires a session everywhere except the public paths", () => {
     "/cadastro",
     "/recuperar",
     "/design-system",
+    "/api/health",
   ])
     expect(deny({ pathname })).toBeNull();
   expect(deny({ pathname: "/design-system/x" })).toBe(401);

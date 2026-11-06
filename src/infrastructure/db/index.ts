@@ -1,4 +1,5 @@
 import "server-only";
+import { sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { getDatabaseUrl } from "@/lib/env";
@@ -29,6 +30,11 @@ export function getDb() {
   if (!cached || cached.client !== client)
     cached = { client, db: drizzle({ client, schema }) };
   return cached.db;
+}
+
+/** Resolves when the database answers `SELECT 1`; the pool gives up after 5 s without a connection. */
+export async function pingDatabase() {
+  await getDb().execute(sql`SELECT 1`);
 }
 
 /** The handle inside `getDb().transaction(...)`, for repository steps that join a caller's transaction. */

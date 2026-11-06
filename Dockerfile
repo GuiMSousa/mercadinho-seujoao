@@ -26,7 +26,15 @@ ENV NODE_ENV=production \
 COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
+# Migrations run at start (scripts/migrate.mjs). The standalone trace keeps only the drizzle-orm
+# files the server imports, so the whole package (no dependencies of its own) comes from deps.
+COPY --from=build --chown=node:node /app/drizzle ./drizzle
+COPY --from=build --chown=node:node /app/scripts/migrate.mjs ./scripts/migrate.mjs
+COPY --from=deps --chown=node:node /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
 # Unprivileged user shipped with the official Node.js image.
 USER node
 EXPOSE 3000
-CMD ["node", "server.js"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+# A failed migration stops the container before it serves anything.
+CMD ["sh", "-c", "node scripts/migrate.mjs && exec node server.js"]

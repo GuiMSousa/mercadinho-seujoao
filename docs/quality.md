@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-06): 329 testes em 90 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 131 testes em 20 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 12 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-06): 334 testes em 92 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 131 testes em 20 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 12 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -271,6 +271,26 @@ O roteiro da etiqueta de balança e da revisão de interface (semana 7) também 
 Corrigido pelo roteiro: ao escolher o cliente do fiado, o foco ia para o diálogo e os dígitos digitados se perdiam (agora vai para o valor); "Cancelar venda" não cabia ao lado de "Desconto" no painel do total (agora empilhados).
 
 Não verificado: impressora térmica real, WhatsApp aberto de fato e leitor de tela.
+
+### Produção e release v1.0.0 (semana 9)
+
+Executado em 2026-11-06 contra o `compose.prod.yaml`, num projeto isolado (`mkt-control-homolog`, com volume próprio e portas 3300 e 5434) e num banco novo. A senha do banco foi gerada aleatoriamente e não foi exibida.
+
+| #   | Passo                                                                                                                                                                                        | Resultado |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | `up -d --build` sem erros (148 s); app e banco `healthy`                                                                                                                                     | Passou    |
+| 2   | Migrações aplicadas ao iniciar no banco novo: 10 registros em `drizzle.__drizzle_migrations` e 18 tabelas; reiniciar o app não reaplica nada                                                 | Passou    |
+| 3   | O migrador de runtime não reaplica nada num banco migrado pelo drizzle-kit (banco de E2E)                                                                                                    | Passou    |
+| 4   | `GET /api/health`: 200 `{status: ok, db: connected}` com `Cache-Control: no-store`; com o banco parado, 503 `db: disconnected` sem detalhe na resposta, e de volta a 200 quando o banco sobe | Passou    |
+| 5   | Páginas com CSP com nonce, `X-Frame-Options: DENY`, `nosniff` e `Referrer-Policy: same-origin`; app como usuário `node`, sem `.env*` nem dumps na imagem                                     | Passou    |
+| 6   | Usuários criados com `npm run user:create` pela porta de loopback do banco de produção, como manda o guia                                                                                    | Passou    |
+| 7   | No navegador, sem violação de CSP nem erro de console: as rotas públicas, todo o painel com os diálogos de cadastro, a abertura do caixa e a troca de tema                                   | Passou    |
+| 8   | Backups `.ps1` e `.sh` apontados para o compose de produção geraram dumps válidos                                                                                                            | Passou    |
+| 9   | Regressão com a CSP no build local: roteiros da semana 8 (28 de 28) e da semana 7 (60 de 60)                                                                                                 | Passou    |
+
+Achado e corrigido: o Zod 4 testa `new Function` para ligar o modo JIT, e a CSP reportava isso como violação em várias páginas. A correção foi `z.config({ jitless: true })` em `src/instrumentation-client.ts`, que roda antes da hidratação. Ao fim, o projeto de homologação, o volume e a imagem de teste foram removidos, um a um.
+
+Não verificado: o túnel nomeado de verdade (depende da conta Cloudflare da loja) e uma tarefa agendada registrada no Agendador.
 
 ## Harness (método nativo inspirado no Harness2)
 

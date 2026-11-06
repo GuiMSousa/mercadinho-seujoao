@@ -166,6 +166,8 @@ Os usuários temporários (`teste.admin`, `teste.caixa`) e os arquivos com suas 
 
 ## Backup do banco
 
+Em produção, use o arquivo e o compose de produção (`-EnvFile .env.production -ComposeFile compose.prod.yaml` no `.ps1`, ou `ENV_FILE` e `COMPOSE_FILE` no `.sh`). O agendamento e a restauração da produção estão em [deploy.md](deploy.md#5-backup-automático). Abaixo, o uso no desenvolvimento.
+
 Os scripts `scripts/backup-db.ps1` (Windows) e `scripts/backup-db.sh` (Linux, macOS ou Git Bash) rodam `pg_dump` dentro do contêiner do Compose (serviço `postgres`) e gravam um arquivo comprimido em `backups/<banco>-<data-hora>.dump`. A pasta fica fora do Git (`.gitignore`), porque guarda dados pessoais e financeiros.
 
 - **Como funciona:** o dump é feito dentro do contêiner, conferido com `pg_restore --list` e copiado com `docker cp`, para nenhum shell alterar os bytes. Só o usuário e o nome do banco são lidos do `.env.local`; nenhuma senha passa pelo script ou pela tela. Os dumps com mais de 30 dias são apagados (`-KeepDays 30` / primeiro argumento do `.sh`).
@@ -189,8 +191,8 @@ Os scripts `scripts/backup-db.ps1` (Windows) e `scripts/backup-db.sh` (Linux, ma
   - instalar `agent-browser` se quiser usar o `next-dev-loop`.
 - **Segurança:**
   - O limite de login usa o IP dos cabeçalhos (`cf-connecting-ip` ou o primeiro `x-forwarded-for`). Quem acessa o servidor direto pela LAN pode forjar `x-forwarded-for` e escapar do limite.
-  - Mitigações possíveis: ouvir só em `127.0.0.1` atrás do Cloudflare Tunnel, ou somar um limite por usuário.
-  - CSP com nonce ainda não foi aplicada.
+  - Mitigação adotada em produção (2026-11-06): o `compose.prod.yaml` publica o app só em `127.0.0.1`, atrás do Cloudflare Tunnel, onde o IP vem do `cf-connecting-ip`. Abrir o app para a LAN traz o risco de volta (ver docs/deploy.md).
+  - CSP com nonce aplicada em 2026-11-06 (`src/proxy.ts`, `src/lib/csp.ts`).
 - **Técnicas:**
   - ESLint 10 e TS 7 quando os plugins suportarem;
   - advisories de dev do `drizzle-kit` e do `shadcn`;

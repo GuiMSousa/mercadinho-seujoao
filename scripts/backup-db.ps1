@@ -1,23 +1,28 @@
 # Backup of the local PostgreSQL (Compose service "postgres") into backups/, compressed.
 # Usage: pwsh -NoProfile -File scripts/backup-db.ps1 [-KeepDays 30]
-# Scheduling and restore: docs/setup.md. Prints no secret: only the user and database names
-# are read from .env.local, and pg_dump runs inside the container over its local socket.
-param([int]$KeepDays = 30)
+# Production: ... -EnvFile .env.production -ComposeFile compose.prod.yaml (docs/deploy.md).
+# Scheduling and restore: docs/deploy.md. Prints no secret: only the user and database names
+# are read from the env file, and pg_dump runs inside the container over its local socket.
+param(
+  [int]$KeepDays = 30,
+  [string]$EnvFile = ".env.local",
+  [string]$ComposeFile = "compose.yaml"
+)
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
 $vars = @{}
-foreach ($line in Get-Content .env.local) {
+foreach ($line in Get-Content $EnvFile) {
   if ($line -match '^\s*(POSTGRES_USER|POSTGRES_DB)\s*=\s*(.*?)\s*$') {
     $vars[$Matches[1]] = $Matches[2].Trim('"', "'")
   }
 }
 foreach ($key in "POSTGRES_USER", "POSTGRES_DB") {
-  if (-not $vars[$key]) { throw "Set $key in .env.local." }
+  if (-not $vars[$key]) { throw "Set $key in $EnvFile." }
 }
 
-$container = docker compose --env-file .env.local ps -q postgres
-if (-not $container) { throw "The database container is not running. Start it with: npm run db:up" }
+$container = docker compose -f $ComposeFile --env-file $EnvFile ps -q postgres
+if (-not $container) { throw "The database container of $ComposeFile is not running." }
 
 $name = "$($vars.POSTGRES_DB)-$(Get-Date -Format 'yyyyMMdd-HHmmss').dump"
 $inside = "/tmp/$name"

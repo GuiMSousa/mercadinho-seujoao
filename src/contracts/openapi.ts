@@ -47,6 +47,7 @@ import {
 import { adminPaths } from "./openapi-admin";
 import { cashPaths } from "./openapi-cash";
 import { customersPaths, customersSchemas } from "./openapi-customers";
+import { healthPaths, healthSchemas } from "./openapi-health";
 import { reportsPaths } from "./openapi-reports";
 import { suppliersPaths } from "./openapi-suppliers";
 import { inventoryPaths } from "./openapi-inventory";
@@ -87,7 +88,7 @@ export function buildOpenApiDocument() {
     openapi: "3.1.0",
     info: {
       title: "Mkt Control API",
-      version: "0.1.0",
+      version: "1.0.0",
       description:
         "Sessão por cookie HTTP-only com token opaco guardado no banco. Requisições que alteram estado (exceto as rotas públicas de login, cadastro e recuperação de senha) exigem o cabeçalho anti-CSRF com o valor do cookie mkt_csrf.",
     },
@@ -139,6 +140,7 @@ export function buildOpenApiDocument() {
         UpdateSupplierRequest: jsonSchema(updateSupplierSchema, "input"),
         Replenishment: jsonSchema(replenishmentSchema),
         ...customersSchemas,
+        ...healthSchemas,
         CreateProductRequest: jsonSchema(createProductSchema, "input"),
         UpdateProductRequest: jsonSchema(updateProductSchema, "input"),
         BatchRow: jsonSchema(batchRowSchema),
@@ -311,6 +313,7 @@ export function buildOpenApiDocument() {
       ...reportsPaths,
       ...suppliersPaths,
       ...customersPaths,
+      ...healthPaths,
       "/api/admin/activity": {
         get: {
           summary:

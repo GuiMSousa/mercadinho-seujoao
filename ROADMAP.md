@@ -2,15 +2,25 @@
 
 ## Status Geral do Projeto
 
-- **Semana 1:** ENTREGUE (Fundação, Autenticação e Landing Page)
-- **Semana 2:** ENTREGUE (Design System & PWA Base)
-- **Semana 3:** EM EXECUÇÃO (PDV e recibos entregues; leitor por câmera pendente)
-- **Semana 4:** ENTREGUE (caixa diário, 2026-11-05)
-- **Semana 5:** ENTREGUE (relatórios financeiros, 2026-11-05)
-- **Semana 6:** ENTREGUE (fornecedores, reposição e pedido por WhatsApp, 2026-11-05)
-- **Semana 7:** ENTREGUE (etiqueta de balança no PDV e revisão de toque, campos, 375 px e contraste, 2026-11-06)
-- **Semana 8:** ENTREGUE EM PARTE (fiado com limite de crédito, quitação, desconto e pagamento dividido, 2026-11-06; VR/VA, histórico de pedidos e previsão de compras pendentes)
-- **Semana 9:** PLANEJADA
+**Release v1.0.0 (2026-11-06):** as nove semanas foram executadas e homologadas. O sistema está pronto para implantação ([docs/deploy.md](docs/deploy.md)). Os itens abaixo ainda não estão entregues: ou dependem do HTTPS com domínio fixo (conta Cloudflare da loja), ou ficaram para depois da v1.0.0. Eles não são marcados como concluídos.
+
+- **Semana 1:** CONCLUÍDA (Fundação, Autenticação e Landing Page)
+- **Semana 2:** CONCLUÍDA (Design System & PWA Base); falta conferir a instalação como PWA num aparelho, o que depende do HTTPS
+- **Semana 3:** CONCLUÍDA (PDV, comprovante térmico e por WhatsApp, arredondamento por item); falta o leitor por câmera, que depende do HTTPS
+- **Semana 4:** CONCLUÍDA (caixa diário, 2026-11-05)
+- **Semana 5:** CONCLUÍDA (relatórios financeiros, 2026-11-05)
+- **Semana 6:** CONCLUÍDA (fornecedores, reposição e pedido por WhatsApp, 2026-11-05); fica para depois o indicador de alerta no topo do painel
+- **Semana 7:** CONCLUÍDA (etiqueta de balança no PDV e revisão de toque, campos, 375 px e contraste, 2026-11-06)
+- **Semana 8:** CONCLUÍDA EM PARTE (fiado com limite de crédito, quitação, desconto e pagamento dividido, 2026-11-06); ficam para depois VR/VA, histórico de pedidos de compra e previsão de compras
+- **Semana 9:** CONCLUÍDA (produção, 2026-11-06); o túnel com domínio fixo e a entrada em produção são passos da loja, descritos no guia de implantação
+
+**Pendências depois da v1.0.0:**
+
+- Leitor por câmera e PWA instalado num aparelho (dependem do HTTPS).
+- VR/VA como forma de pagamento.
+- Histórico de pedidos de compra e previsão de compras.
+- Indicador de alerta no topo do painel.
+- Layout próprio por largura de bobina (hoje o comprovante usa a largura que a impressora informa).
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
@@ -111,7 +121,17 @@ Clientes em `/painel/clientes` com limite de crédito, saldo devedor, extrato e 
 - Múltiplos pagamentos (VR/VA, PIX, Cartão). A leitura de etiquetas de balança foi entregue na semana 7.
 - Cadastro de fornecedores, histórico de pedidos e previsão de compras.
 
-### Semana 9 — Produção, Domínio Fixo & Infraestrutura Final
+### Semana 9 — Produção, Domínio Fixo & Infraestrutura Final (CONCLUÍDA em 2026-11-06)
+
+Entregues:
+
+- **Saúde e segurança:** `GET /api/health` (pública, `SELECT 1`, 503 sem detalhes quando o banco cai); CSP com nonce em todas as páginas; os cabeçalhos de segurança que já existiam continuam.
+- **Docker:** `compose.prod.yaml` com app e PostgreSQL 18 separados do banco de desenvolvimento, e a imagem aplicando as migrações ao iniciar.
+- **Backup:** scripts que também apontam para a produção, com agendamento pelo Agendador de Tarefas e pelo cron.
+- **Guia de implantação** ([docs/deploy.md](docs/deploy.md)) com Cloudflare Named Tunnel, restauração e atualização.
+- **Homologação:** `npm run check`, `npm run test:db`, os roteiros no navegador e a subida do contêiner num banco novo, com as rotas e a CSP conferidas no navegador.
+
+Criar o túnel com o domínio da loja e pôr o sistema em produção são passos feitos na conta e no computador da loja, seguindo o guia.
 
 - Configuração de domínio estático fixo via Cloudflare Named Tunnel / Ngrok.
 - Rotina automatizada de backup diário do banco de dados PostgreSQL.

@@ -155,3 +155,24 @@ it("runs on pages and API routes but skips build assets and files with an extens
   for (const path of ["/favicon.ico", "/_next/static/x.js", "/_next/image"])
     expect(matcher.test(path), path).toBe(false);
 });
+
+it("puts a CSP with a fresh nonce on pages, and hands it to Next.js with the request", async () => {
+  const first = await request("/login");
+  const second = await request("/login");
+  const policy = first.headers.get("content-security-policy") ?? "";
+  expect(policy).toMatch(
+    /script-src 'self' 'nonce-[A-Za-z0-9+/]+=*' 'strict-dynamic'/,
+  );
+  expect(second.headers.get("content-security-policy")).not.toBe(policy);
+  // NextResponse.next({ request }) forwards overridden request headers this way.
+  expect(
+    first.headers.get("x-middleware-request-content-security-policy"),
+  ).toBe(policy);
+  // Redirects and refusals of pages carry it too; API answers are JSON and need none.
+  expect(
+    (await request("/painel")).headers.get("content-security-policy"),
+  ).toMatch(/nonce-/);
+  expect(
+    (await request("/api/health")).headers.get("content-security-policy"),
+  ).toBeNull();
+});

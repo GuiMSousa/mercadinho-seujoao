@@ -1,0 +1,47 @@
+# Production: the app (Next.js standalone image) and its own PostgreSQL 18, apart from the dev
+# database in compose.yaml. Values come from the ignored .env.production (see .env.production.example):
+#   docker compose -f compose.prod.yaml --env-file .env.production up -d --build
+# The app applies pending migrations when it starts. Guide: docs/deploy.md.
+name: mkt-control-prod
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env.production}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env.production}
+    ports:
+      # Loopback only: maintenance from this computer (npm run user:create, backups use docker exec).
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      # PostgreSQL 18+ images keep PGDATA under /var/lib/postgresql/<major>/docker.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # The password goes into a URL: keep it URL-safe (e.g. openssl rand -hex 32).
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      # Loopback only: the Cloudflare Tunnel on this computer reaches it. Use "3000:3000" to also
+      # serve the store's LAN over plain HTTP (no camera scanner without HTTPS).
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

@@ -96,19 +96,19 @@ Ordem de entrega, uma funcionalidade por vez:
 
 ## Premissas e decisões pendentes
 
-| Item                               | Tipo                | Impacto e próximo passo                                                                                                                                                                                                                                             |
-| ---------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Item                               | Tipo                | Impacto e próximo passo                                                                                                                                                                                                                                             |
-| ---                                | ---                 | ---                                                                                                                                                                                                                                                                 |
-| Migração de dados do sistema atual | Pendente (externa)  | Definir se cadastros e histórico existentes serão importados. A importação por planilha cobre produtos e estoque inicial                                                                                                                                            |
-| CSP "sem scripts inline"           | Premissa reversível | O Next.js injeta scripts de inicialização; a proposta é CSP com nonce por requisição, que mantém só scripts do próprio servidor. Validar na tarefa de segurança                                                                                                     |
-| Valores monetários                 | Premissa reversível | Centavos inteiros; peso em gramas; total do item arredondado ao centavo; total da venda é a soma dos itens                                                                                                                                                          |
-| Loja única                         | Premissa reversível | Um estabelecimento por instalação, sem multiempresa                                                                                                                                                                                                                 |
-| Comprovante por WhatsApp           | Premissa reversível | Link `wa.me` com texto pré-formatado, sem API paga do WhatsApp                                                                                                                                                                                                      |
-| Conta Resend e domínio remetente   | Parcial (externa)   | Chave configurada e envio real verificado em 2026-11-01 com remetente de teste `@resend.dev`, que só entrega para o e-mail da conta Resend. Falta verificar um domínio próprio e trocar `MAIL_FROM` antes de convidar usuários ou enviar o resumo e o alerta diário |
-| Domínio fixo do Cloudflare Tunnel  | Pendente (externa)  | Domínio na conta Cloudflare para o túnel nomeado, para o atalho do PWA não perder o acesso                                                                                                                                                                          |
-| Lote e validade na importação      | Pendente            | As colunas obrigatórias não trazem lote nem validade, mas toda entrada de estoque exige lote e validade (ou "sem validade"). Definir se a importação cria um lote "sem validade" ou aceita colunas opcionais `Lote` e `Validade`                                    |
-| Formato dos valores na planilha    | Premissa reversível | Preços em reais com vírgula ou ponto decimal; `Estoque` em unidades (em quilos para pesáveis); cabeçalhos exatamente como definidos, sem diferenciar maiúsculas                                                                                                     |
+| Item                               | Tipo                  | Impacto e próximo passo                                                                                                                                                                                                                                             |
+| ---------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                               | Tipo                  | Impacto e próximo passo                                                                                                                                                                                                                                             |
+| ---                                | ---                   | ---                                                                                                                                                                                                                                                                 |
+| Migração de dados do sistema atual | Pendente (externa)    | Definir se cadastros e histórico existentes serão importados. A importação por planilha cobre produtos e estoque inicial                                                                                                                                            |
+| CSP "sem scripts inline"           | Aplicada (2026-11-06) | CSP com nonce por requisição em todas as páginas: só scripts do próprio servidor com o nonce da resposta, sem eval. Conferida no navegador contra o contêiner de produção, sem nenhuma violação                                                                     |
+| Valores monetários                 | Premissa reversível   | Centavos inteiros; peso em gramas; total do item arredondado ao centavo; total da venda é a soma dos itens                                                                                                                                                          |
+| Loja única                         | Premissa reversível   | Um estabelecimento por instalação, sem multiempresa                                                                                                                                                                                                                 |
+| Comprovante por WhatsApp           | Premissa reversível   | Link `wa.me` com texto pré-formatado, sem API paga do WhatsApp                                                                                                                                                                                                      |
+| Conta Resend e domínio remetente   | Parcial (externa)     | Chave configurada e envio real verificado em 2026-11-01 com remetente de teste `@resend.dev`, que só entrega para o e-mail da conta Resend. Falta verificar um domínio próprio e trocar `MAIL_FROM` antes de convidar usuários ou enviar o resumo e o alerta diário |
+| Domínio fixo do Cloudflare Tunnel  | Pendente (externa)    | Domínio na conta Cloudflare para o túnel nomeado, para o atalho do PWA não perder o acesso                                                                                                                                                                          |
+| Lote e validade na importação      | Pendente              | As colunas obrigatórias não trazem lote nem validade, mas toda entrada de estoque exige lote e validade (ou "sem validade"). Definir se a importação cria um lote "sem validade" ou aceita colunas opcionais `Lote` e `Validade`                                    |
+| Formato dos valores na planilha    | Premissa reversível   | Preços em reais com vírgula ou ponto decimal; `Estoque` em unidades (em quilos para pesáveis); cabeçalhos exatamente como definidos, sem diferenciar maiúsculas                                                                                                     |
 
 ## Critérios de aceite
 
@@ -232,11 +232,16 @@ Critérios atendidos: o fiado acima do limite é recusado sem gravar nada, inclu
 
 Ficam para depois: VR/VA como forma de pagamento, desconto por item, limite de desconto por perfil e cobrança automática de fiado vencido.
 
+## Produção (v1.0.0, 2026-11-06)
+
+- Imagem Docker com as migrações aplicadas ao iniciar, e `compose.prod.yaml` com app e banco separados do ambiente de desenvolvimento.
+- `GET /api/health` para o Docker e para monitores de uptime.
+- CSP com nonce nas páginas, além dos cabeçalhos que já existiam.
+- Backup diário agendável e guia de implantação com Cloudflare Tunnel em [docs/deploy.md](docs/deploy.md).
+
 ## Próxima entrega
 
-**PWA instalável e leitor por câmera** (MVP item 7), que dependem do HTTPS do túnel. Calendário em [ROADMAP.md](ROADMAP.md).
-
-**Endurecimento pendente:** CSP com nonce (scripts só do próprio servidor), numa tarefa própria de segurança.
+**PWA instalável e leitor por câmera** (MVP item 7), que dependem do HTTPS do túnel com o domínio da loja. Calendário e pendências em [ROADMAP.md](ROADMAP.md).
 
 ## Manutenção
 

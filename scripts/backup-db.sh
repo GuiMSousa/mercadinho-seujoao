@@ -1,25 +1,28 @@
 #!/usr/bin/env sh
 # Backup of the local PostgreSQL (Compose service "postgres") into backups/, compressed.
 # Usage: sh scripts/backup-db.sh [keep_days, default 30]
-# Scheduling and restore: docs/setup.md. Prints no secret: only the user and database names
-# are read from .env.local, and pg_dump runs inside the container over its local socket.
+# Production: ENV_FILE=.env.production COMPOSE_FILE=compose.prod.yaml sh scripts/backup-db.sh
+# (docker compose reads COMPOSE_FILE itself). Scheduling and restore: docs/deploy.md.
+# Prints no secret: only the user and database names are read from the env file, and pg_dump
+# runs inside the container over its local socket.
 set -eu
 # Git Bash on Windows would rewrite /tmp/... into a Windows path for docker.exe; no effect on Linux.
 export MSYS_NO_PATHCONV=1
 cd "$(dirname "$0")/.."
 keep_days="${1:-30}"
+env_file="${ENV_FILE:-.env.local}"
 
 read_var() {
-  sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" .env.local | tail -n 1 |
+  sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "$env_file" | tail -n 1 |
     sed "s/[[:space:]]*$//; s/^[\"']//; s/[\"']$//"
 }
 user="$(read_var POSTGRES_USER)"
 db="$(read_var POSTGRES_DB)"
-[ -n "$user" ] || { echo "Set POSTGRES_USER in .env.local." >&2; exit 1; }
-[ -n "$db" ] || { echo "Set POSTGRES_DB in .env.local." >&2; exit 1; }
+[ -n "$user" ] || { echo "Set POSTGRES_USER in $env_file." >&2; exit 1; }
+[ -n "$db" ] || { echo "Set POSTGRES_DB in $env_file." >&2; exit 1; }
 
-container="$(docker compose --env-file .env.local ps -q postgres)"
-[ -n "$container" ] || { echo "The database container is not running. Start it with: npm run db:up" >&2; exit 1; }
+container="$(docker compose --env-file "$env_file" ps -q postgres)"
+[ -n "$container" ] || { echo "The database container is not running." >&2; exit 1; }
 
 name="$db-$(date +%Y%m%d-%H%M%S).dump"
 inside="/tmp/$name"

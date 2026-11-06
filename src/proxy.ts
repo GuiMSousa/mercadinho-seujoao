@@ -5,6 +5,7 @@ import {
   REMEMBER_MAX_AGE_SECONDS,
   type AuthSession,
 } from "@/domains/auth/sessions";
+import { contentSecurityPolicy, newNonce } from "@/lib/csp";
 
 const redirectTo = (path: string, request: NextRequest) =>
   NextResponse.redirect(new URL(path, request.url));
@@ -13,12 +14,13 @@ function respond(
   request: NextRequest,
   session: AuthSession | null,
   denial: 401 | 403 | null,
+  next: () => NextResponse,
 ) {
   if (denial === null) {
-    if (request.nextUrl.pathname !== "/") return NextResponse.next();
+    if (request.nextUrl.pathname !== "/") return next();
     // The home path is the public landing page; a signed-in person lands on their screen.
     if (session) return redirectTo(homePath(session.user.role), request);
-    return NextResponse.next();
+    return next();
   }
   // The route answers 401 itself and clears the stale cookies, which the proxy cannot do for it.
   if (
@@ -26,7 +28,7 @@ function respond(
     request.method === "POST" &&
     request.nextUrl.pathname === "/api/auth/logout"
   )
-    return NextResponse.next();
+    return next();
   if (request.nextUrl.pathname.startsWith("/api/"))
     return errorResponse(denial);
   if (denial === 401) return redirectTo("/login", request);
@@ -41,7 +43,18 @@ function respond(
 // so every route handler applies the same guard again.
 export async function proxy(request: NextRequest) {
   const { session, denial } = await guard(request);
-  const response = respond(request, session, denial);
+  // Pages get a CSP with a fresh nonce; the request carries it too, so Next.js signs its scripts.
+  const csp = request.nextUrl.pathname.startsWith("/api/")
+    ? null
+    : contentSecurityPolicy(newNonce(), process.env.NODE_ENV === "development");
+  const next = () => {
+    if (!csp) return NextResponse.next();
+    const headers = new Headers(request.headers);
+    headers.set("Content-Security-Policy", csp);
+    return NextResponse.next({ request: { headers } });
+  };
+  const response = respond(request, session, denial, next);
+  if (csp) response.headers.set("Content-Security-Policy", csp);
   // Sliding "Manter conectado": the database expiry moved, so the cookies move with it.
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const csrfToken = request.cookies.get(CSRF_COOKIE)?.value;
