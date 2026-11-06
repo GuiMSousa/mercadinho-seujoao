@@ -13,6 +13,7 @@ import {
   inventoryMovements,
   products,
   saleItems,
+  salePayments,
   sales,
   users,
 } from "@/infrastructure/db/schema";
@@ -98,11 +99,16 @@ async function quantities(db: Db, productId: string) {
 const saleCount = async (db: Db, id: string) =>
   (await db.select().from(sales).where(eq(sales.id, id))).length;
 
-const sale = (overrides: Partial<CreateSale> = {}): CreateSale => ({
+// Paid in full by Pix unless the payments are given.
+const sale = ({
+  total = 0,
+  ...overrides
+}: Partial<CreateSale> = {}): CreateSale => ({
   id: randomUUID(),
   items: [],
-  paymentMethod: "PIX",
-  total: 0,
+  discount: 0,
+  total,
+  payments: total > 0 ? [{ method: "PIX", amount: total }] : [],
   ...overrides,
 });
 
@@ -164,18 +170,20 @@ it("records the sale at catalog prices with its cost, and takes each product by 
           { productId: coffee.id, quantity: 3 },
           { productId: banana.id, quantity: 1250 },
         ],
-        paymentMethod: "CASH",
         total: 5547 + 874,
-        amountReceived: 7000,
+        payments: [{ method: "CASH", amount: 7000 }],
       }),
       TODAY,
     );
 
     expect(receipt).toMatchObject({
-      paymentMethod: "CASH",
+      discount: 0,
       total: 6421,
       amountReceived: 7000,
       change: 579,
+      // The cash row keeps what stayed in the drawer.
+      payments: [{ method: "CASH", amount: 6421 }],
+      customerName: null,
       items: [
         {
           productId: coffee.id,
@@ -368,14 +376,13 @@ it("refuses a changed price, short cash and inactive products before touching st
         sale({
           items,
           total: 3698,
-          paymentMethod: "CASH",
-          amountReceived: 3697,
+          payments: [{ method: "CASH", amount: 3697 }],
         }),
         TODAY,
       ),
     ).rejects.toMatchObject({
       status: 422,
-      options: { fields: { amountReceived: expect.any(String) } },
+      options: { fields: { payments: expect.any(String) } },
     });
     await db
       .update(products)
@@ -391,24 +398,37 @@ it("refuses a changed price, short cash and inactive products before touching st
   });
 });
 
-it("takes the total as received without cash, ignoring a stray amount", async () => {
+it("gives change only from cash: a card or Pix pays its exact share", async () => {
   await inTest(async (db) => {
     const { user, coffee } = await seed(db);
     await db.insert(inventoryBatches).values(batch(coffee.id, "A", null, 5));
+    const items = [{ productId: coffee.id, quantity: 1 }];
 
+    await expect(
+      registerSale(
+        user,
+        sale({
+          items,
+          total: 1849,
+          payments: [{ method: "DEBIT", amount: 5000 }],
+        }),
+        TODAY,
+      ),
+    ).rejects.toMatchObject({
+      status: 422,
+      options: { fields: { payments: expect.any(String) } },
+    });
     const receipt = await registerSale(
       user,
       sale({
-        items: [{ productId: coffee.id, quantity: 1 }],
-        paymentMethod: "DEBIT",
+        items,
         total: 1849,
-        amountReceived: 5000,
+        payments: [{ method: "DEBIT", amount: 1849 }],
       }),
       TODAY,
     );
-
     expect(receipt).toMatchObject({
-      paymentMethod: "DEBIT",
+      payments: [{ method: "DEBIT", amount: 1849 }],
       amountReceived: 1849,
       change: 0,
     });
@@ -453,6 +473,17 @@ async function removeSeed(
 ) {
   const ids = [coffee.id, banana.id];
   await db.delete(saleItems).where(inArray(saleItems.productId, ids));
+  await db
+    .delete(salePayments)
+    .where(
+      inArray(
+        salePayments.saleId,
+        db
+          .select({ id: sales.id })
+          .from(sales)
+          .where(eq(sales.userId, user.id)),
+      ),
+    );
   await db.delete(sales).where(eq(sales.userId, user.id));
   await db.delete(cashSessions).where(eq(cashSessions.id, cash.id));
   await db

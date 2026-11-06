@@ -1,4 +1,5 @@
 import {
+  BookUser,
   ChartColumn,
   LayoutDashboard,
   Package,
@@ -21,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/painel/produtos", label: "Produtos", icon: Package },
   { href: "/painel/estoque", label: "Estoque", icon: Warehouse },
   { href: "/painel/fornecedores", label: "Fornecedores", icon: Truck },
+  { href: "/painel/clientes", label: "Clientes", icon: BookUser },
   { href: "/painel/caixa", label: "Caixa diário", icon: Wallet },
   { href: "/painel/relatorios", label: "Relatórios", icon: ChartColumn },
   { href: "/painel/usuarios", label: "Usuários", icon: Users },

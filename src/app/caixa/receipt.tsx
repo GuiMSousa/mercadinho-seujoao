@@ -10,10 +10,10 @@ import { Dialog } from "@ds/components/dialog";
 import { Money } from "@ds/components/money";
 import { cn } from "@ds/lib/cn";
 import {
-  PAYMENT_LABELS,
   brl,
   itemDetail,
   receiptText,
+  receiptTotals,
   whatsappLink,
   type ReceiptStore,
 } from "./receipt-text";
@@ -36,18 +36,16 @@ function ReceiptLines({ receipt }: { receipt: SaleReceipt }) {
         ))}
       </ul>
       <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-border pt-2 tabular-nums [&_dd]:text-right">
-        <dt className="font-semibold text-strong">Total</dt>
-        <dd className="font-semibold text-strong">{brl(receipt.total)}</dd>
-        <dt className="text-sub">Pagamento</dt>
-        <dd>{PAYMENT_LABELS[receipt.paymentMethod]}</dd>
-        {receipt.paymentMethod === "CASH" && (
-          <>
-            <dt className="text-sub">Recebido</dt>
-            <dd>{brl(receipt.amountReceived)}</dd>
-            <dt className="text-sub">Troco</dt>
-            <dd>{brl(receipt.change)}</dd>
-          </>
-        )}
+        {receiptTotals(receipt).map(([label, amount]) => {
+          const tone =
+            label === "Total" ? "font-semibold text-strong" : "text-sub";
+          return (
+            <div key={label} className="contents">
+              <dt className={cn("wrap-anywhere", tone)}>{label}</dt>
+              <dd className={tone}>{amount}</dd>
+            </div>
+          );
+        })}
       </dl>
     </div>
   );
@@ -138,7 +136,7 @@ export function ReceiptDialog({
       }
     >
       <div className="flex flex-col gap-4">
-        {receipt.paymentMethod === "CASH" && (
+        {receipt.payments.some((payment) => payment.method === "CASH") && (
           <p className="flex items-baseline justify-between gap-3 rounded-lg bg-success-bg px-4 py-3 text-body-lg text-success-fg">
             Troco
             <Money

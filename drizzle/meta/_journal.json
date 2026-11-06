@@ -57,6 +57,20 @@
       "when": 1793929148506,
       "tag": "0007_suppliers",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793937502412,
+      "tag": "0008_customers",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793937517665,
+      "tag": "0009_drop_sale_payment_method",
+      "breakpoints": true
     }
   ]
 }

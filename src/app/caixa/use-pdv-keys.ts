@@ -14,13 +14,14 @@ const isTextField = (target: EventTarget | null) =>
   target.closest("input, textarea, select, [contenteditable='true']") !== null;
 
 /**
- * Counter shortcuts (F1 search, F2 payment, F4/F8/F9 cash, Esc clear) and the scanner guard.
+ * Counter shortcuts (F1 search, F2 payment, F3 discount, F4/F8/F9 cash, Esc clear) and the scanner guard.
  * `active` is false while a dialog is open (it handles its own keys) or the cash is closed.
  */
 export function usePdvKeys({
   active,
   searchRef,
   onCheckout,
+  onDiscount,
   onCash,
   onType,
   onClear,
@@ -28,18 +29,20 @@ export function usePdvKeys({
   active: boolean;
   searchRef: RefObject<HTMLInputElement | null>;
   onCheckout: () => void;
+  onDiscount: () => void;
   onCash: (kind: CashDialogKind) => void;
   onType: (key: string) => void;
   onClear: () => void;
 }) {
   const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
     const cashKey = CASH_KEYS[event.key];
-    if (event.key === "F1" || event.key === "F2" || cashKey) {
+    if (["F1", "F2", "F3"].includes(event.key) || cashKey) {
       // Keeps the browser's own action for these keys (help, find and others) from running.
       event.preventDefault();
       if (!active) return;
       if (event.key === "F1") searchRef.current?.focus();
       else if (event.key === "F2") onCheckout();
+      else if (event.key === "F3") onDiscount();
       else onCash(cashKey);
       return;
     }

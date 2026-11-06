@@ -18,6 +18,41 @@ export function itemDetail({ quantity, unit, unitPrice }: Item) {
   return `${formatQuantity(quantity, unit)} × ${price}`;
 }
 
+const paymentLabel = (
+  method: SaleReceipt["payments"][number]["method"],
+  customerName: string | null,
+) =>
+  method === "ON_ACCOUNT" && customerName
+    ? `Fiado (${customerName})`
+    : PAYMENT_LABELS[method];
+
+/**
+ * The rows under the items, as label and amount: subtotal and discount when there is one, the total,
+ * each payment, and the cash handed over with its change.
+ */
+export function receiptTotals(receipt: SaleReceipt) {
+  const cash = receipt.payments.find((payment) => payment.method === "CASH");
+  return [
+    ...(receipt.discount > 0
+      ? [
+          ["Subtotal", brl(receipt.total + receipt.discount)],
+          ["Desconto", brl(-receipt.discount)],
+        ]
+      : []),
+    ["Total", brl(receipt.total)],
+    ...receipt.payments.map((payment) => [
+      paymentLabel(payment.method, receipt.customerName),
+      brl(payment.amount),
+    ]),
+    ...(cash
+      ? [
+          ["Recebido em dinheiro", brl(cash.amount + receipt.change)],
+          ["Troco", brl(receipt.change)],
+        ]
+      : []),
+  ] as [string, string][];
+}
+
 /** Plain-text receipt for WhatsApp (*bold*); it is not a fiscal document. */
 export function receiptText(store: ReceiptStore, receipt: SaleReceipt) {
   return [
@@ -28,14 +63,9 @@ export function receiptText(store: ReceiptStore, receipt: SaleReceipt) {
       (item) => `${item.name}\n${itemDetail(item)} = ${brl(item.total)}`,
     ),
     "",
-    `*Total: ${brl(receipt.total)}*`,
-    `Pagamento: ${PAYMENT_LABELS[receipt.paymentMethod]}`,
-    ...(receipt.paymentMethod === "CASH"
-      ? [
-          `Recebido: ${brl(receipt.amountReceived)}`,
-          `Troco: ${brl(receipt.change)}`,
-        ]
-      : []),
+    ...receiptTotals(receipt).map(([label, amount]) =>
+      label === "Total" ? `*${label}: ${amount}*` : `${label}: ${amount}`,
+    ),
     "",
     "Comprovante sem valor fiscal.",
   ].join("\n");

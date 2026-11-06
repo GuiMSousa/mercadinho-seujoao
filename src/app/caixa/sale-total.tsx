@@ -4,10 +4,12 @@ import type { RefObject } from "react";
 import { Button } from "@ds/components/button";
 import { Dialog } from "@ds/components/dialog";
 import { Money } from "@ds/components/money";
+import { brl } from "./receipt-text";
 
 const SHORTCUTS = [
   ["F1", "Buscar produto"],
   ["F2", "Finalizar venda"],
+  ["F3", "Desconto"],
   ["Esc", "Limpar a busca ou fechar a janela"],
   ["Enter", "Confirmar o item ou a opção"],
   ["F8", "Sangria"],
@@ -17,14 +19,19 @@ const SHORTCUTS = [
 
 /** Total and the sale's actions; a bar at the bottom on phones, a column beside the items on wide screens. */
 export function SaleTotal({
-  total,
+  subtotal,
+  discount,
   hasItems,
   onFinish,
+  onDiscount,
   onCancel,
 }: {
-  total: number;
+  subtotal: number;
+  /** In cents; it may pass a subtotal that shrank, which the payment then refuses. */
+  discount: number;
   hasItems: boolean;
   onFinish: () => void;
+  onDiscount: () => void;
   onCancel: () => void;
 }) {
   return (
@@ -34,8 +41,17 @@ export function SaleTotal({
     >
       <p className="flex items-baseline justify-between gap-3 lg:flex-col lg:items-start">
         <span className="text-body-lg text-sub">Total</span>
-        <Money cents={total} size="counter" mutedCents={false} />
+        <Money
+          cents={Math.max(0, subtotal - discount)}
+          size="counter"
+          mutedCents={false}
+        />
       </p>
+      {discount > 0 && (
+        <p className="text-body-lg text-sub tabular-nums">
+          {brl(subtotal)} com desconto de {brl(discount)}
+        </p>
+      )}
       <Button
         variant="brand"
         size="counter"
@@ -49,9 +65,20 @@ export function SaleTotal({
         </kbd>
       </Button>
       {hasItems && (
-        <Button variant="ghost" size="counter" onClick={onCancel}>
-          Cancelar venda
-        </Button>
+        // Stacked: "Cancelar venda" at counter size does not fit half of the 24rem column.
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="secondary"
+            size="counter"
+            aria-keyshortcuts="F3"
+            onClick={onDiscount}
+          >
+            Desconto
+          </Button>
+          <Button variant="ghost" size="counter" onClick={onCancel}>
+            Cancelar venda
+          </Button>
+        </div>
       )}
       <dl className="hidden grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 border-t border-border-soft pt-4 text-body-lg text-sub lg:grid">
         {SHORTCUTS.map(([key, action]) => (

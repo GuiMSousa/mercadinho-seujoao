@@ -9,7 +9,8 @@
 - **Semana 5:** ENTREGUE (relatórios financeiros, 2026-11-05)
 - **Semana 6:** ENTREGUE (fornecedores, reposição e pedido por WhatsApp, 2026-11-05)
 - **Semana 7:** ENTREGUE (etiqueta de balança no PDV e revisão de toque, campos, 375 px e contraste, 2026-11-06)
-- **Semanas 8 e 9:** PLANEJADAS
+- **Semana 8:** ENTREGUE EM PARTE (fiado com limite de crédito, quitação, desconto e pagamento dividido, 2026-11-06; VR/VA, histórico de pedidos e previsão de compras pendentes)
+- **Semana 9:** PLANEJADA
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
@@ -101,7 +102,9 @@ A leitura de etiquetas de balança veio da semana 8 para cá. O PDV lê o EAN-13
 - Ajustes de responsividade mobile/desktop e otimização para telas touch do balcão (botões ≥ 60px).
 - Integração completa do layout com todas as rotas e endpoints da API.
 
-### Semana 8 — Vendas a Prazo (Fiado), Descontos & Balança
+### Semana 8 — Vendas a Prazo (Fiado), Descontos & Balança (ENTREGUE EM PARTE em 2026-11-06)
+
+Clientes em `/painel/clientes` com limite de crédito, saldo devedor, extrato e quitação total ou parcial com comprovante para impressão e WhatsApp. No PDV, a venda pode ter desconto em R$ ou % (F3) e ser paga em várias formas, inclusive no fiado; o servidor recusa o fiado que passar do limite. Ficam para a próxima: VR/VA como forma de pagamento, histórico de pedidos de compra e previsão de compras.
 
 - Cadastro de clientes com histórico de compras, limite de crédito e saldo devedor (fiado).
 - Campo de desconto em valor (R$) ou percentual (%) na tela de checkout do PDV.

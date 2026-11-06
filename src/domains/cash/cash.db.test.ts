@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { expect, it, vi } from "vitest";
 import { logActivity } from "@/domains/activity/service";
@@ -12,6 +12,7 @@ import {
   inventoryBatches,
   inventoryMovements,
   products,
+  salePayments,
   sales,
   users,
 } from "@/infrastructure/db/schema";
@@ -54,22 +55,24 @@ async function newUser(db: Db) {
   return user;
 }
 
-/** A sale row straight into the drawer; items do not matter to the cash register. */
-const saleInto = (
+/** A sale row with its payments straight into the drawer; items do not matter to the cash register. */
+async function saleInto(
   db: Db,
   cashSessionId: string,
   userId: string,
-  paymentMethod: "CASH" | "PIX",
-  total: number,
-) =>
-  db.insert(sales).values({
-    userId,
-    cashSessionId,
-    paymentMethod,
-    total,
-    amountReceived: total,
-    change: 0,
-  });
+  payments: [method: "CASH" | "PIX" | "ON_ACCOUNT", amount: number][],
+) {
+  const total = payments.reduce((sum, [, amount]) => sum + amount, 0);
+  const [sale] = await db
+    .insert(sales)
+    .values({ userId, cashSessionId, total, amountReceived: total, change: 0 })
+    .returning({ id: sales.id });
+  await db
+    .insert(salePayments)
+    .values(
+      payments.map(([method, amount]) => ({ saleId: sale.id, method, amount })),
+    );
+}
 
 const movement = (
   type: "BLEED" | "SUPPLY",
@@ -146,23 +149,28 @@ it("closes blind: records the expected amount and the difference, answers only t
     const { id: sessionId } = await openCashSession(user, {
       initialAmount: 10000,
     });
-    await saleInto(db, sessionId, user.id, "CASH", 4572);
-    // Pix never reaches the drawer.
-    await saleInto(db, sessionId, user.id, "PIX", 3000);
+    await saleInto(db, sessionId, user.id, [["CASH", 4572]]);
+    // Pix and fiado never reach the drawer; a split sale counts only its cash share.
+    await saleInto(db, sessionId, user.id, [["PIX", 3000]]);
+    await saleInto(db, sessionId, user.id, [
+      ["CASH", 1000],
+      ["PIX", 500],
+      ["ON_ACCOUNT", 300],
+    ]);
     await recordCashMovement(user, movement("SUPPLY", 500, "Moedas"));
     await recordCashMovement(user, movement("BLEED", 2000, "Depósito"));
 
-    // Expected: 100,00 + 45,72 + 5,00 − 20,00 = 130,72; counted 130,00 → 0,72 short.
+    // Expected: 100,00 + 45,72 + 10,00 + 5,00 − 20,00 = 140,72; counted 140,00 → 0,72 short.
     const closed = await closeCashSession(user, {
       sessionId,
-      actualAmount: 13000,
+      actualAmount: 14000,
       notes: "Faltou troco",
     });
 
     expect(closed).toEqual({
       id: sessionId,
       closedAt: expect.any(String),
-      actualAmount: 13000,
+      actualAmount: 14000,
     });
     const [row] = await db
       .select()
@@ -170,8 +178,8 @@ it("closes blind: records the expected amount and the difference, answers only t
       .where(eq(cashSessions.id, sessionId));
     expect(row).toMatchObject({
       status: "CLOSED",
-      expectedAmount: 13072,
-      actualAmount: 13000,
+      expectedAmount: 14072,
+      actualAmount: 14000,
       difference: -72,
       notes: "Faltou troco",
     });
@@ -179,15 +187,15 @@ it("closes blind: records the expected amount and the difference, answers only t
       expect.objectContaining({
         action: "Caixa fechado",
         detail:
-          "Contado R$\u00a0130,00 · esperado R$\u00a0130,72 · quebra −R$\u00a00,72",
+          "Contado R$\u00a0140,00 · esperado R$\u00a0140,72 · quebra −R$\u00a00,72",
       }),
     );
     // The same count again is a retry; another count, or another session, is a stale screen.
     await expect(
-      closeCashSession(user, { sessionId, actualAmount: 13000 }),
+      closeCashSession(user, { sessionId, actualAmount: 14000 }),
     ).resolves.toEqual(closed);
     await expect(
-      closeCashSession(user, { sessionId, actualAmount: 13100 }),
+      closeCashSession(user, { sessionId, actualAmount: 14100 }),
     ).rejects.toMatchObject({ status: 409 });
     await expect(
       closeCashSession(user, { sessionId: randomUUID(), actualAmount: 0 }),
@@ -199,7 +207,7 @@ it("reports each session with its breakdown, the open one with what it should ho
   await inTest(async (db) => {
     const user = await newUser(db);
     const first = await openCashSession(user, { initialAmount: 10000 });
-    await saleInto(db, first.id, user.id, "CASH", 4572);
+    await saleInto(db, first.id, user.id, [["CASH", 4572]]);
     await recordCashMovement(user, movement("BLEED", 2000, "Depósito"));
     await closeCashSession(user, { sessionId: first.id, actualAmount: 12600 });
     // now() is the transaction start, the same for both openings here: move the first back.
@@ -245,6 +253,14 @@ async function removeAll(
   userId: string,
   extra: () => Promise<unknown> = async () => undefined,
 ) {
+  await db
+    .delete(salePayments)
+    .where(
+      inArray(
+        salePayments.saleId,
+        db.select({ id: sales.id }).from(sales).where(eq(sales.userId, userId)),
+      ),
+    );
   await db.delete(sales).where(eq(sales.userId, userId));
   await extra();
   await db.delete(cashMovements).where(eq(cashMovements.userId, userId));
@@ -305,9 +321,9 @@ it("refuses a sale that waited on a closing, once the closing commits", async ()
           {
             id: randomUUID(),
             items: [{ productId: coffee.id, quantity: 1 }],
-            paymentMethod: "CASH",
+            discount: 0,
             total: 1849,
-            amountReceived: 1849,
+            payments: [{ method: "CASH", amount: 1849 }],
           },
           "2026-11-05",
         );
@@ -364,7 +380,7 @@ it("counts in the expected amount a sale that was in flight when the closing beg
           .for("share");
         closing = closeCashSession(user, { sessionId, actualAmount: 11849 });
         await lockWaiters(db, 1);
-        await saleInto(tx, sessionId, user.id, "CASH", 1849);
+        await saleInto(tx, sessionId, user.id, [["CASH", 1849]]);
       });
       await closing;
 

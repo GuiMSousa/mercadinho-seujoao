@@ -74,13 +74,14 @@ src/
 │   ├── cash/                 # caixa diário: abertura única, sangria/suprimento, fechamento cego, esperado (expected.ts) e relatório
 │   ├── reports/              # relatórios: period.ts (períodos), finance.ts (margem, ticket), consultas no fuso da loja, resumo por e-mail
 │   ├── suppliers/            # fornecedores, fornecedor padrão do produto e reposição (replenishment.ts: sugestão e grupos)
+│   ├── customers/            # clientes do fiado: cadastro, extrato, cobrança na venda e quitação por UPDATE condicional
 │   └── activity/             # registro de atividade (quem fez o quê)
 ├── lib/                      # env (Zod, server-only), logger Pino, `cn`, `document.ts` (máscara e dígitos de CPF/CNPJ), `barcode-scale.ts` (etiqueta de balança EAN-13 `20`/`21`)
 └── infrastructure/
     ├── db/                   # index.ts: único ponto de conexão (pool max 5, lazy); schema/ (users, stores, sessions,
     │                         # verification-codes, activity-log, inventory, sales, cash); test-db.ts (`withTestDb`: transação com rollback; `withTestPool`: commit e limpeza)
     └── mail/                 # Resend por `fetch`; sem chave e fora de produção, só registra no log ("mail (dev)")
-drizzle/                      # SQL versionado (0000: user_role + users; 0001_auth_foundation: loja, sessões, códigos, atividade; 0002: `csrf_hash` NOT NULL, CHECKs de e-mail em minúsculas e de `singleton`, índice de códigos por e-mail, finalidade e data; 0003 e 0004: catálogo e estoque; 0005: vendas; 0006: caixa diário; 0007: fornecedores e `operation_id` das movimentações)
+drizzle/                      # SQL versionado (0000: user_role + users; 0001_auth_foundation: loja, sessões, códigos, atividade; 0002: `csrf_hash` NOT NULL, CHECKs de e-mail em minúsculas e de `singleton`, índice de códigos por e-mail, finalidade e data; 0003 e 0004: catálogo e estoque; 0005: vendas; 0006: caixa diário; 0007: fornecedores e `operation_id` das movimentações; 0008: clientes, extrato, `sale_payments`, `customer_id` e `discount_amount` nas vendas, com cópia da forma de pagamento de cada venda antiga para `sale_payments`; 0009: remove `sales.payment_method`)
 public/                       # manifest.json, sw.js e icons/ do PWA
 scripts/                      # create-user.mts, seed-dev.mts, migrate-test.mjs, generate-openapi.mts, verify-quality-rules.mjs
 eslint-rules/                 # regras locais do toolkit
@@ -113,7 +114,7 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 **Acesso** (`accessDenial`, usado pelo proxy e por cada rota):
 
 - Públicos: `/`, `/login`, `/cadastro`, `/recuperar`, `/design-system`, `/api/setup`, `/api/theme` e as rotas de `/api/auth` de entrada (login, cadastro, recuperação); qualquer outro caminho exige sessão (padrão seguro).
-- `/painel`, `/api/admin`, `/api/account` e `/api/store` exigem `ADMIN`. `/caixa`, `/api/sales`, `/api/products*` e `/api/cash/*` aceitam os dois perfis.
+- `/painel`, `/api/admin`, `/api/account` e `/api/store` exigem `ADMIN`. `/caixa`, `/api/sales`, `/api/products*`, `/api/customers` (busca do fiado, sem documento nem telefone) e `/api/cash/*` aceitam os dois perfis.
 - Métodos que alteram estado exigem `x-csrf-token` cujo SHA-256 seja igual a `sessions.csrfHash` e mesma origem.
 - O proxy redireciona páginas sem sessão para `/login`; em `/`, quem tem sessão vai para a sua tela e os visitantes veem a landing pública. Um `CASHIER` que abre uma página do painel vai para `/caixa`; nas rotas de API continua recebendo 403.
 - `/manifest.json`, `/sw.js` e `/icons/*` passam direto: o matcher do proxy ignora caminhos com extensão.
@@ -142,6 +143,8 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
   Nada muda no servidor: a venda leva só o id e os gramas, e o preço continua sendo o do catálogo.
 
 - O cliente recusa produto com o próximo lote vencido, sem saldo ou acima do saldo (toast de perigo); o servidor confere tudo de novo.
+- **Desconto e pagamentos:** a venda envia `discount` (centavos) e `payments` (o que foi entregue em cada forma, uma linha por forma). `settlePayments` (`src/contracts/sales.ts`), usada pela tela e pelo servidor, confere se a soma cobre o total e tira o troco só do dinheiro. `sale_payments` guarda a parte de cada forma (o dinheiro já sem o troco) e é a única fonte da forma de pagamento para o caixa (esperado = parte em dinheiro) e para os relatórios. `sales.amount_received` é tudo o que foi entregue e `change` o troco.
+- **Fiado:** com uma linha `ON_ACCOUNT`, a transação da venda faz um único `UPDATE customers SET current_debt = current_debt + x WHERE ativo AND current_debt + x <= credit_limit` e grava o DEBIT no extrato. Vendas simultâneas do mesmo cliente esperam a linha e cada uma vê o saldo deixado pela anterior; sem linha atualizada, tudo é desfeito (422 com `fields.customerId`). A quitação (`/api/admin/customers/{id}/payments`) faz o inverso com `WHERE current_debt >= x`, com id do cliente para não repetir um pagamento após resposta perdida.
 - `POST /api/sales` recebe só ids e quantidades. O servidor usa os preços e custos atuais do catálogo, compara o total com o que o operador viu (409 com `fields.total` se um preço mudou; a tela recarrega os preços) e, numa transação, grava a venda e os itens (com preço e custo da hora) e dá baixa PVPS em cada produto, em ordem fixa de produto para não haver deadlock. Lote vencido, falta de estoque ou produto inativo desfazem tudo. O id da venda vem do cliente e só muda depois de uma venda concluída ou cancelada: repetir após uma resposta perdida devolve a venda já gravada.
 - O comprovante sai por `window.print()` (só o comprovante vai ao papel, na largura que o driver da bobina informa) ou por link `wa.me` com o texto pronto.
 - Atalhos: F1 busca, F2 pagamento, Esc limpa a busca ou fecha a janela, Enter confirma.

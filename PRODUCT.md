@@ -166,7 +166,7 @@ Tela `/caixa`, aberta a `ADMIN` e `CASHIER`:
 
 Critério atendido: uma venda com dois lotes do mesmo produto baixa primeiro o de validade mais próxima, e o total de uma venda com item pesável é a soma dos itens arredondados (ver docs/quality.md).
 
-Ficam para depois: pagamentos combinados e leitor por câmera (exige HTTPS).
+Fica para depois o leitor por câmera (exige HTTPS). Pagamento dividido, desconto e fiado entraram em 2026-11-06 (seção abaixo).
 
 ### Etiqueta de balança (entregue em 2026-11-06)
 
@@ -217,6 +217,20 @@ Ficam para depois: alerta diário de reposição por e-mail, histórico de pedid
 ## Revisão de interface (2026-11-06)
 
 No balcão, todo controle tem 60 px ou mais. Os campos usam 16 px em qualquer tamanho, para o Safari do iOS não dar zoom. Nenhuma rota rola de lado em 375 px. Selos, semáforo, botões e textos têm contraste de 4,5:1 ou mais nos dois temas. Detalhes e evidências em `DESIGN.md` e `docs/quality.md`.
+
+## Fiado, desconto e pagamento dividido (entregue em 2026-11-06)
+
+- `/painel/clientes` (só `ADMIN`): cadastro com busca, edição e inativação; CPF/CNPJ opcional e único, WhatsApp e limite de crédito em R$ (zero não permite fiado). A lista mostra o saldo devedor e avisa quando ele passou do limite, o que acontece quando o limite é baixado depois das compras.
+- Extrato do cliente: saldo devedor, limite, disponível e, do mais novo para o mais antigo, cada compra no fiado (com o número da venda) e cada pagamento.
+- Quitação total ou parcial: o pagamento abate o saldo devedor na mesma transação em que é gravado, nunca abaixo de zero, e gera comprovante para impressão ou para o WhatsApp do cliente. O recebimento não entra no caixa do PDV; dinheiro posto na gaveta é um suprimento.
+- PDV, desconto (F3 ou botão "Desconto"): em R$ ou em % do total dos itens, nunca acima dele. O percentual arredonda ao centavo e acompanha o total se um preço mudar.
+- PDV, pagamento dividido: cada valor menor que o que falta vira uma linha (uma por forma, somando), e o valor que cobre o resto finaliza a venda. Só o dinheiro dá troco, e o troco sai dele. Com o campo vazio, Enter paga o que falta na forma escolhida.
+- PDV, fiado: escolhe o cliente ativo pelo nome; o operador vê só o nome e o crédito disponível, nunca documento ou telefone. Se saldo devedor + fiado passar do limite, a venda é bloqueada com aviso de perigo, na tela e no servidor (a conferência do servidor vale também quando outro balcão mudou o limite ou o saldo).
+- O caixa diário conta só a parte em dinheiro de cada venda; os relatórios mostram cada forma com a sua parte (Fiado incluso) e o desconto de cada venda no histórico. O faturamento, o CMV e a margem já contam o desconto; os 5 mais vendidos (e o lucro por produto) usam o valor dos itens antes dele, porque o desconto é da venda, não de um item.
+
+Critérios atendidos: o fiado acima do limite é recusado sem gravar nada, inclusive com duas vendas simultâneas, e o saldo devedor sobe com a venda e desce com a quitação de forma atômica (ver docs/quality.md).
+
+Ficam para depois: VR/VA como forma de pagamento, desconto por item, limite de desconto por perfil e cobrança automática de fiado vencido.
 
 ## Próxima entrega
 

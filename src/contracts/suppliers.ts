@@ -10,29 +10,36 @@ const text = (max: number) =>
     .max(max, `Use até ${max} caracteres.`)
     .refine(hasNoNul, NUL_MESSAGE);
 
+export const partyNameSchema = z
+  .string("Informe o nome.")
+  .trim()
+  .min(1, "Informe o nome.")
+  .max(120, "Use até 120 caracteres.")
+  .refine(hasNoNul, NUL_MESSAGE);
+
+// Optional, stored as digits; when given, a whole CPF (11) or CNPJ (14).
+export const documentSchema = z
+  .string()
+  .refine(
+    (value) => [0, 11, 14].includes(onlyDigits(value).length),
+    "CNPJ ou CPF incompleto.",
+  )
+  .transform(onlyDigits);
+
+// A WhatsApp: DDD and number, with or without the country code 55; optional.
+export const whatsappSchema = z
+  .string()
+  .refine(
+    (value) => /^$|^\d{10,13}$/.test(onlyDigits(value)),
+    "Informe DDD e número. Ex.: (11) 98765-4321",
+  )
+  .transform(onlyDigits);
+
 const supplierFields = {
-  name: z
-    .string("Informe o nome.")
-    .trim()
-    .min(1, "Informe o nome.")
-    .max(120, "Use até 120 caracteres.")
-    .refine(hasNoNul, NUL_MESSAGE),
-  // Optional, stored as digits; when given, a whole CPF (11) or CNPJ (14).
-  document: z
-    .string()
-    .refine(
-      (value) => [0, 11, 14].includes(onlyDigits(value).length),
-      "CNPJ ou CPF incompleto.",
-    )
-    .transform(onlyDigits),
-  // The WhatsApp the order goes to: DDD and number, with or without the country code 55.
-  phone: z
-    .string()
-    .refine(
-      (value) => /^$|^\d{10,13}$/.test(onlyDigits(value)),
-      "Informe DDD e número. Ex.: (11) 98765-4321",
-    )
-    .transform(onlyDigits),
+  name: partyNameSchema,
+  document: documentSchema,
+  // The WhatsApp the order goes to.
+  phone: whatsappSchema,
   // Optional; when given, the same rule as the login e-mail (trimmed, lowercase).
   email: z
     .string()

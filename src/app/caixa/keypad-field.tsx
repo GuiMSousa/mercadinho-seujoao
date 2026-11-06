@@ -16,6 +16,8 @@ type KeypadFieldProps = {
   prefix?: ReactNode;
   suffix?: ReactNode;
   error?: ReactNode;
+  /** Shown while nothing is typed, e.g. the amount an empty field stands for. */
+  placeholder?: string;
   inputRef?: Ref<HTMLInputElement>;
 };
 
@@ -32,6 +34,7 @@ export function KeypadField({
   prefix,
   suffix,
   error,
+  placeholder,
   inputRef,
 }: KeypadFieldProps) {
   // Listens on the wrapper so digits still count after a keypad tap moved the focus to a key.
@@ -56,7 +59,8 @@ export function KeypadField({
         numeric
         inputMode="none"
         autoComplete="off"
-        value={format(value)}
+        value={value === "" && placeholder ? "" : format(value)}
+        placeholder={placeholder}
         // Typing goes through onKeyDown; anything else (letters, paste) is ignored.
         onChange={() => undefined}
         prefix={prefix}

@@ -32,13 +32,24 @@ const columns: TableColumn<Sale>[] = [
     key: "payment",
     label: "Pagamento",
     className: "hidden lg:table-cell",
-    render: (sale) => PAYMENT_LABELS[sale.paymentMethod],
+    render: (sale) =>
+      sale.paymentMethods.map((method) => PAYMENT_LABELS[method]).join(" + ") ||
+      "—",
   },
   {
     key: "total",
     label: "Faturamento",
     align: "right",
-    render: (sale) => formatBrl(sale.total),
+    render: (sale) => (
+      <span className="flex flex-col items-end">
+        {formatBrl(sale.total)}
+        {sale.discount > 0 && (
+          <span className="text-body-sm text-sub">
+            desconto {formatBrl(sale.discount)}
+          </span>
+        )}
+      </span>
+    ),
   },
   {
     key: "cogs",

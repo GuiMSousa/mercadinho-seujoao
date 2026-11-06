@@ -12,12 +12,14 @@ import {
 } from "drizzle-orm/pg-core";
 import { PAYMENT_METHODS } from "../../../contracts/enums";
 import { cashSessions } from "./cash";
+import { customers } from "./customers";
 import { productUnit, products } from "./inventory";
 import { users } from "./users";
 
 export const paymentMethod = pgEnum("payment_method", PAYMENT_METHODS);
 
-// Amounts in integer cents. Without cash, the amount received is the total and there is no change.
+// Amounts in integer cents. The amount received is everything handed over (the payments plus the
+// change); only cash can exceed its share, and the excess is the change.
 export const sales = pgTable(
   "sales",
   {
@@ -29,7 +31,10 @@ export const sales = pgTable(
       .references(() => users.id),
     // The drawer the sale went into. Null only for sales made before the cash register existed.
     cashSessionId: uuid("cash_session_id").references(() => cashSessions.id),
-    paymentMethod: paymentMethod("payment_method").notNull(),
+    // The fiado customer; null when nothing went on account.
+    customerId: uuid("customer_id").references(() => customers.id),
+    // Taken off the sum of the lines; `total` is what the customer pays.
+    discount: integer("discount_amount").notNull().default(0),
     total: integer("total").notNull(),
     amountReceived: integer("amount_received").notNull(),
     change: integer("change").notNull(),
@@ -44,6 +49,24 @@ export const sales = pgTable(
       "sales_amounts_consistent",
       sql`${table.total} >= 0 AND ${table.amountReceived} >= ${table.total} AND ${table.change} = ${table.amountReceived} - ${table.total}`,
     ),
+    check("sales_discount_not_negative", sql`${table.discount} >= 0`),
+  ],
+);
+
+// How the total was paid: one row per method, the amounts summing to the sale's total. A cash row
+// holds what stayed in the drawer (handed over minus the change).
+export const salePayments = pgTable(
+  "sale_payments",
+  {
+    saleId: uuid("sale_id")
+      .notNull()
+      .references(() => sales.id),
+    method: paymentMethod("method").notNull(),
+    amount: integer("amount").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.saleId, table.method] }),
+    check("sale_payments_amount_positive", sql`${table.amount} > 0`),
   ],
 );
 

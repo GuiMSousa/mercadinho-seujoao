@@ -9,6 +9,7 @@ import {
   categories,
   products,
   saleItems,
+  salePayments,
   sales,
   users,
 } from "@/infrastructure/db/schema";
@@ -75,9 +76,11 @@ async function seed(db: TestDb) {
     .returning();
 
   type Line = [product: typeof coffee, quantity: number];
+  type Method = (typeof salePayments.$inferInsert)["method"];
+  // One method pays it all, or [method, amount] pairs split it.
   const sale = async (
     createdAt: string,
-    paymentMethod: "CASH" | "PIX" | "DEBIT" | "CREDIT",
+    paid: Method | [Method, number][],
     lines: Line[],
   ) => {
     const rows = lines.map(([product, quantity]) => {
@@ -98,13 +101,20 @@ async function seed(db: TestDb) {
       .insert(sales)
       .values({
         userId: operator.id,
-        paymentMethod,
         total,
         amountReceived: total,
         change: 0,
         createdAt: new Date(createdAt),
       })
       .returning();
+    const payments = typeof paid === "string" ? [[paid, total] as const] : paid;
+    await db.insert(salePayments).values(
+      payments.map(([method, amount]) => ({
+        saleId: row.id,
+        method,
+        amount,
+      })),
+    );
     await db.insert(saleItems).values(
       rows.map((line, index) => ({
         ...line,
@@ -120,8 +130,15 @@ async function seed(db: TestDb) {
     [coffee, 2],
     [banana, 1250],
   ]);
-  // 10/03 17:00 local: 5 waters.
-  const afternoon = await sale("2020-03-10T20:00:00Z", "PIX", [[water, 5]]);
+  // 10/03 17:00 local: 5 waters, R$ 10,00 by Pix and R$ 5,00 on account (fiado).
+  const afternoon = await sale(
+    "2020-03-10T20:00:00Z",
+    [
+      ["PIX", 1000],
+      ["ON_ACCOUNT", 500],
+    ],
+    [[water, 5]],
+  );
   // 10/03 23:30 local, already 11/03 in UTC: still the store's 10/03.
   const lateNight = await sale("2020-03-11T02:30:00Z", "DEBIT", [[water, 1]]);
   // 09/03 23:30 local, already 10/03 in UTC: the store's 09/03.
@@ -148,11 +165,13 @@ it("sums revenue, CMV, gross profit, margin, ticket and items by the store's cal
       // 2 coffees + 1 weighed line + 5 + 1 waters.
       itemsSold: 9,
     });
+    // A split sale counts in each of its methods, with its share.
     expect(report.payments).toEqual([
       { method: "CASH", count: 1, total: 4572, percent: 71.8 },
-      { method: "PIX", count: 1, total: 1500, percent: 23.5 },
+      { method: "PIX", count: 1, total: 1000, percent: 15.7 },
       { method: "DEBIT", count: 1, total: 300, percent: 4.7 },
       { method: "CREDIT", count: 0, total: 0, percent: 0 },
+      { method: "ON_ACCOUNT", count: 1, total: 500, percent: 7.8 },
     ]);
     const names = (list: { name: string }[]) => list.map((p) => p.name);
     // 6 waters, 2 coffees, then 1,25 kg of banana.
@@ -211,13 +230,14 @@ it("lists the period's sales newest first, each with its CMV and margin", async 
       page.sales.map((sale) => [
         sale.id,
         sale.operator,
+        sale.paymentMethods,
         sale.cogs,
         sale.marginPercent,
       ]),
     ).toEqual([
-      [lateNight.id, "Carla", 100, 66.7],
-      [afternoon.id, "Carla", 500, 66.7],
-      [morning.id, "Carla", 3080, 32.6],
+      [lateNight.id, "Carla", ["DEBIT"], 100, 66.7],
+      [afternoon.id, "Carla", ["PIX", "ON_ACCOUNT"], 500, 66.7],
+      [morning.id, "Carla", ["CASH"], 3080, 32.6],
     ]);
     // A page past the end answers the last one.
     expect((await listReportSales({ ...day, page: 9 })).page).toBe(1);
@@ -296,7 +316,6 @@ it("reads a whole report from one snapshot, blind to sales committed halfway", a
     const sale = (total: number) =>
       db.insert(sales).values({
         userId: operator.id,
-        paymentMethod: "CASH",
         total,
         amountReceived: total,
         change: 0,

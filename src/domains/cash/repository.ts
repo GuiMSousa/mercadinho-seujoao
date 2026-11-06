@@ -16,8 +16,9 @@ const movementRow = {
 // Money that went in or out of a session's drawer, correlated to the cash_sessions row being read.
 // Written with explicit names: in a single-table select Drizzle drops the table from column names,
 // and an unqualified "id" inside the subquery would be the sale's own id.
+// A sale's cash share is what stayed in the drawer (handed over minus the change).
 const cashSales =
-  sql<number>`(SELECT coalesce(sum(s.total), 0) FROM sales s WHERE s.cash_session_id = cash_sessions.id AND s.payment_method = 'CASH')`.mapWith(
+  sql<number>`(SELECT coalesce(sum(p.amount), 0) FROM sale_payments p JOIN sales s ON s.id = p.sale_id WHERE s.cash_session_id = cash_sessions.id AND p.method = 'CASH')`.mapWith(
     Number,
   );
 const movementTotal = (type: "BLEED" | "SUPPLY") =>

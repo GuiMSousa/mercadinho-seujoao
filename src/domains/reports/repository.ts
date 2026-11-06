@@ -2,7 +2,14 @@ import "server-only";
 import { and, desc, eq, gte, lt, sql, type SQLWrapper } from "drizzle-orm";
 import type { ReportPeriod } from "@/contracts/reports";
 import { getDb, type Tx } from "@/infrastructure/db";
-import { products, saleItems, sales, users } from "@/infrastructure/db/schema";
+import type { PaymentMethod } from "@/contracts/sales";
+import {
+  products,
+  saleItems,
+  salePayments,
+  sales,
+  users,
+} from "@/infrastructure/db/schema";
 import { STORE_TIME_ZONE } from "@/lib/store-time";
 
 /**
@@ -57,16 +64,18 @@ export async function selectTotals(db: Tx, period: ReportPeriod) {
   return { ...salesTotals, ...itemTotals };
 }
 
+/** Each method's share of the period's sales, and how many sales used it (a split sale counts in each). */
 export function selectPaymentTotals(db: Tx, period: ReportPeriod) {
   return db
     .select({
-      method: sales.paymentMethod,
+      method: salePayments.method,
       count: sql`count(*)`.mapWith(Number),
-      total: total(sales.total),
+      total: total(salePayments.amount),
     })
-    .from(sales)
+    .from(salePayments)
+    .innerJoin(sales, eq(sales.id, salePayments.saleId))
     .where(inPeriod(period))
-    .groupBy(sales.paymentMethod);
+    .groupBy(salePayments.method);
 }
 
 const productRevenue = total(saleItems.total);
@@ -118,7 +127,12 @@ export function selectSalesPage(
       number: sales.number,
       createdAt: sales.createdAt,
       operator: users.name,
-      paymentMethod: sales.paymentMethod,
+      // In the fixed method order; empty for a sale with nothing to pay. As text[]: node-postgres
+      // leaves an array of an enum as its literal string.
+      paymentMethods: sql<
+        PaymentMethod[]
+      >`array(SELECT sp.method::text FROM sale_payments sp WHERE sp.sale_id = "sales"."id" ORDER BY sp.method)`,
+      discount: sales.discount,
       total: sales.total,
       // Explicit names: the subquery must read the outer sale, not its own row.
       cogs: sql`(SELECT coalesce(sum(si.cost), 0) FROM sale_items si WHERE si.sale_id = "sales"."id")`.mapWith(

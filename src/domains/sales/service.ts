@@ -1,13 +1,16 @@
 import "server-only";
 import { CASH_CLOSED_MESSAGE } from "@/contracts/cash";
 import { MAX_INTEGER } from "@/contracts/inventory";
-import { lineTotal, type CreateSale } from "@/contracts/sales";
+import { lineTotal, settlePayments, type CreateSale } from "@/contracts/sales";
 import { ServiceError } from "@/domains/auth/errors";
 import { selectOpenSession } from "@/domains/cash/repository";
+import { selectCustomer } from "@/domains/customers/repository";
 import { selectProductsForSale } from "@/domains/inventory/repository";
 import { todayInStore } from "@/domains/inventory/semaphore";
+import { formatBrl } from "@ds/lib/money";
 import {
   CashClosed,
+  CreditRefusal,
   insertSale,
   selectSale,
   StockRefusal,
@@ -22,6 +25,9 @@ const cashClosed = () =>
     fields: { cash: CASH_CLOSED_MESSAGE },
   });
 
+const refuse = (field: string, message: string) =>
+  new ServiceError(422, message, { fields: { [field]: message } });
+
 const PRICE_CHANGED =
   "Um preço mudou desde que o item entrou na venda. Confira o novo total e finalize de novo.";
 
@@ -29,9 +35,19 @@ const PRICE_CHANGED =
 async function recordedSale(actor: Actor, input: CreateSale) {
   const sale = await selectSale(input.id);
   if (!sale) return undefined;
+  // What was handed over in each method: the cash share plus the change it gave.
+  const handed = (method: string) => {
+    const share = sale.payments.find((payment) => payment.method === method);
+    return share && share.amount + (method === "CASH" ? sale.change : 0);
+  };
   const same =
     sale.userId === actor.id &&
-    sale.paymentMethod === input.paymentMethod &&
+    sale.discount === input.discount &&
+    (sale.customerId ?? undefined) === input.customerId &&
+    sale.payments.length === input.payments.length &&
+    input.payments.every(
+      (payment) => handed(payment.method) === payment.amount,
+    ) &&
     sale.items.length === input.items.length &&
     input.items.every((item) =>
       sale.items.some(
@@ -44,13 +60,31 @@ async function recordedSale(actor: Actor, input: CreateSale) {
       409,
       "Esta venda já foi registrada com outros dados. Comece uma nova venda.",
     );
+  // The route's receipt schema drops userId and customerId.
   return { ...sale, createdAt: sale.createdAt.toISOString() };
 }
 
+/** Why the fiado did not fit, read after the refusal: the customer may have changed meanwhile. */
+async function creditRefusal(customerId: string, amount: number) {
+  const customer = await selectCustomer(customerId);
+  if (!customer) return refuse("customerId", "Cliente não encontrado.");
+  if (!customer.active)
+    return refuse(
+      "customerId",
+      `${customer.name} está inativo e não pode comprar no fiado.`,
+    );
+  const available = Math.max(0, customer.creditLimit - customer.currentDebt);
+  return refuse(
+    "customerId",
+    `Limite de crédito excedido: ${customer.name} tem ${formatBrl(available)} disponíveis para o fiado de ${formatBrl(amount)} (limite ${formatBrl(customer.creditLimit)}, saldo devedor ${formatBrl(customer.currentDebt)}).`,
+  );
+}
+
 /**
- * Registers a sale at the catalog's current prices and takes its stock by PVPS, all or nothing.
- * Refuses it with the cash closed, when the total differs from what the operator saw, when cash
- * does not cover it, or when a product is inactive, short or has an expired batch next in line.
+ * Registers a sale at the catalog's current prices, minus the discount, split among its payments,
+ * and takes its stock by PVPS, all or nothing. Refuses it with the cash closed, when the total
+ * differs from what the operator saw, when the payments do not settle it, when the fiado passes the
+ * customer's credit limit, or when a product is inactive, short or has an expired batch next.
  */
 export async function registerSale(
   actor: Actor,
@@ -85,35 +119,40 @@ export async function registerSale(
       cost: lineTotal(product.costPrice, quantity, product.unit),
     };
   });
-  const total = lines.reduce((sum, line) => sum + line.total, 0);
-  if (total > MAX_INTEGER || lines.some((line) => line.cost > MAX_INTEGER))
+  const subtotal = lines.reduce((sum, line) => sum + line.total, 0);
+  if (subtotal > MAX_INTEGER || lines.some((line) => line.cost > MAX_INTEGER))
     throw new ServiceError(422, "Total acima do limite. Divida a venda.");
+  if (input.discount > subtotal)
+    throw refuse("discount", "O desconto não pode passar do total da venda.");
+  const total = subtotal - input.discount;
   if (total !== input.total)
     throw new ServiceError(409, PRICE_CHANGED, {
       fields: { total: PRICE_CHANGED },
     });
-  const amountReceived =
-    input.paymentMethod === "CASH" ? (input.amountReceived ?? 0) : total;
-  if (amountReceived < total) {
-    const message = "O valor recebido é menor que o total.";
-    throw new ServiceError(422, message, {
-      fields: { amountReceived: message },
-    });
-  }
+  const settled = settlePayments(total, input.payments);
+  if (!settled.ok) throw refuse("payments", settled.message);
 
   try {
     await insertSale({
       id: input.id,
       userId: actor.id,
-      paymentMethod: input.paymentMethod,
+      customerId: input.customerId ?? null,
+      discount: input.discount,
       total,
-      amountReceived,
-      change: amountReceived - total,
+      amountReceived: settled.received,
+      change: settled.change,
+      payments: settled.payments,
       lines,
       today,
     });
   } catch (error) {
     if (error instanceof CashClosed) throw cashClosed();
+    if (error instanceof CreditRefusal && input.customerId) {
+      const fiado = settled.payments.find(
+        (payment) => payment.method === "ON_ACCOUNT",
+      );
+      throw await creditRefusal(input.customerId, fiado?.amount ?? 0);
+    }
     if (!(error instanceof StockRefusal)) throw error;
     const name = products.get(error.productId)?.name ?? "Um dos produtos";
     throw new ServiceError(

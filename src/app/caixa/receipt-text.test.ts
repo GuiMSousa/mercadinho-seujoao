@@ -5,10 +5,12 @@ const receipt = {
   id: "8c3f1f7a-3c1e-4a3b-9f0e-2f6a1d7c5b09",
   number: 42,
   createdAt: "2026-11-05T19:20:00.000Z",
-  paymentMethod: "CASH" as const,
+  discount: 0,
   total: 4572,
   amountReceived: 5000,
   change: 428,
+  payments: [{ method: "CASH" as const, amount: 4572 }],
+  customerName: null,
   items: [
     {
       productId: "8c3f1f7a-3c1e-4a3b-9f0e-2f6a1d7c5b01",
@@ -48,8 +50,8 @@ it("writes the receipt in the store's time zone, with change only for cash", () 
       "1,250 kg × R$\u00a06,99/kg = R$\u00a08,74",
       "",
       "*Total: R$\u00a045,72*",
-      "Pagamento: Dinheiro",
-      "Recebido: R$\u00a050,00",
+      "Dinheiro: R$\u00a045,72",
+      "Recebido em dinheiro: R$\u00a050,00",
       "Troco: R$\u00a04,28",
       "",
       "Comprovante sem valor fiscal.",
@@ -57,12 +59,42 @@ it("writes the receipt in the store's time zone, with change only for cash", () 
   );
   const pix = receiptText(store, {
     ...receipt,
-    paymentMethod: "PIX",
+    payments: [{ method: "PIX", amount: 4572 }],
     amountReceived: 4572,
     change: 0,
   });
-  expect(pix).toContain("Pagamento: Pix");
+  expect(pix).toContain("Pix: R$\u00a045,72");
   expect(pix).not.toContain("Troco");
+});
+
+it("lists the discount and each payment of a split sale, naming the fiado customer", () => {
+  // R$ 50,72 of items, R$ 5,00 off; R$ 20,00 in cash (R$ 25,00 handed over), R$ 10,00 by Pix and
+  // R$ 15,72 on account.
+  const text = receiptText(store, {
+    ...receipt,
+    discount: 500,
+    total: 4572,
+    amountReceived: 5072,
+    change: 500,
+    payments: [
+      { method: "CASH", amount: 2000 },
+      { method: "PIX", amount: 1000 },
+      { method: "ON_ACCOUNT", amount: 1572 },
+    ],
+    customerName: "Dona Maria",
+  });
+  expect(text).toContain(
+    [
+      "Subtotal: R$\u00a050,72",
+      "Desconto: −R$\u00a05,00",
+      "*Total: R$\u00a045,72*",
+      "Dinheiro: R$\u00a020,00",
+      "Pix: R$\u00a010,00",
+      "Fiado (Dona Maria): R$\u00a015,72",
+      "Recebido em dinheiro: R$\u00a025,00",
+      "Troco: R$\u00a05,00",
+    ].join("\n"),
+  );
 });
 
 it("puts the whole text in one encoded parameter", () => {

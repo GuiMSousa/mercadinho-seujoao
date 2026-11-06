@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-06): 312 testes em 84 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 124 testes em 18 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 10 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-06): 329 testes em 90 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 131 testes em 20 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 12 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -54,7 +54,14 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
     - faturamento, CMV gravado, lucro bruto, margem, ticket e formas de pagamento por dia do fuso da loja (venda às 23h30 locais no dia certo), lidos de um único instante: `src/domains/reports/reports.db.test.ts` e `src/domains/reports/finance.test.ts`;
     - produtos no mínimo ou abaixo (ou vencendo em até 30 dias) entram na reposição com 2 × mínimo − estoque, agrupados pelo fornecedor padrão: `src/domains/suppliers/suppliers.db.test.ts`;
     - a baixa manual repetida com o mesmo id, em sequência ou ao mesmo tempo, tira o estoque uma vez: `src/domains/inventory/write-off.db.test.ts`;
-    - etiqueta de balança por peso (`21`) e por valor (`20`): leitura com dígito verificador, EAN comum ignorado, peso por valor nunca acima do valor impresso, e a venda no banco ao preço do catálogo com baixa PVPS em gramas: `src/lib/barcode-scale.test.ts`, `src/app/caixa/sale-api.test.ts` e `src/domains/sales/sales.db.test.ts`.
+    - etiqueta de balança por peso (`21`) e por valor (`20`): leitura com dígito verificador, EAN comum ignorado, peso por valor nunca acima do valor impresso, e a venda no banco ao preço do catálogo com baixa PVPS em gramas: `src/lib/barcode-scale.test.ts`, `src/app/caixa/sale-api.test.ts` e `src/domains/sales/sales.db.test.ts`;
+    - fiado acima do limite (ou de cliente inativo) recusado sem gravar nada, também com duas vendas simultâneas; saldo devedor que sobe com a venda e desce com a quitação parcial ou total, nunca abaixo de zero, também com dois pagamentos simultâneos; pagamento repetido com o mesmo id registrado uma vez; venda dividida entre dinheiro (com troco), Pix e fiado após desconto, e desconto acima dos itens recusado: `src/domains/sales/payments.db.test.ts`, `src/domains/customers/customers.db.test.ts` e `src/app/caixa/checkout-payments.test.ts`;
+    - o caixa conta só a parte em dinheiro de uma venda dividida, e os relatórios mostram cada forma com a sua parte: `src/domains/cash/cash.db.test.ts` e `src/domains/reports/reports.db.test.ts`.
+  - **Checagem por mutação** (2026-11-06, fiado): os testes mataram 4 mutantes, e o código voltou ao original depois de cada um:
+    - tirar a condição de limite do `UPDATE` do fiado (o teste das duas vendas simultâneas e o do limite falharam);
+    - aceitar fiado de cliente inativo;
+    - tirar a condição `current_debt >= valor` da quitação (o pagamento acima do saldo virou erro 500);
+    - aceitar troco de forma que não é dinheiro.
   - **Checagem por mutação** (2026-11-06): o teste da etiqueta matou 4 mutantes, e o código voltou ao original depois de cada um:
     - arredondar o peso por valor para o grama mais próximo, em vez de para baixo;
     - não conferir o dígito verificador;
@@ -68,14 +75,14 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 - **`test:e2e`:** automatizado ainda não existe e não é simulado. O fluxo de telas tem um roteiro manual com resultados em [Roteiro E2E no navegador](#roteiro-e2e-no-navegador).
 - **Capacidades adotadas e evidência atual** (detalhes em [setup.md](setup.md)):
 
-  | Capacidade    | Evidência atual                                                                                                                                                                                     |
-  | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                      |
-  | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                   |
-  | SQL           | Migrations `0000` a `0006` geradas e revisadas; `0005` (vendas) e `0006` (caixa diário) aplicadas nos bancos de teste, de E2E e de desenvolvimento                                                  |
-  | CI            | Configurado, sem execução remota                                                                                                                                                                    |
-  | Segurança     | Ciclos de revisão de segurança da autenticação concluídos (resumo abaixo)                                                                                                                           |
-  | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404 |
+  | Capacidade    | Evidência atual                                                                                                                                                                                      |
+  | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | Runtime Next  | Preflight do `/_next/mcp` ok (`get_compilation_issues`, `get_routes`); `agent-browser` ausente                                                                                                       |
+  | Bundle        | `next analyze` suportado; nenhuma auditoria feita                                                                                                                                                    |
+  | SQL           | Migrations `0000` a `0009` geradas e revisadas; `0008` (clientes, pagamentos e cópia das formas antigas) e `0009` aplicadas nos bancos de teste, de E2E e de desenvolvimento (este com backup antes) |
+  | CI            | Configurado, sem execução remota                                                                                                                                                                     |
+  | Segurança     | Ciclos de revisão de segurança da autenticação concluídos (resumo abaixo)                                                                                                                            |
+  | Design system | Vitrine `/design-system` conferida no navegador (Playwright, 2026-10-28): temas claro e escuro, diálogo, teclado numérico, seleção, foco e console sem erros. Referências servidas por HTTP sem 404  |
 
 ## Roteiro E2E no navegador
 
@@ -236,6 +243,34 @@ Correções da revisão:
 - **Campos e caixa de seleção:** o "Item não vence" da entrada de lote ganhou uma linha de toque de 60 px; o campo de observações do fechamento, 60 px; e os campos `sm`, 16 px.
 
 Não verificado: balança e leitor físicos, e leitor de tela.
+
+### Fiado, desconto e pagamento dividido (semana 8)
+
+Executado em 2026-11-06 com o Playwright (Edge, script local), contra o build de produção no banco `mkt_control_e2e`. O servidor rodou sem `RESEND_API_KEY`. O roteiro usou o café de R$ 18,49 e a cliente "PDV Dona Maria" com limite de R$ 50,00.
+
+| #   | Passo                                                                                                                                                            | Resultado |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | Cadastro de cliente recusa CPF incompleto; a lista mostra limite R$ 50,00 e saldo zero                                                                           | Passou    |
+| 2   | Desconto de 10% (F3) sobre 3 cafés: total R$ 49,92, com subtotal e desconto no painel; janela de desconto com 60 px                                              | Passou    |
+| 3   | R$ 10,00 no Pix vira uma linha e faltam R$ 39,92                                                                                                                 | Passou    |
+| 4   | Fiado de R$ 60,00 com R$ 50,00 disponíveis: bloqueado na tela com aviso de perigo, sem enviar nada                                                               | Passou    |
+| 5   | O administrador baixa o limite para R$ 10,00 em outra sessão; o fiado de R$ 20,00 é recusado pelo servidor com aviso de perigo, e o pagamento continua aberto    | Passou    |
+| 6   | Com o limite de volta, a venda fecha: Pix R$ 10,00, fiado R$ 20,00 e dinheiro R$ 19,92 (R$ 50,00 entregues, troco R$ 30,08), com desconto no comprovante         | Passou    |
+| 7   | A lista e o extrato mostram o saldo de R$ 20,00 e a compra no fiado com o número da venda                                                                        | Passou    |
+| 8   | Quitação: abre com o saldo inteiro, recusa R$ 100,00, registra R$ 5,00 parcial, oferece comprovante impresso e WhatsApp para o número do cliente; saldo R$ 15,00 | Passou    |
+| 9   | Em 375 px, sem rolagem lateral e campos com 16 px: clientes, extrato, quitação, desconto e pagamento com a busca do fiado                                        | Passou    |
+| 10  | Console sem erros, fora os 422 provocados                                                                                                                        | Passou    |
+
+Depois dos 5 ciclos de revisão, o roteiro foi repetido com mais duas checagens, que passaram:
+
+- remover o último item tira o desconto da venda;
+- ao registrar a quitação, o foco entra no diálogo de confirmação.
+
+O roteiro da etiqueta de balança e da revisão de interface (semana 7) também foi repetido, sem regressão (60 de 60).
+
+Corrigido pelo roteiro: ao escolher o cliente do fiado, o foco ia para o diálogo e os dígitos digitados se perdiam (agora vai para o valor); "Cancelar venda" não cabia ao lado de "Desconto" no painel do total (agora empilhados).
+
+Não verificado: impressora térmica real, WhatsApp aberto de fato e leitor de tela.
 
 ## Harness (método nativo inspirado no Harness2)
 

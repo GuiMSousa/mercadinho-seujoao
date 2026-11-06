@@ -10,27 +10,23 @@ import { newId } from "@/app/painel/_lib/new-id";
 import { parseScaleLabel } from "@/lib/barcode-scale";
 import { Input } from "@ds/components/input";
 import { useToast } from "@ds/components/toast";
-import {
-  addToCart,
-  cartTotal,
-  refusal,
-  removeLine,
-  setQuantity,
-  type CartLine,
-} from "./cart";
+import { cartTotal, removeLine, setQuantity } from "./cart";
 import { CartList } from "./cart-list";
 import { CashDialogs, type CashDialogKind } from "./cash-dialogs";
 import { CheckoutDialog } from "./checkout-dialog";
+import { discountCents } from "./checkout-payments";
+import { DiscountDialog } from "./discount-dialog";
 import { OpenCashPanel } from "./open-cash-panel";
 import { PdvHeader } from "./pdv-header";
 import { QuantityDialog } from "./quantity-dialog";
 import { ReceiptDialog, ReceiptPaper } from "./receipt";
-import { brl, type ReceiptStore } from "./receipt-text";
+import type { ReceiptStore } from "./receipt-text";
 import { lookupBarcode, lookupScaleLabel, withCurrentPrices } from "./sale-api";
 import { CancelSaleDialog, SaleTotal } from "./sale-total";
 import { SearchResults } from "./search-results";
 import { usePdvKeys } from "./use-pdv-keys";
 import { useProductSearch } from "./use-product-search";
+import { useSaleCart } from "./use-sale-cart";
 
 /** A product whose quantity is being typed: a new one goes in (add) or a line changes (set). */
 type Weighing = { product: ProductLookup; mode: "add" | "set" };
@@ -53,56 +49,40 @@ export function PdvView({
   const router = useRouter();
   const { toast } = useToast();
   const searchRef = useRef<HTMLInputElement>(null);
-  // Scans can answer while another is in flight; handlers read the cart here, never a stale render.
-  const cartRef = useRef<CartLine[]>([]);
   // Counts the lookups, so only the last one may hand its text back to the field.
   const lookups = useRef(0);
-  const [cart, setCart] = useState<CartLine[]>([]);
   const [query, setQuery] = useState("");
   const [weighing, setWeighing] = useState<Weighing | null>(null);
   const [checkout, setCheckout] = useState(false);
+  const [discounting, setDiscounting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [receipt, setReceipt] = useState<SaleReceipt | null>(null);
   // One id per sale, kept across failed attempts: a retry after a lost answer cannot sell twice.
   const [saleId, setSaleId] = useState(newId);
-  const [announcement, setAnnouncement] = useState("");
   const [cashDialog, setCashDialog] = useState<CashDialogKind | null>(null);
   const search = useProductSearch(query);
+  const {
+    cart,
+    cartRef,
+    announcement,
+    commit,
+    add,
+    pick,
+    discount,
+    setDiscount,
+  } = useSaleCart((product) => setWeighing({ product, mode: "add" }));
   const dialogOpen =
     weighing !== null ||
     checkout ||
+    discounting ||
     cancelling ||
     receipt !== null ||
     cashDialog !== null;
   const cashId = cash?.id;
+  const subtotal = cartTotal(cart);
+  const discountOff = discountCents(subtotal, discount);
   const inCart = (id: string) =>
     cart.find((line) => line.id === id)?.quantity ?? 0;
-
-  function commit(next: CartLine[]) {
-    cartRef.current = next;
-    setCart(next);
-  }
-
-  function refuse(product: ProductLookup, quantity: number) {
-    const refused = refusal(cartRef.current, product, quantity);
-    if (refused) toast({ ...refused, tone: "danger" });
-    return refused !== null;
-  }
-
-  function add(product: ProductLookup, quantity: number) {
-    if (refuse(product, quantity)) return;
-    commit(addToCart(cartRef.current, product, quantity));
-    setAnnouncement(
-      `${product.name} adicionado. Total ${brl(cartTotal(cartRef.current))}.`,
-    );
-  }
-
-  /** A unit product goes in one at a time; a weighed one asks for the weight first. */
-  function pick(product: ProductLookup) {
-    if (product.unit === "UN") return add(product, 1);
-    // Refused before the weight is typed, so an expired or empty product stops right away.
-    if (!refuse(product, 1)) setWeighing({ product, mode: "add" });
-  }
 
   async function lookup(event: FormEvent) {
     // The scanner's Enter lands here and never submits anything else.
@@ -174,6 +154,7 @@ export function PdvView({
     active: !dialogOpen && cash !== null,
     searchRef,
     onCheckout: openCheckout,
+    onDiscount: () => cartRef.current.length > 0 && setDiscounting(true),
     onCash: openCash,
     onType: (key) => setQuery((current) => current + key),
     onClear: () => setQuery(""),
@@ -253,9 +234,11 @@ export function PdvView({
           />
         </div>
         <SaleTotal
-          total={cartTotal(cart)}
+          subtotal={subtotal}
+          discount={discountOff}
           hasItems={cart.length > 0}
           onFinish={openCheckout}
+          onDiscount={() => setDiscounting(true)}
           onCancel={() => setCancelling(true)}
         />
       </main>
@@ -287,6 +270,7 @@ export function PdvView({
       {checkout && (
         <CheckoutDialog
           cart={cart}
+          discount={discountOff}
           saleId={saleId}
           finalFocus={searchRef}
           onClose={() => setCheckout(false)}
@@ -307,6 +291,18 @@ export function PdvView({
             setCheckout(false);
             setReceipt(done);
             startNewSale();
+          }}
+        />
+      )}
+      {discounting && (
+        <DiscountDialog
+          subtotal={subtotal}
+          current={discount}
+          finalFocus={searchRef}
+          onClose={() => setDiscounting(false)}
+          onApply={(next) => {
+            setDiscount(next);
+            setDiscounting(false);
           }}
         />
       )}

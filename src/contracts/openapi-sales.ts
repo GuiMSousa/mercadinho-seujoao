@@ -32,7 +32,7 @@ export const salesPaths = {
     post: {
       summary: "Registra uma venda e dá baixa no estoque por PVPS",
       description:
-        "Aberta a qualquer sessão. Usa os preços atuais do catálogo e grava preço e custo de cada item. Tudo na mesma transação: sem estoque, com o próximo lote vencido ou com produto inativo, nada é gravado. O total enviado deve ser o que o operador viu; se um preço mudou, a venda é recusada (409 com fields.total). O id é gerado pelo cliente: repetir a mesma venda com o mesmo id devolve a já registrada. Em dinheiro, amountReceived é obrigatório e o troco sai dele; nas outras formas, o recebido é o total.",
+        "Aberta a qualquer sessão. Usa os preços atuais do catálogo e grava preço e custo de cada item. Tudo na mesma transação: sem estoque, com o próximo lote vencido ou com produto inativo, nada é gravado. O total enviado deve ser o que o operador viu; se um preço mudou, a venda é recusada (409 com fields.total). O id é gerado pelo cliente: repetir a mesma venda com o mesmo id devolve a já registrada. O desconto (centavos) sai da soma dos itens e não pode passar dela; total = itens − desconto. payments traz o que foi entregue em cada forma, uma linha por forma; a soma deve cobrir o total, e só o dinheiro pode passar da sua parte (o excesso é o troco). Com total zero, payments vem vazio. Fiado (ON_ACCOUNT) exige customerId, e customerId só vale com fiado: o saldo devedor do cliente sobe na mesma transação, e a venda é recusada se ele estiver inativo ou se saldo + fiado passar do limite (422 com fields.customerId).",
       security: [{ session: [], csrf: [] }],
       requestBody: body("CreateSaleRequest"),
       responses: {
@@ -47,7 +47,7 @@ export const salesPaths = {
           "Estoque insuficiente, lote vencido, produto inativo, preço alterado (fields.total) ou id já usado por outra venda.",
         ),
         "422": formError(
-          'Caixa fechado (fields.cash: "Não é possível realizar vendas com o caixa fechado."), campos inválidos, valor recebido menor que o total (fields.amountReceived) ou total acima do limite.',
+          'Caixa fechado (fields.cash: "Não é possível realizar vendas com o caixa fechado."), campos inválidos, desconto acima dos itens (fields.discount), pagamentos que não fecham o total (fields.payments), fiado recusado (fields.customerId) ou total acima do limite.',
         ),
       },
     },

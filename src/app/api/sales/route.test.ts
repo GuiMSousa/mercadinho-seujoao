@@ -15,18 +15,21 @@ const productId = "8c3f1f7a-3c1e-4a3b-9f0e-2f6a1d7c5b01";
 const input = {
   id: "8c3f1f7a-3c1e-4a3b-9f0e-2f6a1d7c5b09",
   items: [{ productId, quantity: 2 }],
-  paymentMethod: "CASH",
+  discount: 0,
   total: 3698,
-  amountReceived: 5000,
+  payments: [{ method: "CASH", amount: 5000 }],
 };
+const customerId = "8c3f1f7a-3c1e-4a3b-9f0e-2f6a1d7c5b05";
 const receipt = {
   id: input.id,
   number: 7,
   createdAt: "2026-11-05T19:20:00.000Z",
-  paymentMethod: "CASH" as const,
+  discount: 0,
   total: 3698,
   amountReceived: 5000,
   change: 1302,
+  payments: [{ method: "CASH" as const, amount: 3698 }],
+  customerName: null,
   items: [
     {
       productId,
@@ -74,8 +77,19 @@ it("refuses a sale the schema does not accept", async () => {
         { productId, quantity: 1 },
       ],
     },
-    { paymentMethod: "CHEQUE" },
-    { amountReceived: undefined },
+    { payments: [{ method: "CHEQUE", amount: 3698 }] },
+    { payments: [{ method: "PIX", amount: 0 }] },
+    // One line per method: the amounts are summed on the screen.
+    {
+      payments: [
+        { method: "PIX", amount: 1000 },
+        { method: "PIX", amount: 2698 },
+      ],
+    },
+    // Fiado names its customer, and only fiado does.
+    { payments: [{ method: "ON_ACCOUNT", amount: 3698 }] },
+    { customerId },
+    { discount: -1 },
     { id: "not-a-uuid" },
     { total: -1 },
   ];
@@ -86,15 +100,25 @@ it("refuses a sale the schema does not accept", async () => {
   expect(registerSale).not.toHaveBeenCalled();
 });
 
-it("asks for the amount received only in cash", async () => {
+it("takes a sale split among methods, with fiado for a customer", async () => {
   vi.mocked(registerSale).mockResolvedValue({
     ...receipt,
-    paymentMethod: "PIX",
-    amountReceived: 3698,
-    change: 0,
+    payments: [
+      { method: "CASH", amount: 2000 },
+      { method: "ON_ACCOUNT", amount: 1698 },
+    ],
+    customerName: "Dona Maria",
   } as never);
-  const pix = { ...input, paymentMethod: "PIX", amountReceived: undefined };
-  expect((await post(pix, "CASHIER")).status).toBe(201);
+  const split = {
+    ...input,
+    payments: [
+      { method: "CASH", amount: 2000 },
+      { method: "ON_ACCOUNT", amount: 1698 },
+    ],
+    customerId,
+  };
+  expect((await post(split, "CASHIER")).status).toBe(201);
+  expect(registerSale).toHaveBeenLastCalledWith(expect.anything(), split);
 });
 
 it("passes the service's refusal on with its fields", async () => {

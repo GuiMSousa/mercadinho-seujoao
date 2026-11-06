@@ -937,31 +937,56 @@
               ]
             }
           },
-          "paymentMethod": {
-            "type": "string",
-            "enum": [
-              "CASH",
-              "PIX",
-              "DEBIT",
-              "CREDIT"
-            ]
+          "discount": {
+            "default": 0,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
           },
           "total": {
             "type": "integer",
             "minimum": 0,
             "maximum": 2147483647
           },
-          "amountReceived": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 2147483647
+          "payments": {
+            "maxItems": 5,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "CASH",
+                    "PIX",
+                    "DEBIT",
+                    "CREDIT",
+                    "ON_ACCOUNT"
+                  ]
+                },
+                "amount": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              },
+              "required": [
+                "method",
+                "amount"
+              ]
+            }
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
         "required": [
           "id",
           "items",
-          "paymentMethod",
-          "total"
+          "total",
+          "payments"
         ]
       },
       "SaleReceipt": {
@@ -982,14 +1007,10 @@
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
-          "paymentMethod": {
-            "type": "string",
-            "enum": [
-              "CASH",
-              "PIX",
-              "DEBIT",
-              "CREDIT"
-            ]
+          "discount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "total": {
             "type": "integer",
@@ -1005,6 +1026,40 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "CASH",
+                    "PIX",
+                    "DEBIT",
+                    "CREDIT",
+                    "ON_ACCOUNT"
+                  ]
+                },
+                "amount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "method",
+                "amount"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "customerName": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "items": {
             "type": "array",
@@ -1059,10 +1114,12 @@
           "id",
           "number",
           "createdAt",
-          "paymentMethod",
+          "discount",
           "total",
           "amountReceived",
           "change",
+          "payments",
+          "customerName",
           "items"
         ],
         "additionalProperties": false
@@ -1506,7 +1563,8 @@
                     "CASH",
                     "PIX",
                     "DEBIT",
-                    "CREDIT"
+                    "CREDIT",
+                    "ON_ACCOUNT"
                   ]
                 },
                 "count": {
@@ -1742,14 +1800,23 @@
                 "operator": {
                   "type": "string"
                 },
-                "paymentMethod": {
-                  "type": "string",
-                  "enum": [
-                    "CASH",
-                    "PIX",
-                    "DEBIT",
-                    "CREDIT"
-                  ]
+                "paymentMethods": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "CASH",
+                      "PIX",
+                      "DEBIT",
+                      "CREDIT",
+                      "ON_ACCOUNT"
+                    ]
+                  }
+                },
+                "discount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "total": {
                   "type": "integer",
@@ -1773,7 +1840,8 @@
                 "number",
                 "createdAt",
                 "operator",
-                "paymentMethod",
+                "paymentMethods",
+                "discount",
                 "total",
                 "cogs",
                 "marginPercent"
@@ -2137,6 +2205,474 @@
         },
         "required": [
           "groups"
+        ],
+        "additionalProperties": false
+      },
+      "CustomerRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "creditLimit": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "currentDebt": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "document",
+          "phone",
+          "creditLimit",
+          "currentDebt",
+          "active"
+        ],
+        "additionalProperties": false
+      },
+      "CustomersPage": {
+        "type": "object",
+        "properties": {
+          "customers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "document": {
+                  "type": "string"
+                },
+                "phone": {
+                  "type": "string"
+                },
+                "creditLimit": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "currentDebt": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "active": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "document",
+                "phone",
+                "creditLimit",
+                "currentDebt",
+                "active"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "customers",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "additionalProperties": false
+      },
+      "CustomerOptions": {
+        "type": "object",
+        "properties": {
+          "customers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "creditLimit": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "currentDebt": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "creditLimit",
+                "currentDebt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "customers"
+        ],
+        "additionalProperties": false
+      },
+      "CreateCustomerRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "document": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "creditLimit": {
+            "default": 0,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "active": {
+            "default": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateCustomerRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "document": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "creditLimit": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CustomerStatement": {
+        "type": "object",
+        "properties": {
+          "customer": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "document": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "string"
+              },
+              "creditLimit": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "currentDebt": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "active": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "document",
+              "phone",
+              "creditLimit",
+              "currentDebt",
+              "active"
+            ],
+            "additionalProperties": false
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "DEBIT",
+                    "PAYMENT"
+                  ]
+                },
+                "amount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "saleNumber": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "userName": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                }
+              },
+              "required": [
+                "id",
+                "type",
+                "amount",
+                "saleNumber",
+                "userName",
+                "notes",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "customer",
+          "transactions",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "additionalProperties": false
+      },
+      "CustomerPaymentRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "notes": {
+            "default": "",
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "id",
+          "amount"
+        ]
+      },
+      "CustomerPaymentResult": {
+        "type": "object",
+        "properties": {
+          "customer": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "document": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "string"
+              },
+              "creditLimit": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "currentDebt": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "active": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "document",
+              "phone",
+              "creditLimit",
+              "currentDebt",
+              "active"
+            ],
+            "additionalProperties": false
+          },
+          "transaction": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "DEBIT",
+                  "PAYMENT"
+                ]
+              },
+              "amount": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "saleNumber": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "userName": {
+                "type": "string"
+              },
+              "notes": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "amount",
+              "saleNumber",
+              "userName",
+              "notes",
+              "createdAt"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "customer",
+          "transaction"
         ],
         "additionalProperties": false
       },
@@ -4560,7 +5096,7 @@
     "/api/sales": {
       "post": {
         "summary": "Registra uma venda e dá baixa no estoque por PVPS",
-        "description": "Aberta a qualquer sessão. Usa os preços atuais do catálogo e grava preço e custo de cada item. Tudo na mesma transação: sem estoque, com o próximo lote vencido ou com produto inativo, nada é gravado. O total enviado deve ser o que o operador viu; se um preço mudou, a venda é recusada (409 com fields.total). O id é gerado pelo cliente: repetir a mesma venda com o mesmo id devolve a já registrada. Em dinheiro, amountReceived é obrigatório e o troco sai dele; nas outras formas, o recebido é o total.",
+        "description": "Aberta a qualquer sessão. Usa os preços atuais do catálogo e grava preço e custo de cada item. Tudo na mesma transação: sem estoque, com o próximo lote vencido ou com produto inativo, nada é gravado. O total enviado deve ser o que o operador viu; se um preço mudou, a venda é recusada (409 com fields.total). O id é gerado pelo cliente: repetir a mesma venda com o mesmo id devolve a já registrada. O desconto (centavos) sai da soma dos itens e não pode passar dela; total = itens − desconto. payments traz o que foi entregue em cada forma, uma linha por forma; a soma deve cobrir o total, e só o dinheiro pode passar da sua parte (o excesso é o troco). Com total zero, payments vem vazio. Fiado (ON_ACCOUNT) exige customerId, e customerId só vale com fiado: o saldo devedor do cliente sobe na mesma transação, e a venda é recusada se ele estiver inativo ou se saldo + fiado passar do limite (422 com fields.customerId).",
         "security": [
           {
             "session": [],
@@ -4629,7 +5165,7 @@
             }
           },
           "422": {
-            "description": "Caixa fechado (fields.cash: \"Não é possível realizar vendas com o caixa fechado.\"), campos inválidos, valor recebido menor que o total (fields.amountReceived) ou total acima do limite.",
+            "description": "Caixa fechado (fields.cash: \"Não é possível realizar vendas com o caixa fechado.\"), campos inválidos, desconto acima dos itens (fields.discount), pagamentos que não fecham o total (fields.payments), fiado recusado (fields.customerId) ou total acima do limite.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5517,6 +6053,508 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers": {
+      "get": {
+        "summary": "Busca clientes ativos para o fiado do PDV",
+        "description": "Aberta a qualquer sessão. Até 8 clientes por nome; a busca procura no nome, no WhatsApp e no CPF/CNPJ, mas a resposta não traz documento nem telefone.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Clientes encontrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerOptions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Busca inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/customers": {
+      "get": {
+        "summary": "Lista os clientes (somente ADMIN)",
+        "description": "Paginada por nome, 20 por página; a busca procura no nome, no WhatsApp e no CPF/CNPJ.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Começa em 1. Além do fim, responde a última página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de clientes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomersPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros de busca inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Perfil sem permissão (CASHIER).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Cadastra um cliente com limite de crédito (somente ADMIN)",
+        "description": "CPF/CNPJ e WhatsApp são gravados só com dígitos. O limite é em centavos; zero não permite fiado.",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cliente cadastrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Corpo inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Perfil sem permissão (CASHIER) ou cabeçalho anti-CSRF ausente ou inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CPF/CNPJ já usado (fields.document).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos inválidos (fields).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/customers/{id}": {
+      "get": {
+        "summary": "Extrato do cliente (somente ADMIN)",
+        "description": "O cliente com o saldo devedor atual e uma página das compras no fiado e dos pagamentos, dos mais novos para os mais antigos, 20 por página.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Começa em 1. Além do fim, responde a última página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Extrato.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerStatement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Perfil sem permissão (CASHIER).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Altera, muda o limite ou inativa um cliente (somente ADMIN)",
+        "description": "O limite pode ficar abaixo do saldo devedor: o cliente só não compra mais no fiado.",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cliente alterado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Corpo inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Perfil sem permissão (CASHIER) ou cabeçalho anti-CSRF ausente ou inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CPF/CNPJ já usado (fields.document).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos inválidos (fields).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/customers/{id}/payments": {
+      "post": {
+        "summary": "Registra um pagamento do fiado, total ou parcial (somente ADMIN)",
+        "description": "Abate o valor do saldo devedor na mesma transação que grava o pagamento; nunca abaixo de zero. O id é gerado pelo cliente: repetir o mesmo pagamento devolve o já registrado. Não entra no caixa do PDV.",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerPaymentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pagamento registrado, com o saldo devedor novo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPaymentResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Corpo inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem sessão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Perfil sem permissão (CASHIER) ou cabeçalho anti-CSRF ausente ou inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Id já usado por outro pagamento.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos inválidos ou valor acima do saldo devedor (fields.amount).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormError"
                 }
               }
             }
