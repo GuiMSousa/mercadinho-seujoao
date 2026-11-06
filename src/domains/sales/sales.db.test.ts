@@ -3,7 +3,9 @@ import { asc, eq, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { expect, it, vi } from "vitest";
 import type { CreateSale } from "@/contracts/sales";
+import { findProductForSale } from "@/domains/inventory/service";
 import * as schema from "@/infrastructure/db/schema";
+import { parseScaleLabel, scaleGrams } from "@/lib/barcode-scale";
 import {
   cashSessions,
   categories,
@@ -220,6 +222,76 @@ it("records the sale at catalog prices with its cost, and takes each product by 
         userId: user.id,
         reason: `Venda nº ${receipt.number}`,
       });
+  });
+});
+
+it("sells products scanned from scale labels, by weight and by price, at catalog prices", async () => {
+  await inTest(async (db) => {
+    const { user, category } = await seed(db);
+    // A weighed product carries the scale's 5-digit code as its barcode.
+    const [picanha, cheese] = await db
+      .insert(products)
+      .values([
+        {
+          barcode: "00123",
+          name: "Picanha",
+          categoryId: category.id,
+          costPrice: 5500,
+          sellPrice: 8000,
+          unit: "KG",
+        },
+        {
+          barcode: "00456",
+          name: "Queijo",
+          categoryId: category.id,
+          costPrice: 3000,
+          sellPrice: 4590,
+          unit: "KG",
+        },
+      ])
+      .returning();
+    await db
+      .insert(inventoryBatches)
+      .values([
+        batch(picanha.id, "P1", "2026-11-10", 1000),
+        batch(picanha.id, "P2", "2026-11-12", 2000),
+        batch(cheese.id, "Q1", "2026-11-20", 1000),
+      ]);
+
+    // What the PDV does with a scan that is no registered barcode.
+    const scan = async (code: string) => {
+      const label = parseScaleLabel(code);
+      if (!label) throw new Error(`Not a scale label: ${code}`);
+      const product = await findProductForSale(label.code, TODAY);
+      const quantity = scaleGrams(label, product.sellPrice);
+      if (quantity === null) throw new Error(`No weight for ${code}`);
+      return { productId: product.id, quantity };
+    };
+    const items = [
+      // 1,500 kg weighed at the butcher: 1,500 kg × R$ 80,00 = R$ 120,00.
+      await scan("2100123015009"),
+      // A R$ 15,00 label at R$ 45,90/kg: 326 g, R$ 14,96 (never above the label).
+      await scan("2000456015007"),
+    ];
+    expect(items).toEqual([
+      { productId: picanha.id, quantity: 1500 },
+      { productId: cheese.id, quantity: 326 },
+    ]);
+
+    const receipt = await registerSale(
+      user,
+      sale({ items, total: 12000 + 1496 }),
+      TODAY,
+    );
+    expect(
+      receipt.items.map((item) => [item.name, item.quantity, item.total]),
+    ).toEqual([
+      ["Picanha", 1500, 12000],
+      ["Queijo", 326, 1496],
+    ]);
+    // PVPS in grams: the batch that expires first empties, the rest comes from the next one.
+    expect(await quantities(db, picanha.id)).toEqual([0, 1500]);
+    expect(await quantities(db, cheese.id)).toEqual([674]);
   });
 });
 

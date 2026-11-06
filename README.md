@@ -2,7 +2,7 @@
 
 Controle de vendas e estoque para pequenos comércios e mercadinhos: validade por lote (PVPS), reposição, caixa diário com fechamento cego e lucro real (faturamento menos CMV). O escopo completo está em [PRODUCT.md](PRODUCT.md).
 
-**Estado atual:** base técnica, autenticação por e-mail (perfis `ADMIN`/`CASHIER`), painel administrativo, catálogo e estoque por lote (PVPS), frente de caixa (`/caixa`), caixa diário com fechamento cego e conciliação (`/painel/caixa`), relatórios financeiros com CMV e margem (`/painel/relatorios`) e fornecedores com reposição e pedido por WhatsApp (`/painel/fornecedores`, `/painel/estoque/reposicao`) prontos. Backup do banco: `scripts/backup-db.ps1` (ver docs/setup.md). As demais funcionalidades serão entregues uma por vez.
+**Estado atual:** base técnica, autenticação por e-mail (perfis `ADMIN`/`CASHIER`), painel administrativo, catálogo e estoque por lote (PVPS), frente de caixa (`/caixa`, com leitura de etiqueta de balança), caixa diário com fechamento cego e conciliação (`/painel/caixa`), relatórios financeiros com CMV e margem (`/painel/relatorios`) e fornecedores com reposição e pedido por WhatsApp (`/painel/fornecedores`, `/painel/estoque/reposicao`) prontos. Backup do banco: `scripts/backup-db.ps1` (ver docs/setup.md). As demais funcionalidades serão entregues uma por vez.
 
 ## Executar
 

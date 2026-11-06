@@ -51,9 +51,12 @@ const options: { value: ThemeChoice; label: string }[] = [
 export function ThemeControl({
   variant,
   initialTheme,
+  size = "md",
 }: {
   variant: "icon" | "radios";
   initialTheme?: "light" | "dark";
+  /** Size of the icon variant; the counter screens use their 60px target. */
+  size?: "md" | "counter";
 }) {
   const labelId = useId();
   const router = useRouter();
@@ -104,6 +107,7 @@ export function ThemeControl({
     return (
       <IconButton
         variant="ghost"
+        size={size}
         icon={dark ? Sun : Moon}
         label={dark ? "Modo claro" : "Modo escuro"}
         disabled={pending}

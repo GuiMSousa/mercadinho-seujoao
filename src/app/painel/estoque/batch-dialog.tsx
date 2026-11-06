@@ -140,6 +140,8 @@ export function BatchDialog({
           error={errors?.fields.expirationDate}
         />
         <Checkbox
+          // The whole row is the touch target, as tall as the counter fields.
+          className="min-h-control-counter"
           label="Item não vence"
           checked={noExpiration}
           onCheckedChange={(checked) => {

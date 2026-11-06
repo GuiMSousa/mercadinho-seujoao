@@ -8,7 +8,7 @@ Contrato visual do Mkt Control e **fonte da verdade dos tokens**. `design-system
 - **Dispositivos:** PC de balcão com teclado, mouse e leitor USB, e celulares/tablets por toque, como PWA.
 - **Tom:** dashboard claro e calmo. Cartões brancos sobre um fundo cinza-frio, tinta quase preta e um único azul saturado. Informação densa, sem decoração: nada de imagens, texturas ou gradientes no app.
 - **Fonte base de 16 px** (`1rem`, decisão de 2026-10-28), aplicada no `body` em `src/app/globals.css`. Tamanhos em `rem` acompanham o zoom e a fonte padrão do navegador.
-- **Balcão** (Vendas, Caixa, Entrada): botões principais com no mínimo 60 px de altura (`size="counter"`), teclas do teclado numérico com 72 px, texto de 22 px (`text-counter`) e total do PDV com 56 px (`text-counter-total`). O uso é primeiro por toque.
+- **Balcão** (`/caixa`, entrada e baixa de estoque): todo botão e campo de operação com no mínimo 60 px de altura (`size="counter"`), inclusive os do cabeçalho do PDV e do comprovante; teclas do teclado numérico com 72 px, texto de 22 px (`text-counter`) e total do PDV com 56 px (`text-counter-total`). O uso é primeiro por toque. No painel e no login os controles seguem `md` (40 px); a regra dos 60 px vale só no balcão (decisão de 2026-11-06).
 - **Frente de caixa** (`/caixa`): valores e quantidades usam `KeypadField` (`src/app/caixa/keypad-field.tsx`), um `Input` sem teclado do celular (`inputMode="none"`) sobre o `Keypad`, que também aceita dígitos e Backspace do teclado físico. Atalhos visíveis em `<kbd>`: F1 busca, F2 pagamento, Esc limpa ou fecha, Enter confirma, F8 sangria, F9 suprimento e F4 fechamento. Com o caixa fechado, a tela mostra só o painel de abertura; as operações de caixa ficam no botão "Caixa" do cabeçalho. O fechamento cego nunca mostra o valor esperado; a quebra aparece só no painel (`DifferenceBadge`: sobra, falta ou sem quebra, sempre com texto). O comprovante impresso é um bloco `data-receipt`, oculto na tela; a regra de impressão em `globals.css` põe só ele no papel, em texto escuro também no tema escuro.
 - **Relatórios:** a margem usa `Badge` com texto (Boa, Atenção, Baixa) além da cor. A distribuição por forma de pagamento é uma lista de barras de uma série só, em `bg-brand` sobre trilho `bg-surface-sunken`, com forma, total, vendas e participação escritos em cada linha; a cor passou no validador de paleta da skill `dataviz` nos dois temas. Gráficos com mais séries esperam os tokens de gráfico, ainda não portados.
 - **Semáforo** verde/laranja/vermelho nunca depende só da cor. Ele sempre leva texto ou ícone com rótulo.
@@ -29,7 +29,8 @@ Contrato visual do Mkt Control e **fonte da verdade dos tokens**. `design-system
 - **Cor:** o azul (`brand`) marca a ação-chave da tela (uma por tela), entradas de dinheiro e destaques de gráfico. O vermelho indica saída, quebra, vencido e ação destrutiva; o laranja, a vencer ou abaixo do mínimo; o verde, sucesso e margem. A tinta (`primary`) é a cor do botão principal. Status usam fundo claro com texto escuro do mesmo tom (`*-bg` + `*-fg`).
 - **Tipografia:** uma só família, Hanken Grotesk (OFL, variável 400–700). Ela substitui a Neue Montreal da referência, que é comercial. Use peso 500 em títulos e números, 400 no texto e 600 só no total do PDV e em contagens-chave. Tamanhos grandes levam tracking negativo (`tracking-tight`, `tracking-display`). Números são sempre `tabular-nums`.
 - **Escala no app:** a referência usa 14 px como padrão; aqui, pela decisão dos 16 px:
-  - texto corrido, campos, rótulos e botões `md` ou maiores usam `text-body-lg` (16 px);
+  - texto corrido, rótulos e botões `md` ou maiores usam `text-body-lg` (16 px);
+  - campos (`Input`, `Select`) usam 16 px ou mais em todos os tamanhos, inclusive `sm`, porque o Safari do iOS dá zoom ao focar um campo com texto menor;
   - dicas, erros e células de tabela usam `text-body-md` (14 px);
   - metadados, como badges e cabeçalhos de tabela, usam `text-body-sm` (13 px) ou `text-caption` (12 px).
 - **Dinheiro:** use sempre `Money` (centavos inteiros). O `R$` é menor e cinza, e os centavos ficam em `text-sub` (na cor do valor quando há `tone`).
@@ -221,7 +222,7 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 | `--text-soft`        | `var(--neutral-400)`     | `var(--neutral-500)`  |
 | `--text-disabled`    | `var(--neutral-300)`     | `var(--neutral-600)`  |
 | `--text-inverse`     | `var(--neutral-0)`       | `var(--neutral-950)`  |
-| `--text-inverse-sub` | `var(--neutral-400)`     | `var(--neutral-500)`  |
+| `--text-inverse-sub` | `var(--neutral-400)`     | `var(--neutral-600)`  |
 | `--text-link`        | `var(--blue-500)`        | `var(--blue-400)`     |
 | `--text-on-color`    | `var(--neutral-0)`       | —                     |
 
@@ -237,7 +238,7 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 | `--action-primary`       | `var(--neutral-950)` | `var(--neutral-0)`   |
 | `--action-primary-hover` | `var(--neutral-800)` | `var(--neutral-200)` |
 | `--action-brand`         | `var(--blue-500)`    | —                    |
-| `--action-brand-hover`   | `var(--blue-600)`    | `var(--blue-400)`    |
+| `--action-brand-hover`   | `var(--blue-600)`    | —                    |
 | `--action-danger`        | `var(--red-700)`     | —                    |
 | `--action-danger-hover`  | `var(--red-800)`     | —                    |
 
@@ -248,7 +249,7 @@ Base fixa dos dois temas. Só os aliases semânticos as referenciam.
 | `--success-fg`    | `var(--green-800)`   | `#5ee09a`                  |
 | `--success-bg`    | `var(--green-50)`    | `rgba(31, 193, 107, 0.16)` |
 | `--success-solid` | `var(--green-500)`   | —                          |
-| `--danger-fg`     | `var(--red-700)`     | `#ff8a94`                  |
+| `--danger-fg`     | `var(--red-800)`     | `#ff8a94`                  |
 | `--danger-bg`     | `var(--red-50)`      | `rgba(251, 55, 72, 0.16)`  |
 | `--danger-solid`  | `var(--red-500)`     | —                          |
 | `--warning-fg`    | `var(--orange-700)`  | `#ffb27a`                  |

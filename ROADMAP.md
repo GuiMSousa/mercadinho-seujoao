@@ -8,7 +8,8 @@
 - **Semana 4:** ENTREGUE (caixa diário, 2026-11-05)
 - **Semana 5:** ENTREGUE (relatórios financeiros, 2026-11-05)
 - **Semana 6:** ENTREGUE (fornecedores, reposição e pedido por WhatsApp, 2026-11-05)
-- **Semanas 7 a 9:** PLANEJADAS
+- **Semana 7:** ENTREGUE (etiqueta de balança no PDV e revisão de toque, campos, 375 px e contraste, 2026-11-06)
+- **Semanas 8 e 9:** PLANEJADAS
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
@@ -86,7 +87,14 @@ Fornecedores em `/painel/fornecedores`, fornecedor padrão no produto, reposiç�
 - Indicador visual de alerta no topo para estoque crítico ou produtos perto da validade.
 - Relatório de reposição com sugestão automática de quantidade de compra e envio para fornecedor via WhatsApp.
 
-### Semana 7 — Implementação, Design & Configuração Completa do Frontend
+### Semana 7 — Implementação, Design & Configuração Completa do Frontend (ENTREGUE em 2026-11-06)
+
+A leitura de etiquetas de balança veio da semana 8 para cá. O PDV lê o EAN-13 da balança (`20` por valor, `21` por peso, com dígito verificador) e acha o produto pesável pelo código de 5 dígitos, que é o código de barras dele no cadastro. O preço cobrado continua sendo o do catálogo. A revisão de interface trouxe estes ajustes:
+
+- tudo no balcão (`/caixa`, entrada e baixa de estoque) com 60 px ou mais, inclusive o cabeçalho e o comprovante; o painel segue com 40 px;
+- campos com 16 px em todos os tamanhos;
+- nenhuma rota com rolagem lateral em 375 px;
+- contraste de 4,5:1 ou mais em selos, semáforo, botões e textos nos dois temas, garantido por `design-system/contrast.test.ts`.
 
 - Implementação da estrutura base, rotas e componentes do frontend.
 - Padronização de design (UI/UX, cores, tipografia e temas claro/escuro).
@@ -97,7 +105,7 @@ Fornecedores em `/painel/fornecedores`, fornecedor padrão no produto, reposiç�
 
 - Cadastro de clientes com histórico de compras, limite de crédito e saldo devedor (fiado).
 - Campo de desconto em valor (R$) ou percentual (%) na tela de checkout do PDV.
-- Leitura de etiquetas de balança de açougue/hortifruti e múltiplos pagamentos (VR/VA, PIX, Cartão).
+- Múltiplos pagamentos (VR/VA, PIX, Cartão). A leitura de etiquetas de balança foi entregue na semana 7.
 - Cadastro de fornecedores, histórico de pedidos e previsão de compras.
 
 ### Semana 9 — Produção, Domínio Fixo & Infraestrutura Final

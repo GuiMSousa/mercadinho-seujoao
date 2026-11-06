@@ -157,7 +157,7 @@ Desde 2026-11-05, `/painel/estoque` também dá baixa manual (quantidade e motiv
 
 Tela `/caixa`, aberta a `ADMIN` e `CASHIER`:
 
-- leitor USB ou busca por nome, com atalhos F1, F2, Esc e Enter e botões de 60 px;
+- leitor USB ou busca por nome, com atalhos F1, F2, Esc e Enter e todos os controles com 60 px ou mais;
 - recusa, no cliente e no servidor, do produto sem saldo ou com o próximo lote vencido;
 - itens unitários e pesáveis (peso no teclado numérico), com o total de cada item arredondado ao centavo;
 - pagamento em dinheiro (com troco), Pix, débito ou crédito, uma forma por venda;
@@ -167,6 +167,15 @@ Tela `/caixa`, aberta a `ADMIN` e `CASHIER`:
 Critério atendido: uma venda com dois lotes do mesmo produto baixa primeiro o de validade mais próxima, e o total de uma venda com item pesável é a soma dos itens arredondados (ver docs/quality.md).
 
 Ficam para depois: pagamentos combinados e leitor por câmera (exige HTTPS).
+
+### Etiqueta de balança (entregue em 2026-11-06)
+
+O PDV lê a etiqueta impressa pela balança do açougue ou do hortifrúti, um EAN-13 que começa com 2:
+
+- `20` + código do produto (5 dígitos) + valor total em centavos (5 dígitos) + dígito verificador: o peso vendido é o valor dividido pelo preço por kg do catálogo, arredondado para baixo ao grama, então o cliente nunca paga mais que o valor impresso (no máximo o preço de 1 g a menos);
+- `21` + código do produto (5 dígitos) + peso líquido em gramas (5 dígitos) + dígito verificador: vende o peso impresso (1500 g = 1,500 kg).
+
+O código de 5 dígitos é o código de barras do produto pesável no cadastro (ex.: `00123`), o mesmo cadastrado na balança; o formulário do produto vendido por quilo lembra isso. O preço cobrado é sempre o do catálogo, calculado pelo servidor. A leitura procura primeiro o código completo; só um código sem cadastro, com 13 dígitos, prefixo `20` ou `21` e dígito verificador válido vira etiqueta. A etiqueta só vale para produto vendido por quilo, e as recusas de lote vencido e de estoque continuam valendo. Implementação em `src/lib/barcode-scale.ts`.
 
 ## Caixa diário (entregue em 2026-11-05)
 
@@ -204,6 +213,10 @@ Critério atendido: o total de cada período é a soma das vendas do período, e
 Critério atendido: produtos com estoque igual ou abaixo do mínimo aparecem em amarelo (vermelho com o estoque zerado) e entram na lista de reposição (ver docs/quality.md).
 
 Ficam para depois: alerta diário de reposição por e-mail, histórico de pedidos e previsão de compras (semana 8).
+
+## Revisão de interface (2026-11-06)
+
+No balcão, todo controle tem 60 px ou mais. Os campos usam 16 px em qualquer tamanho, para o Safari do iOS não dar zoom. Nenhuma rota rola de lado em 375 px. Selos, semáforo, botões e textos têm contraste de 4,5:1 ou mais nos dois temas. Detalhes e evidências em `DESIGN.md` e `docs/quality.md`.
 
 ## Próxima entrega
 

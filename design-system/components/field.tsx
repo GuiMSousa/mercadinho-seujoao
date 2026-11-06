@@ -52,7 +52,8 @@ const controlBox =
   "border border-input bg-surface-card text-strong shadow-(--shadow-xs) transition-[border-color,box-shadow] duration-(--dur-fast) focus-within:border-focus focus-within:ring-3 focus-within:ring-focus-halo data-invalid:border-danger-solid data-invalid:focus-within:ring-focus-halo-danger has-[:disabled:not(option)]:cursor-not-allowed has-[:disabled:not(option)]:bg-surface-sunken has-[:disabled:not(option)]:text-disabled has-[:disabled:not(option)]:shadow-none";
 
 const controlSizes = {
-  sm: "h-control-sm rounded-control px-3 text-body-md",
+  // 16px in every size: iOS Safari zooms into a focused field with smaller text.
+  sm: "h-control-sm rounded-control px-3 text-body-lg",
   md: "h-control-md rounded-control px-3 text-body-lg",
   lg: "h-control-lg rounded-lg px-3 text-body-lg",
   counter: "h-control-counter rounded-lg px-4 text-counter font-medium",

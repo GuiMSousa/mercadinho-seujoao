@@ -299,7 +299,7 @@ function CloseDialog({ cash, onClose, finalFocus }: Shared) {
           inputRef={field}
         />
         <Input
-          size="lg"
+          size="counter"
           label="Observações (opcional)"
           name="notes"
           autoComplete="off"

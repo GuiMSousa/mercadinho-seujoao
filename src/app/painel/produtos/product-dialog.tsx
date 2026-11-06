@@ -182,7 +182,11 @@ export function ProductDialog({
           label="Código de barras"
           name="barcode"
           autoComplete="off"
-          hint="Bipe ou digite o código."
+          hint={
+            unit === "KG"
+              ? "Bipe ou digite o código. Para etiqueta de balança, use o código de 5 dígitos da balança (ex.: 00123)."
+              : "Bipe ou digite o código."
+          }
           maxLength={48}
           value={barcode}
           onChange={(event) => setBarcode(event.target.value)}

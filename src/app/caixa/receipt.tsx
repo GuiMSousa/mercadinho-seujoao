@@ -104,7 +104,11 @@ export function ReceiptDialog({
       description={formatDateTime(receipt.createdAt)}
       footer={
         <div className="grid w-full grid-cols-2 gap-2">
-          <Button variant="secondary" size="lg" onClick={() => window.print()}>
+          <Button
+            variant="secondary"
+            size="counter"
+            onClick={() => window.print()}
+          >
             <Printer aria-hidden="true" />
             Imprimir<span className="sr-only"> comprovante</span>
           </Button>
@@ -113,7 +117,9 @@ export function ReceiptDialog({
             href={whatsappLink(receiptText(store, receipt))}
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}
+            className={cn(
+              buttonVariants({ variant: "secondary", size: "counter" }),
+            )}
           >
             <MessageCircle aria-hidden="true" />
             <span className="sr-only">Enviar por </span>WhatsApp

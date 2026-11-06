@@ -7,6 +7,7 @@ import { CASH_CLOSED_MESSAGE, type OpenCashSession } from "@/contracts/cash";
 import type { ProductLookup } from "@/contracts/inventory";
 import type { SaleReceipt } from "@/contracts/sales";
 import { newId } from "@/app/painel/_lib/new-id";
+import { parseScaleLabel } from "@/lib/barcode-scale";
 import { Input } from "@ds/components/input";
 import { useToast } from "@ds/components/toast";
 import {
@@ -25,7 +26,7 @@ import { PdvHeader } from "./pdv-header";
 import { QuantityDialog } from "./quantity-dialog";
 import { ReceiptDialog, ReceiptPaper } from "./receipt";
 import { brl, type ReceiptStore } from "./receipt-text";
-import { lookupBarcode, withCurrentPrices } from "./sale-api";
+import { lookupBarcode, lookupScaleLabel, withCurrentPrices } from "./sale-api";
 import { CancelSaleDialog, SaleTotal } from "./sale-total";
 import { SearchResults } from "./search-results";
 import { usePdvKeys } from "./use-pdv-keys";
@@ -121,6 +122,15 @@ export function PdvView({
         message: result.errors.error,
         tone: "danger",
       });
+    // Not a registered code: a scale label names its weighed product by a 5-digit code.
+    const label = parseScaleLabel(term);
+    if (label) {
+      // The label carries the weight, so the weighing dialog is skipped.
+      const scanned = await lookupScaleLabel(label);
+      return "product" in scanned
+        ? add(scanned.product, scanned.grams)
+        : toast({ ...scanned, tone: "danger" });
+    }
     // Not a code: a typed name with a single match is that product.
     if (listed.length === 1) return pick(listed[0]);
     // A scan that started meanwhile owns the field: an old term would glue onto its code.

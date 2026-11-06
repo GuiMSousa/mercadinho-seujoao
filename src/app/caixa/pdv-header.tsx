@@ -24,7 +24,7 @@ export function PdvHeader({
   onCash: () => void;
 }) {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-surface-card px-4 sm:px-6">
+    <header className="flex h-20 shrink-0 items-center gap-2 border-b border-border bg-surface-card px-4 sm:px-6">
       <div className="flex min-w-0 flex-1 flex-col">
         <h1 className="truncate text-h3 font-medium tracking-tight text-strong">
           Frente de caixa
@@ -37,23 +37,25 @@ export function PdvHeader({
         </p>
       </div>
       {cash && (
-        <Button variant="secondary" onClick={onCash}>
+        <Button variant="secondary" size="counter" onClick={onCash}>
           <Wallet aria-hidden="true" />
-          Caixa
+          {/* Icon only on a phone, so the header fits 375px; the name stays for screen readers. */}
+          <span className="max-sm:sr-only">Caixa</span>
         </Button>
       )}
       {isAdmin && (
         <Button
           variant="ghost"
+          size="counter"
           nativeButton={false}
           render={<Link href="/painel" />}
         >
           <LayoutDashboard aria-hidden="true" />
-          Painel
+          <span className="max-sm:sr-only">Painel</span>
         </Button>
       )}
-      <ThemeControl variant="icon" initialTheme={initialTheme} />
-      <LogoutButton />
+      <ThemeControl variant="icon" size="counter" initialTheme={initialTheme} />
+      <LogoutButton size="counter" />
     </header>
   );
 }

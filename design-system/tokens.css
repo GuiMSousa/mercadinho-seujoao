@@ -84,7 +84,7 @@
   --success-fg: var(--green-800);
   --success-bg: var(--green-50);
   --success-solid: var(--green-500);
-  --danger-fg: var(--red-700);
+  --danger-fg: var(--red-800);
   --danger-bg: var(--red-50);
   --danger-solid: var(--red-500);
   --warning-fg: var(--orange-700);
@@ -144,7 +144,7 @@
   --text-soft: var(--neutral-500);
   --text-disabled: var(--neutral-600);
   --text-inverse: var(--neutral-950);
-  --text-inverse-sub: var(--neutral-500);
+  --text-inverse-sub: var(--neutral-600);
   --text-link: var(--blue-400);
   --border-soft: #22262f;
   --border-default: var(--neutral-700);
@@ -153,7 +153,6 @@
   --border-focus: var(--blue-400);
   --action-primary: var(--neutral-0);
   --action-primary-hover: var(--neutral-200);
-  --action-brand-hover: var(--blue-400);
   --success-fg: #5ee09a;
   --success-bg: rgba(31, 193, 107, 0.16);
   --danger-fg: #ff8a94;
@@ -199,7 +198,7 @@
     --text-soft: var(--neutral-500);
     --text-disabled: var(--neutral-600);
     --text-inverse: var(--neutral-950);
-    --text-inverse-sub: var(--neutral-500);
+    --text-inverse-sub: var(--neutral-600);
     --text-link: var(--blue-400);
     --border-soft: #22262f;
     --border-default: var(--neutral-700);
@@ -208,7 +207,6 @@
     --border-focus: var(--blue-400);
     --action-primary: var(--neutral-0);
     --action-primary-hover: var(--neutral-200);
-    --action-brand-hover: var(--blue-400);
     --success-fg: #5ee09a;
     --success-bg: rgba(31, 193, 107, 0.16);
     --danger-fg: #ff8a94;

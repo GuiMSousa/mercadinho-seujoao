@@ -49,7 +49,7 @@ export function SaleTotal({
         </kbd>
       </Button>
       {hasItems && (
-        <Button variant="ghost" size="lg" onClick={onCancel}>
+        <Button variant="ghost" size="counter" onClick={onCancel}>
           Cancelar venda
         </Button>
       )}

@@ -27,7 +27,7 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
 
 ## Estratégia de testes
 
-- **Hoje existem** (2026-11-05): 302 testes em 81 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 123 testes em 18 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 10 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
+- **Hoje existem** (2026-11-06): 312 testes em 84 arquivos sem banco (inclui os `.tsx`) (`npm test`; mocks de `pg`, `server-only` e, nas rotas, do service), mais 8 do contrato, e 124 testes em 18 arquivos com o PostgreSQL real (`npm run test:db`, banco `mkt_control_test`; quase todos em transação com rollback, e os 10 testes de concorrência fazem commit com dados únicos e apagam o que criaram).
   - Fronteiras: ambiente (sem ecoar valores), logger e pool.
   - Autenticação:
     - hash scrypt;
@@ -37,6 +37,15 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
     - proxy;
     - rotas de login, logout e `admin/users`.
   - Design system: contrato `DESIGN.md` ↔ `design-system/tokens.css` (todo token documentado, com o mesmo valor nos dois temas, e `globals.css` sem cor crua nem px), `cn` com as escalas do DS, centavos em pt-BR e teclado numérico.
+  - Contraste (`design-system/contrast.test.ts`, desde 2026-11-06): calcula a razão WCAG de cada par de tokens que os componentes juntam, nos temas claro e escuro, e exige 4,5:1. Os pares são:
+    - textos, valores e palavras de status sobre as três superfícies;
+    - selos e semáforo (texto do tom sobre a tinta, sobre qualquer superfície);
+    - botões em repouso e em hover;
+    - item atual da barra lateral;
+    - aviso (toast).
+
+    Na primeira execução, o teste achou 3 pares abaixo de 4,5:1, corrigidos nos tokens: `danger-fg` sobre o hover do botão de perigo (4,35, claro); texto branco sobre o hover do `brand` (2,86, escuro); texto secundário do aviso (4,49, escuro).
+
   - Os dois critérios do produto têm testes próprios:
     - `CASHIER` bloqueado em rotas `ADMIN`: `src/proxy.test.ts` e `src/app/api/admin/users/route.test.ts`;
     - 429 no 11º login: `src/app/api/auth/login/route.test.ts`;
@@ -44,7 +53,13 @@ Rode `npm test` (ou um arquivo de teste específico) durante o desenvolvimento e
     - sem caixa aberto o servidor recusa a venda, e o fechamento cego não devolve o esperado, que o administrador vê com a quebra: `src/domains/sales/sales.db.test.ts`, `src/domains/cash/cash.db.test.ts` e `src/app/api/cash/close/route.test.ts`;
     - faturamento, CMV gravado, lucro bruto, margem, ticket e formas de pagamento por dia do fuso da loja (venda às 23h30 locais no dia certo), lidos de um único instante: `src/domains/reports/reports.db.test.ts` e `src/domains/reports/finance.test.ts`;
     - produtos no mínimo ou abaixo (ou vencendo em até 30 dias) entram na reposição com 2 × mínimo − estoque, agrupados pelo fornecedor padrão: `src/domains/suppliers/suppliers.db.test.ts`;
-    - a baixa manual repetida com o mesmo id, em sequência ou ao mesmo tempo, tira o estoque uma vez: `src/domains/inventory/write-off.db.test.ts`.
+    - a baixa manual repetida com o mesmo id, em sequência ou ao mesmo tempo, tira o estoque uma vez: `src/domains/inventory/write-off.db.test.ts`;
+    - etiqueta de balança por peso (`21`) e por valor (`20`): leitura com dígito verificador, EAN comum ignorado, peso por valor nunca acima do valor impresso, e a venda no banco ao preço do catálogo com baixa PVPS em gramas: `src/lib/barcode-scale.test.ts`, `src/app/caixa/sale-api.test.ts` e `src/domains/sales/sales.db.test.ts`.
+  - **Checagem por mutação** (2026-11-06): o teste da etiqueta matou 4 mutantes, e o código voltou ao original depois de cada um:
+    - arredondar o peso por valor para o grama mais próximo, em vez de para baixo;
+    - não conferir o dígito verificador;
+    - aceitar qualquer segundo dígito no prefixo;
+    - aceitar a etiqueta num produto vendido por unidade.
   - **Checagem por mutação** (2026-11-05): sem o `FOR UPDATE` da baixa PVPS, o teste de duas vendas concorrentes pelas últimas unidades falhou (a perdedora quebrava o CHECK de quantidade, um 500); restaurado o lock, voltou a passar. No caixa diário, sem o `FOR SHARE` da venda o teste da venda que espera o fechamento falhou, e sem o `FOR UPDATE` do fechamento o teste da venda em andamento ficou fora do esperado; restaurados, passaram.
   - **Checagem por mutação** (2026-10-28): com o limite trocado para 11 e a regra de perfil desligada, esses 3 testes falharam; restaurado o código, voltaram a passar.
 - **Contrato:** as rotas devolvem DTOs parseados pelos schemas de `src/contracts`, e os testes de rota validam as respostas com os mesmos schemas. O `spec:check` garante que a spec cobre todas as rotas.
@@ -185,6 +200,42 @@ Executado em 2026-11-05 com o Playwright (Edge, script local), contra o build de
 | 8   | Período livre dos relatórios usa a regra e a mensagem da API                                              | Passou    |
 | 9   | Em 375 px, sem rolagem lateral; `CASHIER` vai para `/caixa` e recebe 403 em `/api/admin/suppliers`        | Passou    |
 | 10  | Console sem erros, fora o 422 e o 409 provocados                                                          | Passou    |
+
+### Etiqueta de balança e revisão de interface (semana 7)
+
+Executado em 2026-11-06 com o Playwright (Edge, script local), contra o build de produção (`next build` e `next start -p 3100`) no banco `mkt_control_e2e`. O roteiro usou a picanha `00777` a R$ 80,00/kg, com 5 kg em lote, e o pão `00778` vendido por unidade. Antes, uma página de teste com um defeito plantado conferiu os 3 detectores: um elemento de 600 px, um botão de 40 px e um campo de 14 px. Os três acusaram o defeito.
+
+| #   | Passo                                                                                                                                                                     | Resultado |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | Etiqueta por peso (`21`, 1500 g) entra como 1,500 kg sem abrir a janela de peso                                                                                           | Passou    |
+| 2   | Etiqueta por valor (`20`, R$ 23,47) entra como 293 g e soma na linha: 1,793 kg, total R$ 143,44                                                                           | Passou    |
+| 3   | Etiqueta com código sem cadastro avisa com o código de 5 dígitos; etiqueta de produto por unidade é recusada; dígito verificador errado não é lido como etiqueta          | Passou    |
+| 4   | Venda em dinheiro ao preço do catálogo: 1,793 kg, R$ 143,44, troco de R$ 56,56 sobre R$ 200,00                                                                            | Passou    |
+| 5   | No formulário de produto vendido por quilo, a dica do código de 5 dígitos da balança aparece                                                                              | Passou    |
+| 6   | Balcão com 60 px ou mais em todo controle (só os botões "Fechar" de diálogo e aviso ficam de fora). Conferido em 1366 px e em 375 px, nas telas e janelas listadas abaixo | Passou    |
+| 7   | Em 375 px, sem rolagem lateral e com campos de 16 px ou mais, em todas as rotas e janelas listadas abaixo                                                                 | Passou    |
+| 8   | Console sem erros, fora os 404 e 422 provocados                                                                                                                           | Passou    |
+
+Telas e janelas do passo 6:
+
+- abertura do caixa, venda com itens e cabeçalho;
+- janelas de caixa, peso, pagamento e comprovante;
+- entrada de lote e baixa de estoque.
+
+Rotas e janelas do passo 7:
+
+- públicas: `/`, `/login`, `/cadastro`, `/recuperar` e `/design-system`;
+- `ADMIN`: `/caixa` e todas as `/painel/*`;
+- `CASHIER`: `/caixa` com itens, e a janela de pagamento;
+- janelas de produto, fornecedor e entrada de lote, e a gaveta do menu aberta.
+
+Correções da revisão:
+
+- **Cabeçalho do PDV:** os botões Caixa, Painel, tema e Sair foram para 60 px, e no celular mostram só o ícone, com o nome mantido para leitor de tela.
+- **Outros botões do balcão:** "Cancelar venda", Imprimir e WhatsApp do comprovante foram para 60 px.
+- **Campos e caixa de seleção:** o "Item não vence" da entrada de lote ganhou uma linha de toque de 60 px; o campo de observações do fechamento, 60 px; e os campos `sm`, 16 px.
+
+Não verificado: balança e leitor físicos, e leitor de tela.
 
 ## Harness (método nativo inspirado no Harness2)
 

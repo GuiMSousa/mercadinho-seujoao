@@ -75,7 +75,7 @@ src/
 │   ├── reports/              # relatórios: period.ts (períodos), finance.ts (margem, ticket), consultas no fuso da loja, resumo por e-mail
 │   ├── suppliers/            # fornecedores, fornecedor padrão do produto e reposição (replenishment.ts: sugestão e grupos)
 │   └── activity/             # registro de atividade (quem fez o quê)
-├── lib/                      # env (Zod, server-only), logger Pino, `cn`, `document.ts` (máscara e dígitos de CPF/CNPJ)
+├── lib/                      # env (Zod, server-only), logger Pino, `cn`, `document.ts` (máscara e dígitos de CPF/CNPJ), `barcode-scale.ts` (etiqueta de balança EAN-13 `20`/`21`)
 └── infrastructure/
     ├── db/                   # index.ts: único ponto de conexão (pool max 5, lazy); schema/ (users, stores, sessions,
     │                         # verification-codes, activity-log, inventory, sales, cash); test-db.ts (`withTestDb`: transação com rollback; `withTestPool`: commit e limpeza)
@@ -133,6 +133,14 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 
 - A página lê a sessão no servidor e passa o nome da loja e do operador ao cliente; o `ADMIN` tem um atalho para o painel.
 - O campo de busca recebe o leitor USB (teclado): o Enter do leitor consulta `GET /api/products?barcode=` e nunca envia outro formulário. Teclas digitadas com o foco num botão vão para a busca, para o Enter do leitor não virar clique. Por nome, `GET /api/products/search?q=` responde depois de 300 ms.
+- **Etiqueta de balança:** um código sem cadastro que `parseScaleLabel` (`src/lib/barcode-scale.ts`) aceite segue este caminho:
+  - o código precisa ter 13 dígitos, prefixo `20` (valor) ou `21` (peso) e dígito verificador EAN-13 válido;
+  - a tela busca o produto pelo código de 5 dígitos da etiqueta, que é o código de barras dele (`lookupScaleLabel` em `sale-api.ts`);
+  - o produto entra com os gramas da etiqueta, ou com `floor(valor × 1000 / preço por kg)` na etiqueta por valor; assim a linha nunca passa do valor impresso;
+  - produto que não é `KG` é recusado.
+
+  Nada muda no servidor: a venda leva só o id e os gramas, e o preço continua sendo o do catálogo.
+
 - O cliente recusa produto com o próximo lote vencido, sem saldo ou acima do saldo (toast de perigo); o servidor confere tudo de novo.
 - `POST /api/sales` recebe só ids e quantidades. O servidor usa os preços e custos atuais do catálogo, compara o total com o que o operador viu (409 com `fields.total` se um preço mudou; a tela recarrega os preços) e, numa transação, grava a venda e os itens (com preço e custo da hora) e dá baixa PVPS em cada produto, em ordem fixa de produto para não haver deadlock. Lote vencido, falta de estoque ou produto inativo desfazem tudo. O id da venda vem do cliente e só muda depois de uma venda concluída ou cancelada: repetir após uma resposta perdida devolve a venda já gravada.
 - O comprovante sai por `window.print()` (só o comprovante vai ao papel, na largura que o driver da bobina informa) ou por link `wa.me` com o texto pronto.

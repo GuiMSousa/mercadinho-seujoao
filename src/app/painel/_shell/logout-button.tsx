@@ -7,7 +7,7 @@ import { IconButton } from "@ds/components/button";
 import { useToast } from "@ds/components/toast";
 import { apiFetch } from "../_lib/api";
 
-export function LogoutButton() {
+export function LogoutButton({ size = "sm" }: { size?: "sm" | "counter" }) {
   const router = useRouter();
   const { toast } = useToast();
   const [pending, setPending] = useState(false);
@@ -31,7 +31,7 @@ export function LogoutButton() {
   return (
     <IconButton
       variant="ghost"
-      size="sm"
+      size={size}
       icon={LogOut}
       label="Sair"
       disabled={pending}
