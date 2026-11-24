@@ -36,11 +36,14 @@ function ReceiptLines({ receipt }: { receipt: SaleReceipt }) {
                 </p>
               )}
             </div>
-            <span className="text-strong tabular-nums">{brl(item.total)}</span>
+            {/* An amount never breaks: a long name wraps instead. */}
+            <span className="shrink-0 whitespace-nowrap text-strong tabular-nums">
+              {brl(item.total)}
+            </span>
           </li>
         ))}
       </ul>
-      <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-border pt-2 tabular-nums [&_dd]:text-right">
+      <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-border pt-2 tabular-nums [&_dd]:text-right [&_dd]:whitespace-nowrap">
         {receiptTotals(receipt).map(([label, amount]) => {
           const tone =
             label === "Total" ? "font-semibold text-strong" : "text-sub";

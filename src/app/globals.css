@@ -30,24 +30,53 @@
   }
 }
 
-/* Sale receipt: printing from the sale screen puts only the receipt on paper, as wide as the
-   roll (58 or 80 mm) the printer driver reports. Black text, because the dark theme would print
-   light text on white paper. */
+/* Receipts (sale and fiado payment): printing puts only the receipt on paper, as wide as the roll
+   (58 or 80 mm) the printer driver reports. Black text, because the dark theme would print light
+   text on white paper. */
 @media print {
   @page {
     margin: 2mm;
   }
-  body:has([data-receipt]) * {
-    visibility: hidden;
+  /* Removed, not just hidden: hidden screens still take height, and a thermal printer feeds that
+     much blank roll. Only the receipt and the elements around it stay. */
+  body:has([data-receipt])
+    :not([data-receipt], [data-receipt] *, :has([data-receipt])) {
+    display: none !important;
   }
-  /* Same prefix plus the attribute: more specific than the rule above, so it wins. */
-  body:has([data-receipt]) [data-receipt],
-  body:has([data-receipt]) [data-receipt] * {
-    visibility: visible;
-    color: var(--neutral-950);
+  /* Thermal heads dither a tinted background into grey dots. */
+  body:has([data-receipt]) {
+    background: none;
+  }
+  /* The screen's full-height, scrolling layout around the receipt would clip or pad it. */
+  body:has([data-receipt]) :has([data-receipt]) {
+    background: none;
+    display: block;
+    position: static;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
   }
   [data-receipt] {
-    position: absolute;
-    inset: 0 0 auto;
+    width: 100%;
+    font-size: 10pt;
+    line-height: 1.3;
+    color: var(--neutral-950);
+  }
+  /* One size for the whole slip: the screen sizes would not fit 48 mm of printable width. */
+  [data-receipt] * {
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    overflow-wrap: anywhere;
+  }
+}
+/* 58 mm roll: about 48 mm printable, so a smaller type keeps about 32 characters per line. */
+@media print and (max-width: 60mm) {
+  [data-receipt] {
+    font-size: 8pt;
   }
 }
