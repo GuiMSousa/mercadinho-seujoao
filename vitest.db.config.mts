@@ -1,6 +1,12 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+// Windows lowercase-drive guard: see vitest.config.mts; change both copies together.
+if (/^[a-z]:/.test(process.cwd()))
+  throw new Error(
+    `Run Vitest from an uppercase drive path: cd "${process.cwd()[0].toUpperCase()}${process.cwd().slice(1)}" (Git Bash: cd /C/...).`,
+  );
+
 // DATABASE_URL_TEST comes from .env.local (CI sets it in the environment). Next's loader skips
 // .env.local when NODE_ENV=test, so read it directly; existing variables are not overridden.
 try {
