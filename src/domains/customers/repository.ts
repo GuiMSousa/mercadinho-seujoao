@@ -42,6 +42,18 @@ const matches = (search: string) => {
     : undefined;
 };
 
+/** What every customer owes on fiado, inactive ones included: their debt is still due. */
+export async function sumCustomerDebt() {
+  const [row] = await getDb()
+    .select({
+      total: sql<number>`coalesce(sum(${customers.currentDebt}), 0)`.mapWith(
+        Number,
+      ),
+    })
+    .from(customers);
+  return row.total;
+}
+
 export const countCustomers = (search: string) =>
   getDb().$count(customers, matches(search));
 

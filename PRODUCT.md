@@ -263,6 +263,7 @@ Critérios atendidos: o limite de desconto vale por perfil no servidor; VR e VA 
 - **Previsão de compras:** a sugestão da reposição usa as vendas dos últimos 28 dias (ver acima).
 - **Leitor por câmera** no PDV e na busca de produtos, pelo leitor de código nativo do navegador (Chrome no Android ou macOS). Sem suporte, sem câmera ou sem HTTPS, um aviso manda usar o leitor USB ou digitar o código.
 - **Comprovantes térmicos** (venda e quitação de fiado) ajustados para bobinas de 58 e 80 mm.
+- **Dashboard do painel** (`/painel`): vendas e faturamento de hoje, caixa aberto ou fechado com o esperado na gaveta (só o `ADMIN` vê), produtos em alerta de estoque (mesma regra do sino, 7 dias), total a receber no fiado e atalhos para PDV, produtos, estoque e relatórios.
 
 A instalação como PWA num aparelho e a câmera no celular dependem do HTTPS do túnel com o domínio da loja. Calendário em [ROADMAP.md](ROADMAP.md).
 

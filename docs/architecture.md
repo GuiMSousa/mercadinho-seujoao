@@ -35,7 +35,7 @@ src/
 │   ├── (auth)/               # telas públicas: login/, cadastro/ (3 etapas), recuperar/ (também define a senha do convite)
 │   ├── caixa/                # frente de caixa (PDV), aberta aos dois perfis: abertura do caixa, busca/leitor, carrinho, pagamento,
 │   │                         # comprovante, sangria, suprimento e fechamento cego
-│   ├── painel/               # shell do ADMIN: layout (guarda de perfil), _shell/ (sidebar, topbar, drawer móvel), page.tsx (saudação)
+│   ├── painel/               # shell do ADMIN: layout (guarda de perfil), _shell/ (sidebar, topbar, drawer móvel), page.tsx (dashboard: vendas de hoje, caixa com o esperado na gaveta, alertas de estoque, total a receber no fiado e ações rápidas)
 │   │   ├── produtos/         # catálogo: lista paginada com busca, diálogos de produto e categoria
 │   │   ├── estoque/          # lotes por produto com o semáforo e os diálogos de entrada de lote e de ajuste (inventário, perda, vencimento)
 │   │   ├── caixa/            # histórico e conciliação dos caixas: esperado, contado, quebra e movimentações

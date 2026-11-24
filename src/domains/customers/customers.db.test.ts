@@ -19,6 +19,7 @@ import {
   getStatement,
   listCustomers,
   receivePayment,
+  totalReceivable,
   updateCustomer,
 } from "./service";
 
@@ -120,6 +121,14 @@ it("takes partial and total payments off the debt, once per id, and never below 
       .update(customers)
       .set({ currentDebt: 5000 })
       .where(eq(customers.id, maria.id));
+    // The panel's total a receber counts every debt, an inactive customer's too.
+    const before = await totalReceivable();
+    const jose = await createCustomer(user, customer(`José ${randomUUID()}`));
+    await db
+      .update(customers)
+      .set({ currentDebt: 1250, active: false })
+      .where(eq(customers.id, jose.id));
+    await expect(totalReceivable()).resolves.toBe(before + 1250);
 
     const partial = payment(2000, "Pix");
     const first = await receivePayment(user, maria.id, partial);

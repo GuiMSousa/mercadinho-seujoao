@@ -20,6 +20,7 @@ import {
   selectCustomersPage,
   selectTransaction,
   selectTransactionsPage,
+  sumCustomerDebt,
   updateCustomerRow,
 } from "./repository";
 
@@ -59,6 +60,9 @@ export async function listCustomers({ search, page }: ListQuery) {
 }
 
 /** Active customers for the sale screen's fiado picker. */
+/** Total a receber no fiado: the sum of every customer's debt. */
+export const totalReceivable = sumCustomerDebt;
+
 export const findCustomerOptions = async (search: string) => ({
   customers: await selectCustomerOptions(search, OPTIONS_LIMIT),
 });

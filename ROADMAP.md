@@ -131,6 +131,7 @@ Entregues:
 - **Docker:** `compose.prod.yaml` com app e PostgreSQL 18 separados do banco de desenvolvimento, e a imagem aplicando as migrações ao iniciar.
 - **Backup:** scripts que também apontam para a produção, com agendamento pelo Agendador de Tarefas e pelo cron.
 - **Guia de implantação** ([docs/deploy.md](docs/deploy.md)) com Cloudflare Named Tunnel, restauração e atualização.
+- **Dashboard do painel:** `/painel` troca o card "Em construção" pelo resumo do dia: vendas de hoje, caixa e esperado na gaveta, alertas de estoque, total a receber no fiado e ações rápidas.
 - **Homologação:** `npm run check`, `npm run test:db`, os roteiros no navegador e a subida do contêiner num banco novo, com as rotas e a CSP conferidas no navegador.
 
 Criar o túnel com o domínio da loja e pôr o sistema em produção são passos feitos na conta e no computador da loja, seguindo o guia.

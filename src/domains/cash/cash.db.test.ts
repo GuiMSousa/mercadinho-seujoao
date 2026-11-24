@@ -23,6 +23,7 @@ import {
 } from "@/infrastructure/db/test-db";
 import {
   closeCashSession,
+  getCashStatus,
   listCashSessions,
   openCashSession,
   recordCashMovement,
@@ -215,8 +216,19 @@ it("reports each session with its breakdown, the open one with what it should ho
       .update(cashSessions)
       .set({ openedAt: sql`now() - interval '1 hour'` })
       .where(eq(cashSessions.id, first.id));
+    // The panel home: no drawer open between the two sessions.
+    await expect(getCashStatus()).resolves.toBeNull();
     const second = await openCashSession(user, { initialAmount: 5000 });
+    await saleInto(db, second.id, user.id, [
+      ["CASH", 300],
+      ["PIX", 900],
+    ]);
     await recordCashMovement(user, movement("SUPPLY", 1000, "Moedas"));
+    await expect(getCashStatus()).resolves.toEqual({
+      openedAt: second.openedAt,
+      openedBy: "Carla",
+      expectedAmount: 6300,
+    });
 
     const { sessions } = await listCashSessions({ page: 1 });
     const byId = (id: string) => sessions.find((session) => session.id === id);
@@ -241,7 +253,7 @@ it("reports each session with its breakdown, the open one with what it should ho
     expect(byId(second.id)).toMatchObject({
       status: "OPEN",
       closedAt: null,
-      expectedAmount: 6000,
+      expectedAmount: 6300,
       actualAmount: null,
       difference: null,
     });

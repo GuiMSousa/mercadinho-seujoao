@@ -110,6 +110,20 @@ export async function closeCashSession(actor: Actor, input: CloseCash) {
   };
 }
 
+/**
+ * For the panel home: the open drawer with what it should hold so far, or null when closed.
+ * Only one drawer is open at a time and nothing opens while it is, so it is the newest session.
+ */
+export async function getCashStatus() {
+  const [latest] = await selectSessionsPage({ limit: 1, offset: 0 });
+  if (latest?.status !== "OPEN") return null;
+  return {
+    openedAt: latest.openedAt.toISOString(),
+    openedBy: latest.openedBy,
+    expectedAmount: expectedCash(latest),
+  };
+}
+
 /** Every session, newest first, with the reconciliation the counter never sees. */
 export async function listCashSessions({ page }: { page: number }) {
   const total = await countSessions();
