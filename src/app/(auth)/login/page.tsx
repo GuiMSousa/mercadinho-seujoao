@@ -7,10 +7,5 @@ export const metadata: Metadata = { title: "Entrar — Mkt Control" };
 
 export default async function LoginPage() {
   await redirectIfSignedIn();
-  return (
-    <LoginForm
-      canSignup={!(await hasStore())}
-      showDemo={process.env.NODE_ENV === "development"}
-    />
-  );
+  return <LoginForm canSignup={!(await hasStore())} />;
 }

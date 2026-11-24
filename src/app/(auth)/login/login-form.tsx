@@ -11,19 +11,20 @@ import { postJson, useFocusOnError, type FormErrors } from "../auth-client";
 import { FormAlert } from "../form-alert";
 import { PasswordField } from "../password-field";
 
-const DEMO_PASSWORD = "mkt12345";
-const demoUsers = [
-  { label: "Administrador", email: "ana@bompreco.com.br" },
-  { label: "Operador de caixa", email: "carlos@bompreco.com.br" },
-];
+// Seed accounts (npm run db:seed), only in development. Tested inline so the production build
+// drops the e-mails and the password from the browser bundle.
+const DEMO =
+  process.env.NODE_ENV === "development"
+    ? {
+        password: "mkt12345",
+        users: [
+          { label: "Administrador", email: "ana@bompreco.com.br" },
+          { label: "Operador de caixa", email: "carlos@bompreco.com.br" },
+        ],
+      }
+    : null;
 
-export function LoginForm({
-  canSignup,
-  showDemo,
-}: {
-  canSignup: boolean;
-  showDemo: boolean;
-}) {
+export function LoginForm({ canSignup }: { canSignup: boolean }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<FormErrors | null>(null);
@@ -133,17 +134,17 @@ export function LoginForm({
           </Button>
         </>
       )}
-      {showDemo && (
+      {DEMO && (
         <div className="flex flex-wrap justify-center gap-2 text-caption text-sub">
           <span>Demonstração:</span>
-          {demoUsers.map((demo) => (
+          {DEMO.users.map((demo) => (
             <button
               key={demo.email}
               type="button"
               className="cursor-pointer text-link underline underline-offset-4"
               onClick={() => {
                 setEmail(demo.email);
-                setPassword(DEMO_PASSWORD);
+                setPassword(DEMO.password);
               }}
             >
               {demo.label}
