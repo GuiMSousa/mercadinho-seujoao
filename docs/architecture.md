@@ -31,16 +31,17 @@ src/
 ├── app/
 │   ├── layout.tsx, page.tsx, theme.ts # layout pt-BR (tema lido do cookie no servidor); `/` mostra a landing pública; com sessão, `ADMIN` vai para /painel e `CASHIER` para /caixa
 │   ├── _landing/             # landing pública: seções estáticas e ilhas cliente (rotator, perfis, troco)
+│   ├── _components/          # cliente compartilhado: service worker, tema e leitor por câmera (BarcodeDetector nativo, com aviso sem suporte)
 │   ├── (auth)/               # telas públicas: login/, cadastro/ (3 etapas), recuperar/ (também define a senha do convite)
 │   ├── caixa/                # frente de caixa (PDV), aberta aos dois perfis: abertura do caixa, busca/leitor, carrinho, pagamento,
 │   │                         # comprovante, sangria, suprimento e fechamento cego
 │   ├── painel/               # shell do ADMIN: layout (guarda de perfil), _shell/ (sidebar, topbar, drawer móvel), page.tsx (saudação)
 │   │   ├── produtos/         # catálogo: lista paginada com busca, diálogos de produto e categoria
-│   │   ├── estoque/          # lotes por produto com o semáforo e os diálogos de entrada de lote e de baixa
+│   │   ├── estoque/          # lotes por produto com o semáforo e os diálogos de entrada de lote e de ajuste (inventário, perda, vencimento)
 │   │   ├── caixa/            # histórico e conciliação dos caixas: esperado, contado, quebra e movimentações
 │   │   ├── relatorios/       # relatório financeiro: período, DRE resumida, formas de pagamento, ranking e vendas
 │   │   ├── fornecedores/     # cadastro, busca, edição e inativação de fornecedores
-│   │   └── estoque/reposicao # sugestão de compra por fornecedor padrão e pedido por WhatsApp (order-text.ts)
+│   │   └── estoque/reposicao # sugestão de compra (mínimo + uma semana das vendas de 28 dias) por fornecedor padrão e pedido por WhatsApp
 │   │   ├── usuarios/         # abas Equipe (convites, perfil, desativar) e Registro de atividade
 │   │   └── configuracoes/    # dados da loja, tema, inatividade da sessão, alterar senha, encerrar outras sessões
 │   ├── design-system/        # vitrine pública: componentes, estados e temas (dados fictícios)
@@ -58,7 +59,7 @@ src/
 │       ├── sales             # registra a venda e dá baixa PVPS, para qualquer sessão
 │       ├── cash/open, cash/movements, cash/close # caixa diário, para qualquer sessão; nunca devolvem o esperado
 │       └── admin/users, admin/users/[id], admin/activity, admin/categories, admin/products, admin/products/[id],
-│                             # admin/products/[id]/batches, admin/inventory, admin/inventory/out, admin/cash-sessions,
+│                             # admin/products/[id]/batches, admin/inventory, admin/inventory/out, admin/inventory/adjustments, admin/cash-sessions,
 │                             # admin/reports, admin/reports/sales, admin/reports/daily-email,
 │                             # admin/suppliers, admin/suppliers/[id], admin/inventory/replenishment
 ├── contracts/                # schemas Zod por área (auth, users, store, account, activity, theme, inventory, sales, cash, reports, suppliers) + openapi*.ts

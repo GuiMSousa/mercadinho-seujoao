@@ -2,25 +2,25 @@
 
 ## Status Geral do Projeto
 
-**Release v1.0.0 (2026-11-06):** as nove semanas foram executadas e homologadas. O sistema está pronto para implantação ([docs/deploy.md](docs/deploy.md)). Os itens abaixo ainda não estão entregues: ou dependem do HTTPS com domínio fixo (conta Cloudflare da loja), ou ficaram para depois da v1.0.0. Eles não são marcados como concluídos.
+**Calendário de 11 semanas:** de 14/09/2026 a 27/11/2026. As semanas 1 a 10 estão entregues; a semana 11 (23/11 a 27/11) fecha o projeto com a homologação final e a entrega à loja. A release v1.0.0 (2026-11-06) já está pronta para implantação ([docs/deploy.md](docs/deploy.md)).
 
-- **Semana 1:** CONCLUÍDA (Fundação, Autenticação e Landing Page)
-- **Semana 2:** CONCLUÍDA (Design System & PWA Base); falta conferir a instalação como PWA num aparelho, o que depende do HTTPS
-- **Semana 3:** CONCLUÍDA (PDV, comprovante térmico e por WhatsApp, arredondamento por item); falta o leitor por câmera, que depende do HTTPS
-- **Semana 4:** CONCLUÍDA (caixa diário, 2026-11-05)
-- **Semana 5:** CONCLUÍDA (relatórios financeiros, 2026-11-05)
-- **Semana 6:** CONCLUÍDA (fornecedores, reposição e pedido por WhatsApp, 2026-11-05); o indicador de alerta no topo do painel chegou na semana 10
-- **Semana 7:** CONCLUÍDA (etiqueta de balança no PDV e revisão de toque, campos, 375 px e contraste, 2026-11-06)
-- **Semana 8:** CONCLUÍDA EM PARTE (fiado com limite de crédito, quitação, desconto e pagamento dividido, 2026-11-06); VR/VA chegou na semana 10; ficam para depois o histórico de pedidos de compra e a previsão de compras
-- **Semana 9:** CONCLUÍDA (produção, 2026-11-06); o túnel com domínio fixo e a entrada em produção são passos da loja, descritos no guia de implantação
-- **Semana 10:** CONCLUÍDA (VR/VA, limite de desconto por perfil, desconto por item, histórico de estoque, importação CSV e alerta no painel, 2026-11-06)
+| Semana | Período       | Tema                                                     | Situação                     |
+| ------ | ------------- | -------------------------------------------------------- | ---------------------------- |
+| 1      | 14/09 a 18/09 | Fundação, autenticação e landing page                    | ENTREGUE                     |
+| 2      | 21/09 a 25/09 | Design system e PWA base                                 | ENTREGUE                     |
+| 3      | 28/09 a 02/10 | PDV, comprovante térmico e WhatsApp                      | ENTREGUE                     |
+| 4      | 05/10 a 09/10 | Caixa diário                                             | ENTREGUE                     |
+| 5      | 12/10 a 16/10 | Relatórios financeiros                                   | ENTREGUE                     |
+| 6      | 19/10 a 23/10 | Estoque, lotes e reposição                               | ENTREGUE                     |
+| 7      | 26/10 a 30/10 | Frontend, design e etiqueta de balança                   | ENTREGUE                     |
+| 8      | 02/11 a 06/11 | Fiado, descontos e pagamento dividido                    | ENTREGUE                     |
+| 9      | 09/11 a 13/11 | Produção e infraestrutura                                | ENTREGUE                     |
+| 10     | 16/11 a 20/11 | VR/VA, trava de desconto de 5%, extrato de estoque e CSV | ENTREGUE                     |
+| 11     | 23/11 a 27/11 | Encerramento e homologação final                         | EM ANDAMENTO (entrega 27/11) |
 
-**Pendências depois da v1.0.0:**
+O desenvolvimento andou na frente do calendário: as datas reais de cada entrega aparecem nas seções abaixo. Itens que ficaram de fora de uma semana foram para a semana 11 e estão listados nela.
 
-- Leitor por câmera e PWA instalado num aparelho (dependem do HTTPS).
-- Histórico de pedidos de compra e previsão de compras.
-- Ajuste de estoque pela tela (o histórico já lista o tipo, mas nada o registra ainda).
-- Layout próprio por largura de bobina (hoje o comprovante usa a largura que a impressora informa).
+**Depende da loja, fora do código:** o túnel com domínio fixo e o HTTPS (conta Cloudflare da loja). Sem ele, a instalação como PWA num aparelho e a câmera no celular pela rede não funcionam; no próprio PC, por `localhost`, a câmera funciona.
 
 > **Conferência com o código (2026-11-03):** entregue desde a conferência de 2026-11-01:
 >
@@ -51,27 +51,29 @@
 
 ---
 
-### Semana 1 — Arquitetura Base & Layout Responsivo (ENTREGUE)
+### Semana 1 (14/09 a 18/09) — Arquitetura Base & Layout Responsivo (ENTREGUE)
 
 - Configuração do ambiente (Node.js 24, Docker, PostgreSQL 18 e Drizzle ORM).
 - Layout mobile-first responsivo e correções de viewport/zoom em iOS/Android.
 - Estrutura inicial de produtos, categorias, autenticação (ADMIN/CASHIER), sessões no banco e Landing Page (`/`).
 
-### Semana 2 — PWA Universal & Experiência Mobile (ENTREGUE)
+### Semana 2 (21/09 a 25/09) — PWA Universal & Experiência Mobile (ENTREGUE)
 
 - Configuração do `manifest.json` com modo standalone e cores do sistema.
 - Service Worker (`sw.js`) para cache de assets e leitor de código de barras.
 - Compatibilidade e instalação em iOS Safari, Android Chrome e PC.
 - Implementação dos tokens visuais e componentes do Design System (`@ds/components`).
 
-### Semana 3 — Frente de Caixa (PDV), Recibos & WhatsApp
+### Semana 3 (28/09 a 02/10) — Frente de Caixa (PDV), Recibos & WhatsApp (ENTREGUE)
+
+O leitor por câmera e o ajuste por largura de bobina foram concluídos na semana 11.
 
 - Leitor de código de barras por câmera multi-lente via HTTPS.
 - Emissão de recibos térmicos formatados para bobinas de 58mm e 80mm.
 - Envio de comprovante resumido via WhatsApp Web/App.
 - Regra de arredondamento por item ao centavo (precisão fiscal por quilo).
 
-### Semana 4 — Gestão e Controle Financeiro de Caixa (ENTREGUE em 2026-11-05)
+### Semana 4 (05/10 a 09/10) — Gestão e Controle Financeiro de Caixa (ENTREGUE em 2026-11-05)
 
 Abertura com troco, sangria e suprimento com motivo, fechamento cego em `/caixa` e conciliação com quebra em `/painel/caixa`. Vendas bloqueadas na tela e no servidor com o caixa fechado.
 
@@ -80,7 +82,7 @@ Abertura com troco, sangria e suprimento com motivo, fechamento cego em `/caixa`
 - Fechamento cego (operador) e detalhado com cálculo de quebra (admin).
 - Bloqueio total de vendas no PDV e no servidor quando o caixa estiver fechado.
 
-### Semana 5 — Painel de Relatórios Financeiros & Lucratividade (ENTREGUE em 2026-11-05)
+### Semana 5 (12/10 a 16/10) — Painel de Relatórios Financeiros & Lucratividade (ENTREGUE em 2026-11-05)
 
 Em `/painel/relatorios`: períodos no fuso da loja, faturamento, CMV, lucro, margem com selo de cor, ticket médio, formas de pagamento, 5 produtos mais vendidos, histórico de vendas com margem e resumo do dia por e-mail (Resend). O custo histórico já é gravado em cada venda desde a semana 3.
 
@@ -89,7 +91,7 @@ Em `/painel/relatorios`: períodos no fuso da loja, faturamento, CMV, lucro, mar
 - Margem de Lucro (%) com destaque de cor e Ticket Médio.
 - Gravação do custo histórico da mercadoria na venda e fuso horário local.
 
-### Semana 6 — Estoque, Lotes e Alerta de Reposição (ENTREGUE em 2026-11-05)
+### Semana 6 (19/10 a 23/10) — Estoque, Lotes e Alerta de Reposição (ENTREGUE em 2026-11-05)
 
 Fornecedores em `/painel/fornecedores`, fornecedor padrão no produto, reposição em `/painel/estoque/reposicao` (2 × mínimo − estoque, agrupada por fornecedor) e pedido por WhatsApp. Junto, a blindagem da auditoria: backup do banco (`scripts/backup-db.*`), baixa manual idempotente, leitura do relatório num só instante e o atalho de rota renomeado para `sessionRoute`. Fica para depois o indicador de alerta no topo do painel.
 
@@ -98,7 +100,7 @@ Fornecedores em `/painel/fornecedores`, fornecedor padrão no produto, reposiç�
 - Indicador visual de alerta no topo para estoque crítico ou produtos perto da validade.
 - Relatório de reposição com sugestão automática de quantidade de compra e envio para fornecedor via WhatsApp.
 
-### Semana 7 — Implementação, Design & Configuração Completa do Frontend (ENTREGUE em 2026-11-06)
+### Semana 7 (26/10 a 30/10) — Implementação, Design & Configuração Completa do Frontend (ENTREGUE em 2026-11-06)
 
 A leitura de etiquetas de balança veio da semana 8 para cá. O PDV lê o EAN-13 da balança (`20` por valor, `21` por peso, com dígito verificador) e acha o produto pesável pelo código de 5 dígitos, que é o código de barras dele no cadastro. O preço cobrado continua sendo o do catálogo. A revisão de interface trouxe estes ajustes:
 
@@ -112,24 +114,16 @@ A leitura de etiquetas de balança veio da semana 8 para cá. O PDV lê o EAN-13
 - Ajustes de responsividade mobile/desktop e otimização para telas touch do balcão (botões ≥ 60px).
 - Integração completa do layout com todas as rotas e endpoints da API.
 
-### Semana 8 — Vendas a Prazo (Fiado), Descontos & Balança (ENTREGUE EM PARTE em 2026-11-06)
+### Semana 8 (02/11 a 06/11) — Vendas a Prazo (Fiado), Descontos & Balança (ENTREGUE em 2026-11-06)
 
-Clientes em `/painel/clientes` com limite de crédito, saldo devedor, extrato e quitação total ou parcial com comprovante para impressão e WhatsApp. No PDV, a venda pode ter desconto em R$ ou % (F3) e ser paga em várias formas, inclusive no fiado; o servidor recusa o fiado que passar do limite. Ficam para a próxima: VR/VA como forma de pagamento, histórico de pedidos de compra e previsão de compras.
+Clientes em `/painel/clientes` com limite de crédito, saldo devedor, extrato e quitação total ou parcial com comprovante para impressão e WhatsApp. No PDV, a venda pode ter desconto em R$ ou % (F3) e ser paga em várias formas, inclusive no fiado; o servidor recusa o fiado que passar do limite. VR/VA chegou na semana 10 e a previsão de compras na semana 11; o histórico de pedidos de compra não entrou no escopo da entrega.
 
 - Cadastro de clientes com histórico de compras, limite de crédito e saldo devedor (fiado).
 - Campo de desconto em valor (R$) ou percentual (%) na tela de checkout do PDV.
 - Múltiplos pagamentos (VR/VA, PIX, Cartão). A leitura de etiquetas de balança foi entregue na semana 7.
 - Cadastro de fornecedores, histórico de pedidos e previsão de compras.
 
-### Semana 10 — Evolução Operacional & Gestão Avançada de Estoque (CONCLUÍDA em 2026-11-06)
-
-- **PDV:** vale-refeição (VR) e vale-alimentação (VA) como formas de pagamento, com teclas no pagamento (D, P, B, C, F, R e A); desconto por item (botão % na linha) além do desconto da venda (F3).
-- **Limite de desconto:** o operador (`CASHIER`) dá no máximo 5% do valor dos itens, somando os descontos dos itens e o da venda; o administrador, até 100%. A trava vale na tela e no servidor; acima dela, a venda é bloqueada e o operador chama um administrador.
-- **Estoque:** histórico de movimentações em `/painel/estoque/historico`, com filtros de produto, tipo e período.
-- **Produtos:** importação por planilha CSV em `/painel/produtos/importar`, tudo ou nada, com relatório por linha.
-- **Painel:** sino no cabeçalho com os produtos que pedem atenção agora (sem estoque, no mínimo ou abaixo, ou vencendo em até 7 dias).
-
-### Semana 9 — Produção, Domínio Fixo & Infraestrutura Final (CONCLUÍDA em 2026-11-06)
+### Semana 9 (09/11 a 13/11) — Produção, Domínio Fixo & Infraestrutura Final (ENTREGUE em 2026-11-06)
 
 Entregues:
 
@@ -145,3 +139,19 @@ Criar o túnel com o domínio da loja e pôr o sistema em produção são passos
 - Rotina automatizada de backup diário do banco de dados PostgreSQL.
 - Bateria final de testes E2E/Integração, homologação e documentação de implantação.
 - Entrega final do sistema em produção.
+
+### Semana 10 (16/11 a 20/11) — Evolução Operacional & Gestão Avançada de Estoque (ENTREGUE em 2026-11-06)
+
+- **PDV:** vale-refeição (VR) e vale-alimentação (VA) como formas de pagamento, com teclas no pagamento (D, P, B, C, F, R e A); desconto por item (botão % na linha) além do desconto da venda (F3).
+- **Limite de desconto:** o operador (`CASHIER`) dá no máximo 5% do valor dos itens, somando os descontos dos itens e o da venda; o administrador, até 100%. A trava vale na tela e no servidor; acima dela, a venda é bloqueada e o operador chama um administrador.
+- **Estoque:** histórico de movimentações em `/painel/estoque/historico`, com filtros de produto, tipo e período.
+- **Produtos:** importação por planilha CSV em `/painel/produtos/importar`, tudo ou nada, com relatório por linha.
+- **Painel:** sino no cabeçalho com os produtos que pedem atenção agora (sem estoque, no mínimo ou abaixo, ou vencendo em até 7 dias).
+
+### Semana 11 (23/11 a 27/11) — Encerramento & Homologação Final (EM ANDAMENTO)
+
+- **Ajuste manual de estoque:** em `/painel/estoque`, o botão Ajustar registra entrada de inventário (vira um lote novo, com código e validade), perda ou quebra (sai por PVPS) ou vencimento (sai só dos lotes vencidos). O motivo é obrigatório e o ajuste aparece em `/painel/estoque/historico` como Ajuste, com + ou −. Só `ADMIN`.
+- **Previsão de compras:** a reposição mostra a saída média por semana e por dia, calculada sobre as vendas dos últimos 28 dias. A sugestão de compra é o mínimo mais uma semana de vendas, nunca menos que 2 × mínimo, descontado o estoque.
+- **Leitor por câmera:** botão de câmera no campo do PDV e na busca de produtos, com câmera traseira e troca de lente. Usa o leitor de código nativo do navegador, presente no Chrome do Android e do macOS. No iPhone, no Chrome do Windows, sem câmera ou fora de HTTPS, aparece um aviso que manda usar o leitor USB ou digitar o código.
+- **Impressão térmica:** o comprovante de venda e o de quitação de fiado saem sozinhos no papel, sem o fundo da tela e sem rolo em branco, com letra menor na bobina de 58 mm e valores que não quebram de linha. Conferido em PDF de 58 e 80 mm.
+- **Homologação:** `npm run check` e `npm run test:db` passando, e a entrega à loja em 27/11.

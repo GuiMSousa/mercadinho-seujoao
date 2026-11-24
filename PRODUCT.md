@@ -207,12 +207,12 @@ Critério atendido: o total de cada período é a soma das vendas do período, e
 
 - `/painel/fornecedores` (só `ADMIN`): cadastro com busca, edição e inativação; CNPJ/CPF opcional e único, WhatsApp com DDD, contato e e-mail.
 - `/painel/produtos`: cada produto pode ter um fornecedor padrão e o código que esse fornecedor usa. Um fornecedor inativo não pode ser escolhido de novo.
-- `/painel/estoque/reposicao`: produtos ativos no estoque mínimo ou abaixo, ou com lote vencido ou vencendo em até 30 dias (semáforo amarelo e vermelho), com a sugestão de compra 2 × mínimo − estoque (nunca negativa), agrupados pelo fornecedor padrão ativo.
+- `/painel/estoque/reposicao`: produtos ativos no estoque mínimo ou abaixo, ou com lote vencido ou vencendo em até 30 dias (semáforo amarelo e vermelho), com a saída média por semana e por dia (vendas dos últimos 28 dias) e a sugestão de compra: o mínimo mais uma semana de vendas, nunca menos que 2 × mínimo, descontado o estoque (nunca negativa); agrupados pelo fornecedor padrão ativo.
 - Botão "Enviar pedido" por fornecedor: link `wa.me` para o WhatsApp dele (com 55 quando falta), com os dados da loja, os itens a comprar, o código no fornecedor e as quantidades. O envio é feito pela pessoa no WhatsApp; nenhuma API paga.
 
 Critério atendido: produtos com estoque igual ou abaixo do mínimo aparecem em amarelo (vermelho com o estoque zerado) e entram na lista de reposição (ver docs/quality.md).
 
-Ficam para depois: alerta diário de reposição por e-mail, histórico de pedidos e previsão de compras (semana 8).
+A previsão de compras pelo histórico de vendas chegou na semana 11. Ficam para depois: alerta diário de reposição por e-mail e histórico de pedidos.
 
 ## Revisão de interface (2026-11-06)
 
@@ -257,9 +257,14 @@ Critérios atendidos: o limite de desconto vale por perfil no servidor; VR e VA 
 - CSP com nonce nas páginas, além dos cabeçalhos que já existiam.
 - Backup diário agendável e guia de implantação com Cloudflare Tunnel em [docs/deploy.md](docs/deploy.md).
 
-## Próxima entrega
+## Encerramento (semana 11, 23/11 a 27/11/2026)
 
-**PWA instalável e leitor por câmera** (MVP item 7), que dependem do HTTPS do túnel com o domínio da loja. Calendário e pendências em [ROADMAP.md](ROADMAP.md).
+- **Ajuste manual de estoque** (`ADMIN`, `/painel/estoque`): entrada de inventário (lote novo com código e validade), perda ou quebra (sai por PVPS) ou vencimento (sai só de lotes vencidos), sempre com motivo. Fica no histórico como Ajuste, com sinal.
+- **Previsão de compras:** a sugestão da reposição usa as vendas dos últimos 28 dias (ver acima).
+- **Leitor por câmera** no PDV e na busca de produtos, pelo leitor de código nativo do navegador (Chrome no Android ou macOS). Sem suporte, sem câmera ou sem HTTPS, um aviso manda usar o leitor USB ou digitar o código.
+- **Comprovantes térmicos** (venda e quitação de fiado) ajustados para bobinas de 58 e 80 mm.
+
+A instalação como PWA num aparelho e a câmera no celular dependem do HTTPS do túnel com o domínio da loja. Calendário em [ROADMAP.md](ROADMAP.md).
 
 ## Manutenção
 
