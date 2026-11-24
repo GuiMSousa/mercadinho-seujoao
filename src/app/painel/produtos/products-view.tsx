@@ -13,6 +13,7 @@ import { stockSignal } from "@/domains/inventory/semaphore";
 import { Badge } from "@ds/components/badge";
 import { Button, IconButton, buttonVariants } from "@ds/components/button";
 import { Card } from "@ds/components/card";
+import { CameraScanButton } from "@/app/_components/camera-scanner";
 import { Input } from "@ds/components/input";
 import { Money } from "@ds/components/money";
 import { Table, type TableColumn } from "@ds/components/table";
@@ -161,17 +162,20 @@ export function ProductsView({
   return (
     <div className="mx-auto flex max-w-350 flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <Input
-          aria-label="Buscar produto"
-          type="search"
-          placeholder="Buscar por nome ou código"
-          prefix={<Search aria-hidden="true" className="size-4" />}
-          ref={searchRef}
-          maxLength={120}
-          value={search}
-          onChange={(event) => changeSearch(event.target.value)}
-          className="w-full max-w-sm"
-        />
+        <div className="flex w-full max-w-sm items-end gap-2">
+          <Input
+            aria-label="Buscar produto"
+            type="search"
+            placeholder="Buscar por nome ou código"
+            prefix={<Search aria-hidden="true" className="size-4" />}
+            ref={searchRef}
+            maxLength={120}
+            value={search}
+            onChange={(event) => changeSearch(event.target.value)}
+            className="min-w-0 flex-1"
+          />
+          <CameraScanButton size="md" onCode={changeSearch} />
+        </div>
         <div className="flex flex-wrap gap-2">
           <Link
             href="/painel/produtos/importar"

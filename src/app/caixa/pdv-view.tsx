@@ -1,14 +1,12 @@
 "use client";
 
-import { ScanBarcode } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CASH_CLOSED_MESSAGE, type OpenCashSession } from "@/contracts/cash";
 import type { ProductLookup } from "@/contracts/inventory";
 import type { SaleReceipt } from "@/contracts/sales";
 import { newId } from "@/app/painel/_lib/new-id";
 import { parseScaleLabel } from "@/lib/barcode-scale";
-import { Input } from "@ds/components/input";
 import { useToast } from "@ds/components/toast";
 import {
   cartTotal,
@@ -30,6 +28,7 @@ import { ReceiptDialog, ReceiptPaper } from "./receipt";
 import type { ReceiptStore } from "./receipt-text";
 import { lookupBarcode, lookupScaleLabel, withCurrentPrices } from "./sale-api";
 import { CancelSaleDialog, SaleTotal } from "./sale-total";
+import { ScanField } from "./scan-field";
 import { SearchResults } from "./search-results";
 import { usePdvKeys } from "./use-pdv-keys";
 import { useProductSearch } from "./use-product-search";
@@ -67,6 +66,7 @@ export function PdvView({
   // One id per sale, kept across failed attempts: a retry after a lost answer cannot sell twice.
   const [saleId, setSaleId] = useState(newId);
   const [cashDialog, setCashDialog] = useState<CashDialogKind | null>(null);
+  const [scanning, setScanning] = useState(false);
   const search = useProductSearch(query);
   const {
     cart,
@@ -84,17 +84,16 @@ export function PdvView({
     discounting !== null ||
     cancelling ||
     receipt !== null ||
-    cashDialog !== null;
+    cashDialog !== null ||
+    scanning;
   const cashId = cash?.id;
   const subtotal = cartTotal(cart);
   const discountOff = discountCents(subtotal, discount);
   const inCart = (id: string) =>
     cart.find((line) => line.id === id)?.quantity ?? 0;
 
-  async function lookup(event: FormEvent) {
-    // The scanner's Enter lands here and never submits anything else.
-    event.preventDefault();
-    const term = query.trim();
+  /** A scanned or typed term: a code first, then a scale label, then a name with one match. */
+  async function find(term: string) {
     if (!term) return;
     const listed = search.status === "done" ? search.products : [];
     // Cleared at once, so the next scan starts on an empty field while this one is looked up.
@@ -200,26 +199,14 @@ export function PdvView({
 
       <main className="grid min-h-0 flex-1 grid-cols-1 content-start gap-4 overflow-auto p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-6">
         <div className="flex min-w-0 flex-col gap-4">
-          <form
-            role="search"
-            noValidate
-            onSubmit={(event) => void lookup(event)}
-          >
-            <Input
-              ref={searchRef}
-              size="counter"
-              label="Código de barras ou nome do produto (F1)"
-              aria-keyshortcuts="F1"
-              name="search"
-              autoComplete="off"
-              enterKeyHint="enter"
-              maxLength={120}
-              placeholder="Bipe o código ou digite o nome"
-              prefix={<ScanBarcode aria-hidden="true" className="size-6" />}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </form>
+          <ScanField
+            ref={searchRef}
+            value={query}
+            onChange={setQuery}
+            onSubmit={() => void find(query.trim())}
+            onScanningChange={setScanning}
+            onCode={(code) => void find(code)}
+          />
           {search.status !== "idle" && (
             <SearchResults
               search={search}
