@@ -26,7 +26,8 @@ export const movementRowSchema = z.object({
   barcode: z.string(),
   unit: unitSchema,
   type: z.enum(INVENTORY_MOVEMENT_TYPES),
-  // In the unit's base (units, grams, milliliters); always positive, the type says which way.
+  // In the unit's base (units, grams, milliliters). IN and OUT are positive, the type says which
+  // way; ADJUSTMENT is signed (positive from an inventory count, negative for a loss or expiry).
   quantity: z.int(),
   reason: z.string(),
   batchCode: z.string().nullable(),

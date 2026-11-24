@@ -15,7 +15,7 @@ import {
   withTestPool,
   type TestDb,
 } from "@/infrastructure/db/test-db";
-import { consumeStock } from "./service";
+import { adjustStock, consumeStock } from "./service";
 
 vi.mock("server-only", () => ({}));
 
@@ -163,3 +163,134 @@ it("takes the stock once when the same write-off arrives twice at the same momen
     }
   });
 }, 30_000);
+
+const TODAY = "2026-11-24";
+
+async function movementsOf(db: Pick<TestDb, "select">, productId: string) {
+  return db
+    .select({
+      type: inventoryMovements.type,
+      quantity: inventoryMovements.quantity,
+      reason: inventoryMovements.reason,
+    })
+    .from(inventoryMovements)
+    .where(eq(inventoryMovements.productId, productId))
+    .orderBy(asc(inventoryMovements.quantity));
+}
+
+it("records a loss as a negative ADJUSTMENT by PVPS, once per id", async () => {
+  await withTestDb(async (db) => {
+    current = db;
+    const { user, product } = await seed(db);
+    const loss = {
+      kind: "LOSS" as const,
+      id: randomUUID(),
+      productId: product.id,
+      quantity: 3,
+      reason: "Caixa amassada",
+      userId: user.id,
+    };
+
+    const first = await adjustStock(loss, TODAY);
+    expect(await adjustStock(loss, TODAY)).toEqual(first);
+    expect(first.map((allocation) => allocation.quantity)).toEqual([2, 1]);
+    expect(await quantities(db, product.id)).toEqual([0, 4]);
+    expect(await movementsOf(db, product.id)).toEqual([
+      {
+        type: "ADJUSTMENT",
+        quantity: -2,
+        reason: "Perda ou quebra: Caixa amassada",
+      },
+      {
+        type: "ADJUSTMENT",
+        quantity: -1,
+        reason: "Perda ou quebra: Caixa amassada",
+      },
+    ]);
+    // The same id for another adjustment, or a plain write-off, is refused.
+    await expect(
+      adjustStock({ ...loss, quantity: 1 }, TODAY),
+    ).rejects.toMatchObject({ status: 409 });
+    await expect(
+      consumeStock({ ...loss, reason: "Perda ou quebra: Caixa amassada" }),
+    ).rejects.toMatchObject({ status: 409 });
+    await expect(
+      adjustStock({ ...loss, id: undefined, quantity: 5 }, TODAY),
+    ).rejects.toMatchObject({
+      status: 409,
+      options: { fields: { quantity: "Maior que o saldo deste produto." } },
+    });
+  });
+});
+
+it("takes an expiry adjustment only from batches past their date", async () => {
+  await withTestDb(async (db) => {
+    current = db;
+    const { user, product } = await seed(db);
+    const expired = {
+      kind: "EXPIRED" as const,
+      productId: product.id,
+      reason: "Retirado da gôndola",
+      userId: user.id,
+    };
+
+    // 2 expired units: asking for 3 would take a good one, so nothing changes.
+    await expect(
+      adjustStock({ ...expired, quantity: 3 }, TODAY),
+    ).rejects.toMatchObject({
+      status: 409,
+      options: {
+        fields: { quantity: "Maior que o saldo vencido deste produto." },
+      },
+    });
+    expect(await quantities(db, product.id)).toEqual([2, 5]);
+    await adjustStock({ ...expired, quantity: 2 }, TODAY);
+    expect(await quantities(db, product.id)).toEqual([0, 5]);
+    expect(await movementsOf(db, product.id)).toEqual([
+      {
+        type: "ADJUSTMENT",
+        quantity: -2,
+        reason: "Vencimento: Retirado da gôndola",
+      },
+    ]);
+  });
+});
+
+it("puts what a count found into a new batch, once per id", async () => {
+  await withTestDb(async (db) => {
+    current = db;
+    const { user, product } = await seed(db);
+    const gain = {
+      kind: "GAIN" as const,
+      id: randomUUID(),
+      productId: product.id,
+      quantity: 4,
+      reason: "Contagem de sexta",
+      batchCode: "INV-1",
+      expirationDate: null,
+      userId: user.id,
+    };
+
+    const first = await adjustStock(gain, TODAY);
+    expect(await adjustStock(gain, TODAY)).toEqual(first);
+    expect(first).toEqual([{ batchId: gain.id, quantity: 4 }]);
+    // Without a date it sorts last in PVPS.
+    expect(await quantities(db, product.id)).toEqual([2, 5, 4]);
+    expect(await movementsOf(db, product.id)).toEqual([
+      {
+        type: "ADJUSTMENT",
+        quantity: 4,
+        reason: "Entrada de inventário: Contagem de sexta",
+      },
+    ]);
+    await expect(
+      adjustStock({ ...gain, quantity: 5 }, TODAY),
+    ).rejects.toMatchObject({ status: 409 });
+    await expect(
+      adjustStock(
+        { ...gain, id: randomUUID(), productId: randomUUID() },
+        TODAY,
+      ),
+    ).rejects.toMatchObject({ status: 404 });
+  });
+});

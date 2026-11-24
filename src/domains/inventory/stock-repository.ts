@@ -16,6 +16,10 @@ type TakeStock = {
   refuseExpiredOn?: string;
   /** Recorded on every movement: the client's id of a write-off. */
   operationId?: string;
+  /** ADJUSTMENT records the quantity negative: the history tells gains from losses by the sign. */
+  type?: "OUT" | "ADJUSTMENT";
+  /** Takes only batches past their date on this day (an expiry adjustment); short otherwise. */
+  onlyExpiredOn?: string;
 };
 
 /**
@@ -53,7 +57,17 @@ export async function takeStock(tx: Tx, input: TakeStock) {
   )
     return "expired" as const;
 
-  const allocations = allocatePvps(batches, input.quantity);
+  const { onlyExpiredOn } = input;
+  const allocations = allocatePvps(
+    onlyExpiredOn
+      ? batches.filter(
+          (batch) =>
+            batch.expirationDate !== null &&
+            batch.expirationDate < onlyExpiredOn,
+        )
+      : batches,
+    input.quantity,
+  );
   if (!allocations) return "short" as const;
 
   for (const { batchId, quantity } of allocations) {
@@ -62,12 +76,13 @@ export async function takeStock(tx: Tx, input: TakeStock) {
       .set({ quantity: sql`${inventoryBatches.quantity} - ${quantity}` })
       .where(eq(inventoryBatches.id, batchId));
   }
+  const type = input.type ?? "OUT";
   await tx.insert(inventoryMovements).values(
     allocations.map(({ batchId, quantity }) => ({
       productId: input.productId,
       batchId,
-      type: "OUT" as const,
-      quantity,
+      type,
+      quantity: type === "ADJUSTMENT" ? -quantity : quantity,
       reason: input.reason,
       userId: input.userId,
       operationId: input.operationId,
@@ -96,6 +111,7 @@ export function consumeBatches(input: Omit<TakeStock, "refuseExpiredOn">) {
           productId: inventoryMovements.productId,
           reason: inventoryMovements.reason,
           userId: inventoryMovements.userId,
+          type: inventoryMovements.type,
         })
         .from(inventoryMovements)
         .innerJoin(
@@ -114,15 +130,18 @@ export function consumeBatches(input: Omit<TakeStock, "refuseExpiredOn">) {
           (row) =>
             row.productId === input.productId &&
             row.reason === input.reason &&
-            row.userId === input.userId,
+            row.userId === input.userId &&
+            row.type === (input.type ?? "OUT"),
         );
-        const total = done.reduce((sum, row) => sum + row.quantity, 0);
-        if (!same || total !== input.quantity) return "conflict" as const;
-        // Write-off movements always name their batch.
-        return done.map((row) => ({
+        // An ADJUSTMENT out is stored negative; the answer, like the request, is positive.
+        const taken = done.map((row) => ({
+          // Write-off movements always name their batch.
           batchId: row.batchId as string,
-          quantity: row.quantity,
+          quantity: Math.abs(row.quantity),
         }));
+        const total = taken.reduce((sum, row) => sum + row.quantity, 0);
+        if (!same || total !== input.quantity) return "conflict" as const;
+        return taken;
       }
     }
     const taken = await takeStock(tx, input);

@@ -1,6 +1,6 @@
 "use client";
 
-import { PackageMinus, PackagePlus, Search } from "lucide-react";
+import { PackagePlus, Search, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import type {
   InventoryBatch,
@@ -18,7 +18,7 @@ import { usePagedList } from "../_lib/use-paged-list";
 import { formatDay } from "@/lib/formatters";
 import { formatQuantity } from "../produtos/product-form";
 import { BatchDialog } from "./batch-dialog";
-import { OutDialog } from "./out-dialog";
+import { AdjustDialog } from "./adjust-dialog";
 import { expiryLabel, SIGNAL_LABEL, SIGNAL_TONE } from "./signal-labels";
 
 function Legend() {
@@ -49,11 +49,11 @@ function Legend() {
 function ProductBatches({
   product,
   onReceive,
-  onTakeOut,
+  onAdjust,
 }: {
   product: InventoryProduct;
   onReceive: () => void;
-  onTakeOut: () => void;
+  onAdjust: () => void;
 }) {
   const stock = stockSignal(product);
   const columns: TableColumn<InventoryBatch>[] = [
@@ -111,21 +111,18 @@ function ProductBatches({
         {stock === "yellow" && (
           <span className="text-warning-fg">Estoque crítico</span>
         )}
-        {product.stock > 0 && (
-          <Button
-            variant="secondary"
-            aria-label={`Dar baixa no estoque de ${product.name}`}
-            className="ml-auto"
-            onClick={onTakeOut}
-          >
-            <PackageMinus aria-hidden="true" />
-            Dar baixa
-          </Button>
-        )}
+        <Button
+          variant="secondary"
+          aria-label={`Ajustar o estoque de ${product.name}`}
+          className="ml-auto"
+          onClick={onAdjust}
+        >
+          <SlidersHorizontal aria-hidden="true" />
+          Ajustar
+        </Button>
         <Button
           variant="secondary"
           aria-label={`Registrar entrada de lote de ${product.name}`}
-          className={product.stock > 0 ? undefined : "ml-auto"}
           onClick={onReceive}
         >
           <PackagePlus aria-hidden="true" />
@@ -156,7 +153,7 @@ export function InventoryView({ initial }: { initial: InventoryPage }) {
     reload,
   } = usePagedList("/api/admin/inventory", initial);
   const [receiving, setReceiving] = useState<InventoryProduct | null>(null);
-  const [takingOut, setTakingOut] = useState<InventoryProduct | null>(null);
+  const [adjusting, setAdjusting] = useState<InventoryProduct | null>(null);
 
   return (
     <div className="mx-auto flex max-w-350 flex-col gap-6">
@@ -187,7 +184,7 @@ export function InventoryView({ initial }: { initial: InventoryPage }) {
               key={product.id}
               product={product}
               onReceive={() => setReceiving(product)}
-              onTakeOut={() => setTakingOut(product)}
+              onAdjust={() => setAdjusting(product)}
             />
           ))
         )}
@@ -207,10 +204,10 @@ export function InventoryView({ initial }: { initial: InventoryPage }) {
           onSaved={() => void reload()}
         />
       )}
-      {takingOut && (
-        <OutDialog
-          product={takingOut}
-          onClose={() => setTakingOut(null)}
+      {adjusting && (
+        <AdjustDialog
+          product={adjusting}
+          onClose={() => setAdjusting(null)}
           onSaved={() => void reload()}
         />
       )}

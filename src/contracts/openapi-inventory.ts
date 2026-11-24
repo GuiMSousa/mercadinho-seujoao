@@ -175,6 +175,29 @@ export const inventoryPaths = {
       },
     },
   },
+  "/api/admin/inventory/adjustments": {
+    post: {
+      summary: "Registra um ajuste manual de estoque (somente ADMIN)",
+      description:
+        "Entrada de inventário (GAIN) cria um lote com o código e a validade informados. Perda ou quebra (LOSS) sai por PVPS, como uma venda. Vencimento (EXPIRED) sai só dos lotes já vencidos. O motivo é obrigatório e vai para o histórico como ADJUSTMENT, com quantidade positiva na entrada e negativa na saída. Repetir o mesmo id depois de uma resposta perdida não ajusta de novo.",
+      security: [{ session: [], csrf: [] }],
+      requestBody: body("AdjustStockRequest"),
+      responses: {
+        "200": {
+          description: "Quanto entrou ou saiu de cada lote.",
+          content: json("ConsumeStockResponse"),
+        },
+        "400": error("Corpo inválido."),
+        "401": error("Sem sessão."),
+        "403": forbidden,
+        "404": error("Produto não encontrado."),
+        "409": formError(
+          "Estoque (ou saldo vencido) insuficiente, ou id repetido com outros dados.",
+        ),
+        "422": formError("Campos inválidos (fields)."),
+      },
+    },
+  },
   "/api/products": {
     get: {
       summary: "Busca um produto ativo pelo código de barras",

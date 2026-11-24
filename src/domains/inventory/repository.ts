@@ -245,6 +245,11 @@ export function insertBatchWithMovement(
   productId: string,
   values: CreateBatch,
   userId: string,
+  // A received batch (IN) or what an inventory count found (ADJUSTMENT, with its reason).
+  movement: { type: "IN" | "ADJUSTMENT"; reason: string } = {
+    type: "IN",
+    reason: `Entrada do lote ${values.batchCode}`,
+  },
 ) {
   return getDb().transaction(async (tx) => {
     const [batch] = await tx
@@ -260,7 +265,7 @@ export function insertBatchWithMovement(
           inventoryMovements,
           and(
             eq(inventoryMovements.batchId, inventoryBatches.id),
-            eq(inventoryMovements.type, "IN"),
+            eq(inventoryMovements.type, movement.type),
           ),
         )
         .where(
@@ -280,9 +285,8 @@ export function insertBatchWithMovement(
     await tx.insert(inventoryMovements).values({
       productId,
       batchId: batch.id,
-      type: "IN",
+      ...movement,
       quantity: values.quantity,
-      reason: `Entrada do lote ${values.batchCode}`,
       userId,
     });
     return batch;

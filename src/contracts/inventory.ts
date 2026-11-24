@@ -197,6 +197,36 @@ export const consumeStockResponseSchema = z.object({
   allocations: z.array(z.object({ batchId: z.uuid(), quantity: z.int() })),
 });
 
+// Manual stock adjustment (ADMIN): an inventory count that found more, a loss or breakage, or
+// expired goods taken off the shelf. Recorded as ADJUSTMENT, signed, with the kind in the reason.
+export const ADJUSTMENT_KINDS = {
+  GAIN: "Entrada de inventário",
+  LOSS: "Perda ou quebra",
+  EXPIRED: "Vencimento",
+} as const;
+const adjustmentFields = {
+  // Optional, chosen by the client: repeating it after a lost response does not adjust twice.
+  id: z.uuid("Identificador do ajuste inválido.").optional(),
+  productId: z.uuid("Escolha o produto."),
+  quantity: positiveQuantitySchema,
+  reason: consumeStockSchema.shape.reason,
+};
+export const adjustStockSchema = z.discriminatedUnion(
+  "kind",
+  [
+    // What the count found goes into a new batch, so PVPS knows its date.
+    z.object({
+      kind: z.literal("GAIN"),
+      ...adjustmentFields,
+      batchCode: createBatchSchema.shape.batchCode,
+      expirationDate: createBatchSchema.shape.expirationDate,
+    }),
+    z.object({ kind: z.enum(["LOSS", "EXPIRED"]), ...adjustmentFields }),
+  ],
+  "Escolha o tipo de ajuste.",
+);
+
+export type AdjustStock = z.output<typeof adjustStockSchema>;
 export type ProductLookup = z.infer<typeof productLookupSchema>;
 export type CategoryRow = z.infer<typeof categoryRowSchema>;
 export type ProductRow = z.infer<typeof productRowSchema>;

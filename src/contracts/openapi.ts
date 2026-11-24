@@ -29,6 +29,7 @@ import {
   signupVerifySchema,
 } from "./auth";
 import {
+  adjustStockSchema,
   batchRowSchema,
   categoriesListResponseSchema,
   categoryRowSchema,
@@ -149,6 +150,7 @@ export function buildOpenApiDocument() {
         CreateBatchRequest: jsonSchema(createBatchSchema, "input"),
         ConsumeStockRequest: jsonSchema(consumeStockSchema, "input"),
         ConsumeStockResponse: jsonSchema(consumeStockResponseSchema),
+        AdjustStockRequest: jsonSchema(adjustStockSchema, "input"),
         UserRow: jsonSchema(userRowSchema),
         UsersList: jsonSchema(usersListResponseSchema),
         InviteUserRequest: jsonSchema(inviteUserSchema, "input"),

@@ -16,7 +16,8 @@ import { formatQuantity } from "../../produtos/product-form";
 const TYPES = {
   IN: { label: "Entrada", tone: "success", sign: "+" },
   OUT: { label: "Saída", tone: "warning", sign: "−" },
-  ADJUSTMENT: { label: "Ajuste", tone: "info", sign: "±" },
+  // Signed: a count that found more is positive, a loss or expiry negative.
+  ADJUSTMENT: { label: "Ajuste", tone: "info", sign: "" },
 } as const;
 
 const typeOptions = [
@@ -60,8 +61,10 @@ const columns: TableColumn<MovementRow>[] = [
     key: "quantity",
     label: "Quantidade",
     align: "right",
-    render: (row) =>
-      `${TYPES[row.type].sign}${formatQuantity(row.quantity, row.unit)}`,
+    render: (row) => {
+      const sign = TYPES[row.type].sign || (row.quantity < 0 ? "−" : "+");
+      return `${sign}${formatQuantity(Math.abs(row.quantity), row.unit)}`;
+    },
   },
   {
     key: "batch",

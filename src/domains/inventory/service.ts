@@ -1,6 +1,7 @@
 import "server-only";
-import { UNIT_LOCKED_MESSAGE } from "@/contracts/inventory";
+import { ADJUSTMENT_KINDS, UNIT_LOCKED_MESSAGE } from "@/contracts/inventory";
 import type {
+  AdjustStock,
   CreateBatch,
   CreateCategory,
   CreateProduct,
@@ -281,5 +282,50 @@ export async function consumeStock(input: {
       "Esta baixa já foi registrada com outros dados. Feche e confira o estoque.",
     );
   if (!allocations) throw new ServiceError(409, "Estoque insuficiente.");
+  return allocations;
+}
+
+const RETRIED_ADJUSTMENT =
+  "Este ajuste já foi registrado com outros dados. Feche e confira o estoque.";
+
+/**
+ * A manual adjustment, recorded as ADJUSTMENT with its kind in the reason. A count that found more
+ * goes into a new batch; a loss leaves by PVPS; expired goods leave only from batches past their date.
+ */
+export async function adjustStock(
+  input: AdjustStock & { userId: string },
+  today = todayInStore(),
+) {
+  await readProduct(input.productId);
+  const reason = `${ADJUSTMENT_KINDS[input.kind]}: ${input.reason}`;
+  if (input.kind === "GAIN") {
+    const { id, batchCode, expirationDate, quantity } = input;
+    const batch = await insertBatchWithMovement(
+      input.productId,
+      { id, batchCode, expirationDate, quantity },
+      input.userId,
+      { type: "ADJUSTMENT", reason },
+    );
+    if (!batch) throw new ServiceError(409, RETRIED_ADJUSTMENT);
+    return [{ batchId: batch.id, quantity }];
+  }
+  const allocations = await consumeBatches({
+    productId: input.productId,
+    quantity: input.quantity,
+    reason,
+    userId: input.userId,
+    operationId: input.id,
+    type: "ADJUSTMENT",
+    onlyExpiredOn: input.kind === "EXPIRED" ? today : undefined,
+  });
+  if (allocations === "conflict")
+    throw new ServiceError(409, RETRIED_ADJUSTMENT);
+  if (!allocations) {
+    const message =
+      input.kind === "EXPIRED"
+        ? "Maior que o saldo vencido deste produto."
+        : "Maior que o saldo deste produto.";
+    throw new ServiceError(409, message, { fields: { quantity: message } });
+  }
   return allocations;
 }
