@@ -22,6 +22,7 @@ celulares, tablets e PCs ──HTTPS──> Cloudflare ──túnel de saída─
 - **Docker:** Docker Desktop (Windows, com WSL 2) ou Docker Engine com o plugin Compose (Linux).
 - **Git,** para baixar e atualizar o código.
 - **Node.js 24 e npm,** só para tarefas de manutenção feitas deste PC, como `npm run user:create`.
+- **PowerShell 7 (`pwsh`), no Windows,** para o backup agendado e o `Read-Host -MaskInput` da seção 3: `winget install --id Microsoft.PowerShell`. O Windows traz só o 5.1.
 - **Conta Resend com domínio verificado.** Em produção, o código de cadastro, a recuperação de senha, o convite de usuários e o resumo diário dependem do e-mail. Sem a chave, esses envios são recusados.
 - **Conta Cloudflare com um domínio,** para o túnel nomeado com endereço fixo (por exemplo, `caixa.sualoja.com.br`). O HTTPS também é exigido pela instalação como app (PWA) e pela câmera do celular.
 
@@ -59,7 +60,7 @@ Os contêineres têm `restart: unless-stopped`: voltam sozinhos depois de reinic
   - PowerShell 7: `$env:DATABASE_URL = Read-Host -MaskInput "URL do banco"`, depois `npm run user:create -- ana@loja.com.br "Ana Souza" ADMIN`;
   - Linux (bash): `read -rsp "URL do banco: " DATABASE_URL && export DATABASE_URL`, depois `npm run user:create -- ana@loja.com.br "Ana Souza" ADMIN`.
 
-  A URL é `postgresql://<usuário>:<senha>@127.0.0.1:5433/<banco>`, com os valores do `.env.production`. Digitada assim, ela não fica no histórico de comandos (o do PowerShell é gravado em disco).
+  A URL é `postgresql://<usuário>:<senha>@127.0.0.1:<POSTGRES_PORT>/<banco>` (porta 5433 por padrão), com os valores do `.env.production`. Digitada assim, ela não fica no histórico de comandos (o do PowerShell é gravado em disco).
 
   Antes, rode `npm ci` uma vez na pasta. A senha inicial aparece só nessa saída: guarde-a e troque-a no primeiro acesso, em Configurações. Feche o terminal depois.
 
@@ -120,14 +121,25 @@ schtasks /Create /SC DAILY /ST 22:30 /TN "Mkt Control - backup" /TR "pwsh -NoPro
 
 **Fora deste PC:** copie a pasta `backups/` com frequência para outro disco ou para uma nuvem privada. Um backup no mesmo disco não sobrevive a uma falha dele, e os dumps têm dados pessoais e financeiros.
 
-**Restaurar** (substitui os dados; faça com o app parado e depois de um backup novo):
+**Restaurar** (substitui os dados; faça com o app parado e depois de um backup novo). No Git Bash, rode antes `export MSYS_NO_PATHCONV=1`; sem isso, ele reescreve os caminhos `/tmp/...` como caminhos do Windows.
 
 ```sh
 docker compose -f compose.prod.yaml --env-file .env.production stop app
 docker cp backups/<arquivo>.dump mkt-control-prod-postgres-1:/tmp/restore.dump
-docker exec mkt-control-prod-postgres-1 pg_restore -U <usuário> -d <banco> --clean --if-exists /tmp/restore.dump
+docker exec mkt-control-prod-postgres-1 sh -c 'U=$POSTGRES_USER; D=$POSTGRES_DB; R=${D}_restore; O=${D}_old; dropdb -U $U --if-exists $R && createdb -U $U $R && pg_restore -U $U -d $R --no-owner --no-acl --single-transaction /tmp/restore.dump && echo ALTER DATABASE $D RENAME TO $O | psql -U $U -d postgres -v ON_ERROR_STOP=1 && echo ALTER DATABASE $R RENAME TO $D | psql -U $U -d postgres -v ON_ERROR_STOP=1 && dropdb -U $U $O && rm /tmp/restore.dump && echo RESTAURADO'
+```
+
+Só quando a última linha mostrar `RESTAURADO`, suba o app:
+
+```sh
 docker compose -f compose.prod.yaml --env-file .env.production start app
 ```
+
+- Os passos dentro do contêiner vão encadeados com `&&`: se um falhar, os seguintes não rodam. O usuário e o banco vêm das variáveis que o contêiner recebeu do `.env.production` ao ser criado.
+- O dump é restaurado primeiro num banco à parte (`<banco>_restore`). Só depois que a restauração inteira deu certo o banco atual vira `<banco>_old`, o restaurado assume o nome dele e o antigo é apagado. Se algo falhar, os dados atuais continuam no banco atual: corrija e rode o bloco de novo, a partir do `docker cp`. Só uma interrupção entre as duas trocas de nome deixa o banco atual sem nome: os dados antigos ficam em `<banco>_old` e os restaurados em `<banco>_restore`; termine à mão com `ALTER DATABASE <banco>_restore RENAME TO <banco>`.
+- Como o banco é trocado por inteiro, tabelas de uma versão mais nova não sobram ao restaurar um dump mais antigo. Ao subir, o app aplica as migrações que faltarem ao dump.
+- `--no-owner --no-acl` deixa os objetos com o usuário deste `.env.production`, mesmo quando o dump vem de outro PC com outro `POSTGRES_USER` (sem isso, cada objeto daria erro ao ser devolvido a um papel que não existe aqui).
+- `--single-transaction`: o `pg_restore` para no primeiro erro e desfaz tudo, sem deixar restauração pela metade.
 
 ## 6. Atualizar para uma nova versão
 
