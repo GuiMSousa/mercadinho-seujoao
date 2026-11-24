@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, gte, ilike, inArray, or, sql } from "drizzle-orm";
 import type { CreateSupplier, UpdateSupplier } from "@/contracts/suppliers";
 import { containsPattern } from "@/domains/inventory/repository";
 import { getDb } from "@/infrastructure/db";
@@ -7,8 +7,11 @@ import {
   inventoryBatches,
   products,
   productSuppliers,
+  saleItems,
+  sales,
   suppliers,
 } from "@/infrastructure/db/schema";
+import { STORE_TIME_ZONE } from "@/lib/store-time";
 
 const supplierRow = {
   id: suppliers.id,
@@ -167,4 +170,27 @@ export function selectReplenishmentRows(horizon: string) {
       sql`${stock} <= ${products.minStock} OR (min(${inventoryBatches.expirationDate}) FILTER (WHERE ${inventoryBatches.quantity} > 0)) <= ${horizon}::date`,
     )
     .orderBy(asc(products.name), asc(products.id));
+}
+
+/** How much of each product was sold from the start of `since` (a store-calendar day) until now. */
+export async function selectSoldSince(productIds: string[], since: string) {
+  if (productIds.length === 0) return new Map<string, number>();
+  const rows = await getDb()
+    .select({
+      productId: saleItems.productId,
+      sold: sql`sum(${saleItems.quantity})`.mapWith(Number),
+    })
+    .from(saleItems)
+    .innerJoin(sales, eq(sales.id, saleItems.saleId))
+    .where(
+      and(
+        inArray(saleItems.productId, productIds),
+        gte(
+          sales.createdAt,
+          sql`(${since}::date)::timestamp AT TIME ZONE ${STORE_TIME_ZONE}`,
+        ),
+      ),
+    )
+    .groupBy(saleItems.productId);
+  return new Map(rows.map((row) => [row.productId, row.sold]));
 }

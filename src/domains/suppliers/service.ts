@@ -6,11 +6,12 @@ import { ServiceError } from "@/domains/auth/errors";
 import { todayInStore } from "@/domains/inventory/semaphore";
 import { addDays } from "@/domains/reports/period";
 import { uniqueViolation } from "@/infrastructure/db/errors";
-import { groupBySupplier } from "./replenishment";
+import { groupBySupplier, SALES_WINDOW_DAYS } from "./replenishment";
 import {
   countSuppliers,
   insertSupplier,
   selectReplenishmentRows,
+  selectSoldSince,
   selectSupplier,
   selectSupplierOptions,
   selectSuppliersPage,
@@ -117,13 +118,24 @@ export async function countStockAlerts(today = todayInStore()) {
 
 /**
  * What to buy: active products at or below their minimum, or with stock expiring within 30 days
- * (expired included), each with (2 × minimum) − stock, grouped by default supplier.
+ * (expired included), grouped by default supplier, each with what to buy: the minimum plus a week
+ * of the average sales of the last 28 days, never less than twice the minimum, minus the stock.
  */
 export async function getReplenishment(today = todayInStore()) {
   const rows = await selectReplenishmentRows(
     addDays(today, EXPIRY_HORIZON_DAYS),
   );
+  const sold = await selectSoldSince(
+    rows.map((row) => row.productId),
+    addDays(today, 1 - SALES_WINDOW_DAYS),
+  );
   return {
-    groups: groupBySupplier(rows, today),
+    groups: groupBySupplier(
+      rows.map((row) => ({
+        ...row,
+        soldLast28Days: sold.get(row.productId) ?? 0,
+      })),
+      today,
+    ),
   };
 }

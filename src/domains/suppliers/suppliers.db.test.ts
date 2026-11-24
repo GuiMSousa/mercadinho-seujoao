@@ -7,6 +7,8 @@ import {
   inventoryBatches,
   products,
   productSuppliers,
+  saleItems,
+  sales,
   users,
 } from "@/infrastructure/db/schema";
 import { withTestDb, type TestDb } from "@/infrastructure/db/test-db";
@@ -301,5 +303,68 @@ it("counts for the header the products needing attention now: low stock or expir
     await product("Queijo", 1, [["2026-11-25", 9]]);
     await product("Arroz", 1, [["2027-06-01", 9]]);
     expect((await countStockAlerts(TODAY)) - before).toBe(3);
+  });
+});
+
+it("forecasts the purchase from the sales of the last 28 days", async () => {
+  await inTest(async (db) => {
+    const { user, category, unique } = await seed(db);
+    const [product] = await db
+      .insert(products)
+      .values({
+        barcode: `${unique}-cafe`,
+        name: `Café ${unique}`,
+        categoryId: category.id,
+        costPrice: 100,
+        sellPrice: 200,
+        unit: "UN",
+        minStock: 5,
+      })
+      .returning();
+    await db.insert(inventoryBatches).values({
+      productId: product.id,
+      batchCode: "L",
+      expirationDate: "2027-06-01",
+      quantity: 3,
+    });
+    const sell = async (createdAt: string, quantity: number) => {
+      const [sale] = await db
+        .insert(sales)
+        .values({
+          userId: user.id,
+          total: 200 * quantity,
+          amountReceived: 200 * quantity,
+          change: 0,
+          createdAt: new Date(createdAt),
+        })
+        .returning();
+      await db.insert(saleItems).values({
+        saleId: sale.id,
+        line: 1,
+        productId: product.id,
+        name: product.name,
+        unit: "UN",
+        quantity,
+        unitPrice: 200,
+        unitCost: 100,
+        total: 200 * quantity,
+        cost: 100 * quantity,
+      });
+    };
+    // The window opens on 2026-10-09 at midnight in the store (UTC−3) and runs through TODAY.
+    await sell("2026-10-09T03:30:00Z", 30);
+    await sell("2026-11-05T20:00:00Z", 10);
+    // 23:30 of the day before, in the store: outside.
+    await sell("2026-10-09T02:30:00Z", 500);
+
+    const item = (await getReplenishment(TODAY)).groups
+      .flatMap((group) => group.items)
+      .find((row) => row.productId === product.id);
+    // 40 in 28 days = 10 a week: 5 (minimum) + 10 − 3 on the shelf.
+    expect(item).toMatchObject({
+      soldLast28Days: 40,
+      weeklyAverage: 10,
+      suggested: 12,
+    });
   });
 });

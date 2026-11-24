@@ -19,6 +19,8 @@ const item = {
   barcode: "789",
   stock: 2,
   minStock: 5,
+  soldLast28Days: 0,
+  weeklyAverage: 0,
   nearestExpiration: null,
   daysLeft: null,
   signal: "yellow" as const,

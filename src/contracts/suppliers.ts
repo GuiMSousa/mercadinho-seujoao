@@ -104,7 +104,12 @@ export const replenishmentSchema = z.object({
           unit: unitSchema,
           stock: z.int(),
           minStock: z.int(),
-          // (2 × minimum) − stock, never below zero; in the unit's base (units, grams, milliliters).
+          // Sold in the last 28 days (today included): the base of the forecast.
+          soldLast28Days: z.int(),
+          // That average over a week, rounded up.
+          weeklyAverage: z.int(),
+          // max(2 × minimum, minimum + a week of the average sales) − stock, never below zero;
+          // in the unit's base (units, grams, milliliters).
           suggested: z.int(),
           nearestExpiration: z.iso.date().nullable(),
           daysLeft: z.int().nullable(),

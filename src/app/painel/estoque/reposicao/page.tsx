@@ -19,7 +19,9 @@ export default async function ReplenishmentPage() {
       <StockNav current="/painel/estoque/reposicao" />
       <p className="text-body-md text-sub">
         Produtos no estoque mínimo ou abaixo dele, ou com lote vencido ou
-        vencendo em até 30 dias. Sugestão de compra: 2 × mínimo − estoque.
+        vencendo em até 30 dias. Sugestão de compra: o mínimo mais uma semana da
+        média de vendas dos últimos 28 dias, nunca menos que 2 × mínimo,
+        descontado o estoque.
       </p>
       <ReplenishmentView
         replenishment={replenishmentSchema.parse(replenishment)}

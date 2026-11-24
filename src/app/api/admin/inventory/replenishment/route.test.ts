@@ -31,6 +31,8 @@ it("answers the groups", async () => {
             unit: "UN" as const,
             stock: 2,
             minStock: 5,
+            soldLast28Days: 0,
+            weeklyAverage: 0,
             suggested: 8,
             nearestExpiration: null,
             daysLeft: null,

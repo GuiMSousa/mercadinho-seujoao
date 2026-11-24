@@ -6,9 +6,19 @@ import {
   worstSignal,
 } from "@/domains/inventory/semaphore";
 
-/** What to buy: twice the minimum minus what is on the shelf, never below zero. */
-export const suggestedQuantity = (stock: number, minStock: number) =>
-  Math.max(0, 2 * minStock - stock);
+/** The sales history behind the forecast: the last 28 store-calendar days, today included. */
+export const SALES_WINDOW_DAYS = 28;
+
+/** Average sold per week over the window, rounded up: a fraction of a unit still has to be bought. */
+export const weeklyAverage = (sold: number) =>
+  Math.ceil((sold * 7) / SALES_WINDOW_DAYS);
+
+/**
+ * What to buy: enough for the minimum plus a week of the average sales, and never less than twice
+ * the minimum (a product without sales keeps that rule), minus what is on the shelf.
+ */
+export const suggestedQuantity = (stock: number, minStock: number, sold = 0) =>
+  Math.max(0, Math.max(2 * minStock, minStock + weeklyAverage(sold)) - stock);
 
 export type ReplenishmentRow = {
   productId: string;
@@ -19,6 +29,8 @@ export type ReplenishmentRow = {
   minStock: number;
   nearestExpiration: string | null;
   supplierCode: string;
+  /** Sold in the last SALES_WINDOW_DAYS days, in the unit's base. */
+  soldLast28Days: number;
   /** The default supplier, or null without one. */
   supplier: SupplierRow | null;
 };
@@ -44,7 +56,9 @@ export function groupBySupplier(rows: ReplenishmentRow[], today: string) {
       unit: row.unit,
       stock: row.stock,
       minStock: row.minStock,
-      suggested: suggestedQuantity(row.stock, row.minStock),
+      soldLast28Days: row.soldLast28Days,
+      weeklyAverage: weeklyAverage(row.soldLast28Days),
+      suggested: suggestedQuantity(row.stock, row.minStock, row.soldLast28Days),
       nearestExpiration: row.nearestExpiration,
       daysLeft,
       signal: worstSignal([stockSignal(row), expirySignal(daysLeft)]),

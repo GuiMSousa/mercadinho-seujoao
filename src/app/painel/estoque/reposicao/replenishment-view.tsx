@@ -13,6 +13,14 @@ import { orderItems, orderLink, type OrderStore } from "./order-text";
 
 type Item = ReplenishmentGroup["items"][number];
 
+/** The daily average of the 28 days; units keep one decimal, weights and volumes their own format. */
+function perDay(item: Item) {
+  const daily = item.soldLast28Days / 28;
+  return item.unit === "UN"
+    ? `${daily.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} un`
+    : formatQuantity(Math.round(daily), item.unit);
+}
+
 const columns: TableColumn<Item>[] = [
   {
     key: "name",
@@ -47,6 +55,21 @@ const columns: TableColumn<Item>[] = [
     className: "hidden sm:table-cell",
     render: (item) =>
       `${formatQuantity(item.stock, item.unit)} / ${formatQuantity(item.minStock, item.unit)}`,
+  },
+  {
+    key: "sales",
+    label: "Saída média",
+    align: "right",
+    className: "hidden md:table-cell",
+    render: (item) =>
+      item.soldLast28Days > 0 ? (
+        <span className="flex flex-col items-end tabular-nums">
+          <span>{formatQuantity(item.weeklyAverage, item.unit)}/semana</span>
+          <span className="text-body-sm text-sub">{perDay(item)}/dia</span>
+        </span>
+      ) : (
+        <span className="text-sub">Sem vendas</span>
+      ),
   },
   {
     key: "suggested",
