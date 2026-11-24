@@ -35,6 +35,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Criar usuário: `npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>` (senha aleatória exibida uma vez; precisa do banco migrado)
 - Dados de demonstração: `npm run db:seed` (loja e 3 usuários com senha `mkt12345`; recusa `NODE_ENV=production`; idempotente, não sobrescreve nada)
 - Teste de navegador: roteiro manual com Playwright em [docs/quality.md](docs/quality.md), banco `mkt_control_e2e`; `test:e2e` automatizado ainda não existe.
+- Windows: rode o Vitest (`npm test`, `test:db`, `check`) com a unidade em maiúscula (`C:\...`). Com `c:\` minúsculo, como o Git Bash (`/c/`) e o VS Code abrem a pasta, todos os testes falham com "failed to find the current suite". No Git Bash use `cd /C/...`; o PowerShell já normaliza.
 
 ## Acordos de trabalho
 
@@ -101,7 +102,7 @@ Instaladas em `.agents/skills` (Codex) e `.claude/skills` (Claude Code), registr
 - `vercel-react-view-transitions`: só para transições pedidas, compatíveis com as versões em uso.
 - `vercel-optimize`, `deploy-to-vercel`, `vercel-cli-with-tokens`: só com tarefa e autorização de Vercel. O projeto roda no PC da loja, sem Vercel.
 - `find-skills`: quando faltar uma capacidade concreta.
-- `next-dev-loop`: feedback de runtime e navegador após mudanças. Exige `agent-browser` no PATH, que hoje não está instalado.
+- `next-dev-loop`: feedback de runtime e navegador após mudanças. Usa o `agent-browser` (CLI global com Chromium próprio).
 - `next-bundle-optimizer`: auditoria de bundle com evidência do analyzer (`next analyze`).
 - `supabase-postgres-best-practices`: antes de trabalho de schema, SQL, migrations, segurança ou desempenho no PostgreSQL. Não adota Supabase.
 - `gh-fix-ci` (só Codex): investigar falhas de GitHub Actions com acesso autorizado; siga a aprovação de correção da skill.

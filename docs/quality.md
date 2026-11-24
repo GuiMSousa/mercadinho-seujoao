@@ -365,17 +365,26 @@ Escolha o escopo da revisão pelo risco e pelo diff real. Use revisão independe
   - CSP;
   - integridade de caixa e venda (transações, caixa único);
   - importação de planilhas.
+- **Auditoria ampla (opcional):** bloco "Prompt" de `docs/prompts/16-security-audit.md` do toolkit, revisão `7ef68dd`, para auditoria com matriz de cobertura das rotas, inventário de dependências, lotes de correção e checkpoint retomável. Só roda quando pedida. Invocação:
+
+  ```text
+  Leia https://raw.githubusercontent.com/soumatheusgomes/vibe-coding-toolkit/7ef68dd7b00ddfc5cd464458855e4ab66dd2128f/docs/prompts/16-security-audit.md e execute o bloco "Prompt" neste repositório em modo AUDIT, com relatório privado fora do repositório.
+  ```
+
+  Os modos `PLAN`, `FIX` e `VERIFY` só rodam com os achados ou o lote escolhidos explicitamente.
+
+- **Auditoria de 2026-11-24** (prompt 16, modo AUDIT, revisão `d2fb59f`, estática, sem teste em produção): relatório privado em `%LOCALAPPDATA%\mkt-control-security\audit-20261124-01\`. Status e decisões em [setup.md](setup.md#reexecução-do-setup-prompt-12-2026-11-24).
 - **Histórico:** a entrega de autenticação passou por cinco ciclos de revisão (2026-10-29 e 2026-10-30), com achados corrigidos e testes de regressão: sessão por hash SHA-256, token CSRF obrigatório, `ADMIN` exclusivo no painel, cadastro preso ao navegador por nonce, tentativas de código gastas de forma atômica, CHECKs de e-mail em minúsculas e de loja única (migration `0002`), cabeçalhos de segurança, mensagens sem enumeração de contas e proteção do último `ADMIN` contra corrida. Relatórios completos ficam fora do repositório. Não houve varredura de rede nem teste em produção; CSP, importação de planilhas e sigilo de custo ainda não têm código para revisar.
 
 ## Dependências e entrega
 
-- `npm audit --omit=dev` (produção): **0 vulnerabilidades** em 2026-10-28.
-- `npm audit` (completo): 7 advisories (3 baixas, 4 moderadas), todas em ferramentas de desenvolvimento:
+- `npm audit --omit=dev` (produção): **0 vulnerabilidades** em 2026-11-24, depois de `next` 16.4.3 → 16.4.6 (os 7 advisories Moderate do Next 16.0–16.4.4 fazem o `next build` parar com `SecurityFatalError`).
+- `npm audit` (completo, 2026-11-24): 8 moderadas, todas em ferramentas de desenvolvimento (`typescript-eslint` 8.74.0 já não traz o `minimatch` vulnerável):
 
   | Advisory                                | Origem                                               | Impacto aqui                                                       |
   | --------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------ |
   | `esbuild` ≤ 0.24.2, GHSA-67mh-4wv8-2f99 | Via `@esbuild-kit/*` dentro do `drizzle-kit` 0.31.11 | Afeta só o servidor de desenvolvimento do esbuild, que não é usado |
-  | `deepmerge`, GHSA-gcqx-w48m-w2h4        | Via CLI `shadcn`                                     | Só no CLI de dev                                                   |
+  | `minimatch`, GHSA-g3hv-75wg-m249        | Via `ts-morph` dentro do CLI `shadcn`                | Só no CLI de dev                                                   |
 
   As "correções" do npm são downgrades major (`drizzle-kit@0.18.1`, `shadcn@1.0.0`) e não foram aplicadas. Reavalie quando `drizzle-kit` ou `shadcn` publicarem versões sem essas dependências.
 
