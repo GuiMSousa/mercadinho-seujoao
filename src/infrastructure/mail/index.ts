@@ -11,6 +11,9 @@ export type MailMessage = {
 };
 export type Mailer = { send(message: MailMessage): Promise<void> };
 
+// A stalled provider must not hold the signup or reset request open.
+const SEND_TIMEOUT_MS = 10_000;
+
 export function getMailer(): Mailer {
   const apiKey = getResendApiKey();
   if (!apiKey) {
@@ -31,10 +34,16 @@ export function getMailer(): Mailer {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ from, to, subject, text, html }),
+        signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
       });
       // Never include the response body: it can echo the recipient or provider details.
       if (!response.ok)
         throw new Error(`mail delivery failed: ${response.status}`);
+      // Only Resend's id, to find the message in its dashboard; never the recipient or the text.
+      const { id } = (await response.json().catch(() => ({}))) as {
+        id?: string;
+      };
+      logger.info({ id }, "mail sent");
     },
   };
 }

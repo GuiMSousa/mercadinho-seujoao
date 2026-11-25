@@ -21,11 +21,16 @@ describe("getMailer with a Resend key", () => {
     vi.stubEnv("MAIL_FROM", "Mkt <no-reply@example.com>");
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response("{}", { status: 200 }));
+      .mockResolvedValue(
+        new Response('{"id":"4ef9a417-02e9"}', { status: 200 }),
+      );
 
     await getMailer().send(message);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    // The provider's id is logged, never the recipient or the text (it carries the code).
+    expect(info).toHaveBeenCalledWith({ id: "4ef9a417-02e9" }, "mail sent");
+    expect(fetchMock.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("https://api.resend.com/emails");
     expect(init?.method).toBe("POST");
