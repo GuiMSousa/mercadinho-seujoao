@@ -1,4 +1,6 @@
 // Creates a user with a random password, printed once. Run: npm run user:create -- <email> "<Nome completo>" <ADMIN|CASHIER>
+// An ADMIN on an installation without a store also creates the store ("Minha loja", edited later in
+// Configurações), so the first access works without the e-mail of /cadastro and closes the signup.
 import { randomBytes } from "node:crypto";
 // @next/env is CommonJS; ESM needs the default import.
 import nextEnv from "@next/env";
@@ -8,6 +10,8 @@ nextEnv.loadEnvConfig(process.cwd());
 const { emailSchema } = await import("../src/contracts/auth");
 const { hashPassword } = await import("../src/domains/auth/password");
 const { insertUser } = await import("../src/domains/users/repository");
+const { insertStoreIfMissing } =
+  await import("../src/domains/store/repository");
 const { closeDatabase } = await import("../src/infrastructure/db");
 
 const [rawEmail, rawName, role] = process.argv.slice(2);
@@ -22,12 +26,26 @@ if (!email.success || !name || (role !== "ADMIN" && role !== "CASHIER")) {
 
 const password = randomBytes(12).toString("base64url");
 try {
+  // Before the user: if this fails, nothing was created; if the user then fails, a rerun
+  // still works, because the store is never created twice (stores.singleton).
+  const storeCreated =
+    role === "ADMIN" &&
+    (await insertStoreIfMissing({
+      name: "Minha loja",
+      document: "",
+      phone: "",
+      kind: "",
+    }));
   const user = await insertUser({
     name,
     email: email.data,
     passwordHash: await hashPassword(password),
     role,
   });
+  if (storeCreated)
+    console.log(
+      'Loja criada como "Minha loja": troque o nome e os dados em Configurações.',
+    );
   console.log(`Usuário ${user.email} (${user.role}) criado.`);
   console.log(`Senha inicial (exibida só agora): ${password}`);
 } catch (error) {

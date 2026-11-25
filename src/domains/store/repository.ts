@@ -36,7 +36,7 @@ export async function updateStoreRow(values: {
   return row;
 }
 
-/** Used by the dev seed only. Returns false when the installation already has its store. */
+/** Used by the dev seed and by user:create. Returns false when the installation already has its store. */
 export async function insertStoreIfMissing(values: {
   name: string;
   document: string;

@@ -1,6 +1,6 @@
 import type { Role } from "@/infrastructure/db/schema";
 
-// /design-system is a static component gallery with sample data only; /api/health tells Docker
+// /design-system is a static component gallery with sample data only, 404 in production; /api/health tells Docker
 // and uptime monitors only whether the app reaches its database.
 const PUBLIC_PATHS = new Set([
   "/",

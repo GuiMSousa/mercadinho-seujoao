@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Download, Plus, Printer, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@ds/components/badge";
@@ -54,6 +55,8 @@ function Row({ children }: { children: ReactNode }) {
 }
 
 export default function DesignSystemPage() {
+  // A gallery with sample data for development; the store's installation answers 404.
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-4">

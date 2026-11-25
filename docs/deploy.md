@@ -62,6 +62,8 @@ Os contêineres têm `restart: unless-stopped`: voltam sozinhos depois de reinic
 
   A URL é `postgresql://<usuário>:<senha>@127.0.0.1:<POSTGRES_PORT>/<banco>` (porta 5433 por padrão), com os valores do `.env.production`. Digitada assim, ela não fica no histórico de comandos (o do PowerShell é gravado em disco).
 
+  Num banco ainda sem loja, o primeiro `ADMIN` criado assim também cria a loja, com o nome "Minha loja"; troque o nome e os dados em Configurações. Com a loja criada, o `/cadastro` deixa de aceitar contas novas.
+
   Antes, rode `npm ci` uma vez na pasta. A senha inicial aparece só nessa saída: guarde-a e troque-a no primeiro acesso, em Configurações. Feche o terminal depois.
 
 ## 4. HTTPS com Cloudflare Tunnel (endereço fixo)

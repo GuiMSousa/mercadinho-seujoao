@@ -72,7 +72,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Interface e design system
 
 - [DESIGN.md](DESIGN.md) é o contrato visual e a fonte da verdade dos tokens. Leia-o antes de mexer em UI. `design-system/tokens.test.ts` falha se `DESIGN.md` e `design-system/tokens.css` divergirem: token novo ou alterado muda os dois no mesmo commit.
-- Componentes vêm de `@ds/components/*` (`design-system/components`): `Button`, `IconButton`, `Input`, `Select`, `Checkbox`, `Badge`, `Money`, `Card`, `Table`, `Dialog`, `Keypad`, `Tabs`, `Toast`. Reuse-os antes de criar outro; o passo a passo para criar um novo está no `DESIGN.md`. Exemplos vivos na rota `/design-system`.
+- Componentes vêm de `@ds/components/*` (`design-system/components`): `Button`, `IconButton`, `Input`, `Select`, `Checkbox`, `Badge`, `Money`, `Card`, `Table`, `Dialog`, `Keypad`, `Tabs`, `Toast`. Reuse-os antes de criar outro; o passo a passo para criar um novo está no `DESIGN.md`. Exemplos vivos na rota `/design-system` (só em desenvolvimento; 404 em produção).
 - Estilo só por tokens: cores semânticas (`bg-surface-card`, `text-strong`, `text-sub`, `bg-brand`, `*-fg`/`*-bg` de status), tipos `text-body-lg`/`text-body-md`/`text-h1`…, raios `rounded-control`/`rounded-card`, alturas `h-control-*`, sombras `shadow-(--shadow-sm)`. Sem hex, `rgb()`, `px`, rampas ou valores arbitrários em utilitários de cor, tipo, espaço e raio; o ESLint bloqueia.
 - `cn` vem de `@ds/lib/cn`, nunca do pacote `cn`. Valores em dinheiro aparecem com `Money` (centavos inteiros).
 - `design-system/references/` é a exportação original do Claude Design: especificação estática, nunca importada.

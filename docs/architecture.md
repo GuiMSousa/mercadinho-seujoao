@@ -44,7 +44,7 @@ src/
 │   │   └── estoque/reposicao # sugestão de compra (mínimo + uma semana das vendas de 28 dias) por fornecedor padrão e pedido por WhatsApp
 │   │   ├── usuarios/         # abas Equipe (convites, perfil, desativar) e Registro de atividade
 │   │   └── configuracoes/    # dados da loja, tema, inatividade da sessão, alterar senha, encerrar outras sessões
-│   ├── design-system/        # vitrine pública: componentes, estados e temas (dados fictícios)
+│   ├── design-system/        # vitrine de componentes, estados e temas (dados fictícios); 404 em produção
 │   └── api/
 │       ├── _lib/guard.ts     # adaptador HTTP: lê a sessão, aplica accessDenial, define/limpa cookies
 │       ├── _lib/public.ts    # rotas públicas: guard + limite por IP + validação (422 com `fields`) + sessão
@@ -116,7 +116,7 @@ src/app/api/<rota> (fina) ──> src/domains/<feature>/service ──> reposito
 
 **Acesso** (`accessDenial`, usado pelo proxy e por cada rota):
 
-- Públicos: `/`, `/login`, `/cadastro`, `/recuperar`, `/design-system`, `/api/setup`, `/api/theme`, `/api/health` e as rotas de `/api/auth` de entrada (login, cadastro, recuperação); qualquer outro caminho exige sessão (padrão seguro).
+- Públicos: `/`, `/login`, `/cadastro`, `/recuperar`, `/design-system` (só em desenvolvimento; 404 em produção), `/api/setup`, `/api/theme`, `/api/health` e as rotas de `/api/auth` de entrada (login, cadastro, recuperação); qualquer outro caminho exige sessão (padrão seguro).
 - `/painel`, `/api/admin`, `/api/account` e `/api/store` exigem `ADMIN`. `/caixa`, `/api/sales`, `/api/products*`, `/api/customers` (busca do fiado, sem documento nem telefone) e `/api/cash/*` aceitam os dois perfis.
 - Métodos que alteram estado exigem `x-csrf-token` cujo SHA-256 seja igual a `sessions.csrfHash` e mesma origem.
 - O proxy redireciona páginas sem sessão para `/login`; em `/`, quem tem sessão vai para a sua tela e os visitantes veem a landing pública. Um `CASHIER` que abre uma página do painel vai para `/caixa`; nas rotas de API continua recebendo 403.
